@@ -13,18 +13,18 @@ Aside from the memory leak, I'm pretty sure this codebase has multiple other iss
 ### How to Build and Run
 
 1. Open the project/solution in Visual Studio 2022.
-2. Build the project (ideally using the Debug configuration) and make sure it compiles with no errors.
+2. Build the project (ideally using the `Debug` configuration) and make sure it compiles with no errors.
 3. Debug the project using the Diagnostic Tools.
-4. Close the program window (not the console window) and pay attention to the Process Memory. You'll see it slightly goes down step by step, but then it stays at that level until the program exits.
-5. When you want to exit the application altogether, there should be a "Press any key to continue . . . " line in the command prompt window. Press any key to exit the application.
+4. Close the application window (not the console window) and pay attention to the Process Memory. You'll see it slightly goes down step by step, but then it stays at that level until the program exits.
+5. When you want to exit the application altogether, there should be a `Press any key to continue . . . ` line in the command prompt window. Do as instructed to exit the application.
 
 ##### Shader Compilation
 
-The shaders in the "shaders" folder have already been compiled to SPIR-V, and those SPIR-V files worked for me on two machines, but I'm not sure if they would work for you (I don't know if SPIR-V compilation output depends on your hardware/graphics drivers or not). If it doesn't work for you, try following these steps:
+The shaders in the `ibex3D_sampleApplication/shaders` folder have already been compiled to SPIR-V, and those SPIR-V files worked for me on two machines, but I'm not sure if they would work for you (I don't know if SPIR-V compilation output depends on your hardware/graphics drivers or not). If it doesn't work for you, try following these steps:
 
-1. Go to "ibex3D_sampleApplication/shaders/" and edit the "compile.bat" file inside.
-2. Replace both occurences of "D:/VulkanSDK/1.4.341.1/Bin/glslc.exe" with the path to glslc.exe in your Vulkan SDK installation.
-3. Run "compile.bat" and see if you don't get any errors.
+1. Go to `ibex3D_sampleApplication/shaders/` and edit the "compile.bat" file inside.
+2. Replace both occurences of `D:/VulkanSDK/1.4.341.1/Bin/glslc.exe` with the absolute path to glslc.exe in your Vulkan SDK installation (this would be `VulkanSDK/(version)/Bin/glslc.exe`).
+3. Run `compile.bat` and see if you don't get any errors.
 
 ### Requirements
 
