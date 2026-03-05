@@ -4,7 +4,7 @@
 
 struct vkVertexBufferClass;
 
-class vk_renderingContext
+class vkRenderingContext
 {
 public:
 	bool initialize(const char* appName, void* wndMemory);

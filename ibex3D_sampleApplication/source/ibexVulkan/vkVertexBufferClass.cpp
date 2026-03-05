@@ -15,7 +15,7 @@ static bool findMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter,
 		}
 	}
 
-	vk_utilFunctions::printVkError("findMemoryType()", "Couldn't find any suitable memory type.");
+	vkUtils::printVkError("findMemoryType()", "Couldn't find any suitable memory type.");
 	return false;
 }
 
@@ -77,7 +77,7 @@ bool vkVertexBufferClass::initialize(VkPhysicalDevice physicalDevice, VkDevice l
 
 	if (result != VK_SUCCESS)
 	{
-		vk_utilFunctions::printVkResultError(result, "vkVertexBufferClass::initialize()", "Couldn't create the vertex buffer.");
+		vkUtils::printVkResultError(result, "vkVertexBufferClass::initialize()", "Couldn't create the vertex buffer.");
 		return false;
 	}
 #pragma endregion
@@ -107,7 +107,7 @@ bool vkVertexBufferClass::initialize(VkPhysicalDevice physicalDevice, VkDevice l
 
 	if (result != VK_SUCCESS)
 	{
-		vk_utilFunctions::printVkResultError(result, "vkVertexBufferClass::initialize()", "Couldn't allocate the vertex buffer memory.");
+		vkUtils::printVkResultError(result, "vkVertexBufferClass::initialize()", "Couldn't allocate the vertex buffer memory.");
 		return false;
 	}
 

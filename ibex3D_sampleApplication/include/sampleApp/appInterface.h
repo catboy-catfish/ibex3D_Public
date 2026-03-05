@@ -1,7 +1,7 @@
 #pragma once
 
 class appRuntime;
-class vk_renderingContext;
+class vkRenderingContext;
 
 class appInterface
 {
@@ -20,5 +20,5 @@ public:
 
 private:
 	appRuntime* m_appRuntime = nullptr;
-	vk_renderingContext* m_renderingContext = nullptr;
+	vkRenderingContext* m_renderingContext = nullptr;
 };

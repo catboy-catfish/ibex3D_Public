@@ -2,7 +2,7 @@
 #include <vulkan/vulkan.h>
 #include <vector>
 
-struct vk_queueFamilyIndices
+struct vkQueueFamilyIndices
 {
 	int graphicsFamily = -1;
 	int presentFamily = -1;
@@ -13,14 +13,14 @@ struct vk_queueFamilyIndices
 	}
 };
 
-struct vk_swapchainSupportInfo
+struct vkSwapchainSupportInfo
 {
 	VkSurfaceCapabilitiesKHR capabilities = {};
 	std::vector<VkSurfaceFormatKHR> formats;
 	std::vector<VkPresentModeKHR> presentModes;
 };
 
-class vk_utilFunctions
+class vkUtils
 {
 public:
 	
@@ -29,8 +29,8 @@ public:
 	static void printVkResultError(VkResult result, const char* functionName, const char* message);
 
 	// Physical device and swapchain
-	static vk_queueFamilyIndices findQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface);
-	static vk_swapchainSupportInfo querySwapchainSupport(VkPhysicalDevice device, VkSurfaceKHR surface);
+	static vkQueueFamilyIndices findQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface);
+	static vkSwapchainSupportInfo querySwapchainSupport(VkPhysicalDevice device, VkSurfaceKHR surface);
 	static bool checkPhysicalDeviceSuitability(VkPhysicalDevice device, VkSurfaceKHR surface, bool extensionsSupported);
 
 	// Swapchain

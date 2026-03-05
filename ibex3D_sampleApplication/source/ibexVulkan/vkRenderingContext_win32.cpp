@@ -75,7 +75,7 @@ static void configureRequiredExtensionsAndLayers()
 
 // - Public functions ---------------------------------------------------------------------------------
 
-bool vk_renderingContext::initialize(const char* appName, void* wndMemory)
+bool vkRenderingContext::initialize(const char* appName, void* wndMemory)
 {	
 	int wndWidth, wndHeight;
 	IBEX3D_BASSERT(win32_utils::getWindowDimensions(static_cast<HWND>(wndMemory), wndWidth, wndHeight));
@@ -96,7 +96,7 @@ bool vk_renderingContext::initialize(const char* appName, void* wndMemory)
 	return true;
 }
 
-bool vk_renderingContext::drawFrame()
+bool vkRenderingContext::drawFrame()
 {	
 	vkWaitForFences(m_logicalDevice, 1, &m_inFlightFences[m_currentFrame], VK_TRUE, UINT64_MAX);
 
@@ -110,7 +110,7 @@ bool vk_renderingContext::drawFrame()
 	}
 	else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
 	{
-		vk_utilFunctions::printVkResultError(result, "vk_renderingContext::drawFrame()", "Couldn't acquire the swapchain image.");
+		vkUtils::printVkResultError(result, "vkRenderingContext::drawFrame()", "Couldn't acquire the swapchain image.");
 		return false;
 	}
 
@@ -140,7 +140,7 @@ bool vk_renderingContext::drawFrame()
 
 	if (result != VK_SUCCESS)
 	{
-		vk_utilFunctions::printVkResultError(result, "vk_renderingContext::drawFrame()", "Couldn't submit the draw command buffer.");
+		vkUtils::printVkResultError(result, "vkRenderingContext::drawFrame()", "Couldn't submit the draw command buffer.");
 		return false;
 	}
 
@@ -166,7 +166,7 @@ bool vk_renderingContext::drawFrame()
 	}
 	else if (result != VK_SUCCESS)
 	{
-		vk_utilFunctions::printVkResultError(result, "vk_renderingContext::drawFrame()", "Couldn't enqueue the image for presentation.");
+		vkUtils::printVkResultError(result, "vkRenderingContext::drawFrame()", "Couldn't enqueue the image for presentation.");
 		return false;
 	}
 
@@ -174,12 +174,12 @@ bool vk_renderingContext::drawFrame()
 	return true;
 }
 
-void vk_renderingContext::enableResizedFlag()
+void vkRenderingContext::enableResizedFlag()
 {
 	m_wasJustResized = true;
 }
 
-void vk_renderingContext::cleanup()
+void vkRenderingContext::cleanup()
 {
 	cleanupLogicalDevice();
 	cleanupInstance();
@@ -189,14 +189,14 @@ void vk_renderingContext::cleanup()
 // - Main functions -----------------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------
 
-bool vk_renderingContext::initInstance(const char* appName)
+bool vkRenderingContext::initInstance(const char* appName)
 {
 	configureRequiredExtensionsAndLayers();
 
 #ifdef IBEX3D_VULKAN_USE_VALIDATION_LAYERS
 	if (!checkInstanceLayerSupport())
 	{
-		vk_utilFunctions::printVkError("vk_renderingContext::initInstance()", "Requested validation layers unavailable on this device.");
+		vkUtils::printVkError("vkRenderingContext::initInstance()", "Requested validation layers unavailable on this device.");
 		return false;
 	}
 #endif
@@ -230,7 +230,7 @@ bool vk_renderingContext::initInstance(const char* appName)
 
 	if (result != VK_SUCCESS)
 	{
-		vk_utilFunctions::printVkResultError(result, "vk_renderingContext::initInstance()", "Couldn't initialize the instance.");
+		vkUtils::printVkResultError(result, "vkRenderingContext::initInstance()", "Couldn't initialize the instance.");
 		return false;
 	}
 
@@ -239,7 +239,7 @@ bool vk_renderingContext::initInstance(const char* appName)
 
 	if (result != VK_SUCCESS)
 	{
-		vk_utilFunctions::printVkResultError(result, "vk_renderingContext::initInstance()", "Couldn't initialize the debug utils messenger.");
+		vkUtils::printVkResultError(result, "vkRenderingContext::initInstance()", "Couldn't initialize the debug utils messenger.");
 		return false;
 	}
 #endif
@@ -247,11 +247,11 @@ bool vk_renderingContext::initInstance(const char* appName)
 	return true;
 }
 
-bool vk_renderingContext::initSurface(void* wndMemory)
+bool vkRenderingContext::initSurface(void* wndMemory)
 {
 	if (wndMemory == nullptr)
 	{
-		vk_utilFunctions::printVkError("vk_renderingContext::initSurface()", "Argument \"void* wndMemory\" is nullptr.");
+		vkUtils::printVkError("vkRenderingContext::initSurface()", "Argument \"void* wndMemory\" is nullptr.");
 		return false;
 	}
 
@@ -266,21 +266,21 @@ bool vk_renderingContext::initSurface(void* wndMemory)
 
 	if (result != VK_SUCCESS)
 	{
-		vk_utilFunctions::printVkResultError(result, "vk_renderingContext::initSurface()", "Couldn't initialize the Win32 window surface.");
+		vkUtils::printVkResultError(result, "vkRenderingContext::initSurface()", "Couldn't initialize the Win32 window surface.");
 		return false;
 	}
 	
 	return true;
 }
 
-bool vk_renderingContext::initPhysicalDevice()
+bool vkRenderingContext::initPhysicalDevice()
 {
 	uint32_t numDevices = 0;
 	vkEnumeratePhysicalDevices(m_instance, &numDevices, nullptr);
 
 	if (numDevices == 0)
 	{
-		vk_utilFunctions::printVkError("vk_renderingContext::initPhysicalDevice()", "Couldn't find any GPU(s) with Vulkan support.");
+		vkUtils::printVkError("vkRenderingContext::initPhysicalDevice()", "Couldn't find any GPU(s) with Vulkan support.");
 		return false;
 	}
 
@@ -291,7 +291,7 @@ bool vk_renderingContext::initPhysicalDevice()
 	{
 		bool extensionsSupported = checkPhysicalDeviceExtensionSupport(device);
 		
-		if (vk_utilFunctions::checkPhysicalDeviceSuitability(device, m_surface, extensionsSupported))
+		if (vkUtils::checkPhysicalDeviceSuitability(device, m_surface, extensionsSupported))
 		{
 			m_physicalDevice = device;
 			break;
@@ -300,20 +300,20 @@ bool vk_renderingContext::initPhysicalDevice()
 
 	if (m_physicalDevice == nullptr)
 	{
-		vk_utilFunctions::printVkError("vk_renderingContext::initPhysicalDevice()", "Couldn't find any suitable GPU.");
+		vkUtils::printVkError("vkRenderingContext::initPhysicalDevice()", "Couldn't find any suitable GPU.");
 		return false;
 	}
 
 	return true;
 }
 
-bool vk_renderingContext::initLogicalDevice()
+bool vkRenderingContext::initLogicalDevice()
 {
-	vk_queueFamilyIndices indices = vk_utilFunctions::findQueueFamilies(m_physicalDevice, m_surface);
+	vkQueueFamilyIndices indices = vkUtils::findQueueFamilies(m_physicalDevice, m_surface);
 
 	if (!indices.isComplete())
 	{
-		vk_utilFunctions::printVkError("vk_renderingContext::initLogicalDevice()", "One or more of the required queue families are missing.");
+		vkUtils::printVkError("vkRenderingContext::initLogicalDevice()", "One or more of the required queue families are missing.");
 		return false;
 	}
 
@@ -360,7 +360,7 @@ bool vk_renderingContext::initLogicalDevice()
 
 	if (result != VK_SUCCESS)
 	{
-		vk_utilFunctions::printVkResultError(result, "vk_renderingContext::initLogicalDevice()", "Couldn't initialize the logical device.");
+		vkUtils::printVkResultError(result, "vkRenderingContext::initLogicalDevice()", "Couldn't initialize the logical device.");
 		return false;
 	}
 
@@ -370,14 +370,14 @@ bool vk_renderingContext::initLogicalDevice()
 	return true;
 }
 
-bool vk_renderingContext::initSwapchain(int wndWidth, int wndHeight)
+bool vkRenderingContext::initSwapchain(int wndWidth, int wndHeight)
 {
 #pragma region Swapchain
-	vk_swapchainSupportInfo scSupport = vk_utilFunctions::querySwapchainSupport(m_physicalDevice, m_surface);
+	vkSwapchainSupportInfo scSupport = vkUtils::querySwapchainSupport(m_physicalDevice, m_surface);
 
-	VkSurfaceFormatKHR surfaceFormat = vk_utilFunctions::chooseSurfaceFormat(scSupport.formats);
-	VkPresentModeKHR presentMode = vk_utilFunctions::choosePresentMode(scSupport.presentModes);
-	VkExtent2D extent = vk_utilFunctions::chooseExtent(scSupport.capabilities, wndWidth, wndHeight);
+	VkSurfaceFormatKHR surfaceFormat = vkUtils::chooseSurfaceFormat(scSupport.formats);
+	VkPresentModeKHR presentMode = vkUtils::choosePresentMode(scSupport.presentModes);
+	VkExtent2D extent = vkUtils::chooseExtent(scSupport.capabilities, wndWidth, wndHeight);
 
 	uint32_t imageCount = scSupport.capabilities.minImageCount + 1;
 
@@ -396,11 +396,11 @@ bool vk_renderingContext::initSwapchain(int wndWidth, int wndHeight)
 	swapchainInfo.imageArrayLayers = 1;
 	swapchainInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-	vk_queueFamilyIndices indices = vk_utilFunctions::findQueueFamilies(m_physicalDevice, m_surface);
+	vkQueueFamilyIndices indices = vkUtils::findQueueFamilies(m_physicalDevice, m_surface);
 
 	if (!indices.isComplete())
 	{
-		vk_utilFunctions::printVkError("vk_renderingContext::initSwapchain()", "One or more of the required queue families are missing.");
+		vkUtils::printVkError("vkRenderingContext::initSwapchain()", "One or more of the required queue families are missing.");
 		return false;
 	}
 
@@ -433,7 +433,7 @@ bool vk_renderingContext::initSwapchain(int wndWidth, int wndHeight)
 
 	if (result != VK_SUCCESS)
 	{
-		vk_utilFunctions::printVkResultError(result, "vk_renderingContext::initSwapchain()", "Couldn't initialize the swapchain.");
+		vkUtils::printVkResultError(result, "vkRenderingContext::initSwapchain()", "Couldn't initialize the swapchain.");
 		return false;
 	}
 
@@ -466,7 +466,7 @@ bool vk_renderingContext::initSwapchain(int wndWidth, int wndHeight)
 
 		if (result != VK_SUCCESS)
 		{
-			vk_utilFunctions::printVkResultError(result, "vk_renderingContext::initSwapchain()", "Couldn't create one or more of the image views.");
+			vkUtils::printVkResultError(result, "vkRenderingContext::initSwapchain()", "Couldn't create one or more of the image views.");
 			return false;
 		}
 	}
@@ -475,7 +475,7 @@ bool vk_renderingContext::initSwapchain(int wndWidth, int wndHeight)
 	return true;
 }
 
-bool vk_renderingContext::initRenderPass()
+bool vkRenderingContext::initRenderPass()
 {
 #pragma region Color attachment and reference
 	VkAttachmentDescription colorAttachment = {};
@@ -522,7 +522,7 @@ bool vk_renderingContext::initRenderPass()
 
 	if (result != VK_SUCCESS)
 	{
-		vk_utilFunctions::printVkResultError(result, "vk_renderingContext::initRenderPass()", "Couldn't initialize the render pass.");
+		vkUtils::printVkResultError(result, "vkRenderingContext::initRenderPass()", "Couldn't initialize the render pass.");
 		return false;
 	}
 #pragma endregion
@@ -530,7 +530,7 @@ bool vk_renderingContext::initRenderPass()
 	return true;
 }
 
-bool vk_renderingContext::initGraphicsPipeline()
+bool vkRenderingContext::initGraphicsPipeline()
 {
 #pragma region Shader modules and stages info
 	// TODO: Figure out how to compile the GLSL shaders into SPIR-V at runtime using libshaderc
@@ -540,14 +540,14 @@ bool vk_renderingContext::initGraphicsPipeline()
 	auto frgShaderBytecode = ibex3D_utilFunctions::readFile("shaders/shader.frag.spv");
 	if (frgShaderBytecode.empty()) return false;
 
-	VkShaderModule vtxShaderModule = vk_utilFunctions::createShaderModule(m_logicalDevice, vtxShaderBytecode);
+	VkShaderModule vtxShaderModule = vkUtils::createShaderModule(m_logicalDevice, vtxShaderBytecode);
 
 	if (vtxShaderModule == nullptr)
 	{
 		return false;
 	}
 
-	VkShaderModule frgShaderModule = vk_utilFunctions::createShaderModule(m_logicalDevice, frgShaderBytecode);
+	VkShaderModule frgShaderModule = vkUtils::createShaderModule(m_logicalDevice, frgShaderBytecode);
 
 	if (frgShaderModule == nullptr)
 	{
@@ -691,7 +691,7 @@ bool vk_renderingContext::initGraphicsPipeline()
 
 	if (result != VK_SUCCESS)
 	{
-		vk_utilFunctions::printVkResultError(result, "vk_renderingContext::initGraphicsPipeline()", "Couldn't initialize the graphics pipeline layout.");
+		vkUtils::printVkResultError(result, "vkRenderingContext::initGraphicsPipeline()", "Couldn't initialize the graphics pipeline layout.");
 		
 		if (frgShaderModule != nullptr)
 		{
@@ -738,7 +738,7 @@ bool vk_renderingContext::initGraphicsPipeline()
 
 	if (result != VK_SUCCESS)
 	{
-		vk_utilFunctions::printVkResultError(result, "vk_renderingContext::initGraphicsPipeline()", "Couldn't initialize the graphics pipeline.");
+		vkUtils::printVkResultError(result, "vkRenderingContext::initGraphicsPipeline()", "Couldn't initialize the graphics pipeline.");
 
 		if (frgShaderModule != nullptr)
 		{
@@ -772,7 +772,7 @@ bool vk_renderingContext::initGraphicsPipeline()
 	return true;
 }
 
-bool vk_renderingContext::initFramebuffers()
+bool vkRenderingContext::initFramebuffers()
 {
 	m_swapchainFramebuffers.resize(m_swapchainImageViews.size());
 
@@ -793,7 +793,7 @@ bool vk_renderingContext::initFramebuffers()
 
 		if (result != VK_SUCCESS)
 		{
-			vk_utilFunctions::printVkResultError(result, "vk_renderingContext::initFramebuffers()", "Couldn't initialize one or more of the required framebuffers.");
+			vkUtils::printVkResultError(result, "vkRenderingContext::initFramebuffers()", "Couldn't initialize one or more of the required framebuffers.");
 			return false;
 		}
 	}
@@ -801,13 +801,13 @@ bool vk_renderingContext::initFramebuffers()
 	return true;
 }
 
-bool vk_renderingContext::initCommandPool()
+bool vkRenderingContext::initCommandPool()
 {
-	vk_queueFamilyIndices indices = vk_utilFunctions::findQueueFamilies(m_physicalDevice, m_surface);
+	vkQueueFamilyIndices indices = vkUtils::findQueueFamilies(m_physicalDevice, m_surface);
 
 	if (!indices.isComplete())
 	{
-		vk_utilFunctions::printVkError("vk_renderingContext::initCommandBuffers()", "One or more of the required queue families are missing.");
+		vkUtils::printVkError("vkRenderingContext::initCommandBuffers()", "One or more of the required queue families are missing.");
 		return false;
 	}
 
@@ -820,14 +820,14 @@ bool vk_renderingContext::initCommandPool()
 
 	if (result != VK_SUCCESS)
 	{
-		vk_utilFunctions::printVkResultError(result, "vk_renderingContext::initCommandBuffers()", "Couldn't initialize the command pool.");
+		vkUtils::printVkResultError(result, "vkRenderingContext::initCommandBuffers()", "Couldn't initialize the command pool.");
 		return false;
 	}
 	
 	return true;
 }
 
-bool vk_renderingContext::initVertexBuffer()
+bool vkRenderingContext::initVertexBuffer()
 {
 	m_vertexBuffer = new vkVertexBufferClass;
 	
@@ -839,7 +839,7 @@ bool vk_renderingContext::initVertexBuffer()
 	return true;
 }
 
-bool vk_renderingContext::initCommandBuffers()
+bool vkRenderingContext::initCommandBuffers()
 {
 	m_commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
 
@@ -853,14 +853,14 @@ bool vk_renderingContext::initCommandBuffers()
 
 	if (result != VK_SUCCESS)
 	{
-		vk_utilFunctions::printVkResultError(result, "vk_renderingContext::initCommandBuffers()", "Couldn't allocate the command buffers.");
+		vkUtils::printVkResultError(result, "vkRenderingContext::initCommandBuffers()", "Couldn't allocate the command buffers.");
 		return false;
 	}
 
 	return true;
 }
 
-bool vk_renderingContext::initSyncObjects()
+bool vkRenderingContext::initSyncObjects()
 {
 	m_imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
 	m_renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
@@ -879,7 +879,7 @@ bool vk_renderingContext::initSyncObjects()
 
 		if (result != VK_SUCCESS)
 		{
-			vk_utilFunctions::printVkResultError(result, "vk_renderingContext::initSyncObjects()", "Couldn't create the \"image available\" semaphore for one or more frames in flight.");
+			vkUtils::printVkResultError(result, "vkRenderingContext::initSyncObjects()", "Couldn't create the \"image available\" semaphore for one or more frames in flight.");
 			return false;
 		}
 
@@ -887,7 +887,7 @@ bool vk_renderingContext::initSyncObjects()
 
 		if (result != VK_SUCCESS)
 		{
-			vk_utilFunctions::printVkResultError(result, "vk_renderingContext::initSyncObjects()", "Couldn't create the \"render finished\" semaphore for one or more frames in flight.");
+			vkUtils::printVkResultError(result, "vkRenderingContext::initSyncObjects()", "Couldn't create the \"render finished\" semaphore for one or more frames in flight.");
 			return false;
 		}
 
@@ -895,7 +895,7 @@ bool vk_renderingContext::initSyncObjects()
 
 		if (result != VK_SUCCESS)
 		{
-			vk_utilFunctions::printVkResultError(result, "vk_renderingContext::initSyncObjects()", "Couldn't create the \"in flight\" fence for one or more frames in flight.");
+			vkUtils::printVkResultError(result, "vkRenderingContext::initSyncObjects()", "Couldn't create the \"in flight\" fence for one or more frames in flight.");
 			return false;
 		}
 	}
@@ -903,7 +903,7 @@ bool vk_renderingContext::initSyncObjects()
 	return true;
 }
 
-bool vk_renderingContext::recordCommandBuffer(VkCommandBuffer buffer, uint32_t imageIndex)
+bool vkRenderingContext::recordCommandBuffer(VkCommandBuffer buffer, uint32_t imageIndex)
 {
 	VkCommandBufferBeginInfo beginInfo = {};
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -914,7 +914,7 @@ bool vk_renderingContext::recordCommandBuffer(VkCommandBuffer buffer, uint32_t i
 
 	if (result != VK_SUCCESS)
 	{
-		vk_utilFunctions::printVkResultError(result, "vk_renderingContext::recordCommandBuffer()", "Couldn't begin recording the command buffer.");
+		vkUtils::printVkResultError(result, "vkRenderingContext::recordCommandBuffer()", "Couldn't begin recording the command buffer.");
 		return false;
 	}
 
@@ -958,14 +958,14 @@ bool vk_renderingContext::recordCommandBuffer(VkCommandBuffer buffer, uint32_t i
 
 	if (result != VK_SUCCESS)
 	{
-		vk_utilFunctions::printVkResultError(result, "vk_renderingContext::recordCommandBuffer()", "Couldn't finish recording the command buffer.");
+		vkUtils::printVkResultError(result, "vkRenderingContext::recordCommandBuffer()", "Couldn't finish recording the command buffer.");
 		return false;
 	}
 
 	return true;
 }
 
-void vk_renderingContext::recreateSwapchain()
+void vkRenderingContext::recreateSwapchain()
 {	
 	int wndWidth = 0;
 	int wndHeight = 0;
@@ -980,7 +980,7 @@ void vk_renderingContext::recreateSwapchain()
 	initFramebuffers();
 }
 
-void vk_renderingContext::cleanupSwapchain(VkDevice logicalDevice)
+void vkRenderingContext::cleanupSwapchain(VkDevice logicalDevice)
 {
 	for (auto framebuffer : m_swapchainFramebuffers)
 	{
@@ -1009,7 +1009,7 @@ void vk_renderingContext::cleanupSwapchain(VkDevice logicalDevice)
 	}
 }
 
-void vk_renderingContext::cleanupLogicalDevice()
+void vkRenderingContext::cleanupLogicalDevice()
 {
 	if (m_logicalDevice != nullptr)
 	{
@@ -1078,7 +1078,7 @@ void vk_renderingContext::cleanupLogicalDevice()
 	}
 }
 
-void vk_renderingContext::cleanupInstance()
+void vkRenderingContext::cleanupInstance()
 {
 	if (m_instance != nullptr)
 	{
@@ -1106,7 +1106,7 @@ void vk_renderingContext::cleanupInstance()
 // - Helper functions ---------------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------
 
-bool vk_renderingContext::checkInstanceLayerSupport()
+bool vkRenderingContext::checkInstanceLayerSupport()
 {
 #ifdef IBEX3D_VULKAN_USE_VALIDATION_LAYERS
 	if (requiredLayers.empty()) return true;
@@ -1140,7 +1140,7 @@ bool vk_renderingContext::checkInstanceLayerSupport()
 	return true;
 }
 
-bool vk_renderingContext::checkPhysicalDeviceExtensionSupport(VkPhysicalDevice device)
+bool vkRenderingContext::checkPhysicalDeviceExtensionSupport(VkPhysicalDevice device)
 {
 	uint32_t extensionCount = 0;
 	vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
@@ -1162,7 +1162,7 @@ bool vk_renderingContext::checkPhysicalDeviceExtensionSupport(VkPhysicalDevice d
 	return extensions.empty();
 }
 
-void vk_renderingContext::printAvailableInstanceExtensions()
+void vkRenderingContext::printAvailableInstanceExtensions()
 {
 	uint32_t extensionCount = 0;
 	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
@@ -1178,7 +1178,7 @@ void vk_renderingContext::printAvailableInstanceExtensions()
 	}
 }
 
-void vk_renderingContext::printAvailableInstanceLayers()
+void vkRenderingContext::printAvailableInstanceLayers()
 {
 	uint32_t layerCount = 0;
 	vkEnumerateInstanceLayerProperties(&layerCount, nullptr);

@@ -12,12 +12,12 @@
 // - Logging ------------------------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------
 
-void vk_utilFunctions::printVkError(const char* functionName, const char* message)
+void vkUtils::printVkError(const char* functionName, const char* message)
 {
 	printf("VULKAN ERROR - %s: %s\n", functionName, message);
 }
 
-void vk_utilFunctions::printVkResultError(VkResult result, const char* functionName, const char* message)
+void vkUtils::printVkResultError(VkResult result, const char* functionName, const char* message)
 {
 	printf("VULKAN ERROR (VkResult: %d) - %s: %s\n", (int)result, functionName, message);
 }
@@ -26,9 +26,9 @@ void vk_utilFunctions::printVkResultError(VkResult result, const char* functionN
 // - Physical device and swapchain --------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------
 
-vk_queueFamilyIndices vk_utilFunctions::findQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface)
+vkQueueFamilyIndices vkUtils::findQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface)
 {
-	vk_queueFamilyIndices indices;
+	vkQueueFamilyIndices indices;
 
 	uint32_t queueFamilyCount = 0;
 	vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
@@ -60,9 +60,9 @@ vk_queueFamilyIndices vk_utilFunctions::findQueueFamilies(VkPhysicalDevice devic
 	return indices;
 }
 
-vk_swapchainSupportInfo vk_utilFunctions::querySwapchainSupport(VkPhysicalDevice device, VkSurfaceKHR surface)
+vkSwapchainSupportInfo vkUtils::querySwapchainSupport(VkPhysicalDevice device, VkSurfaceKHR surface)
 {
-	vk_swapchainSupportInfo info;
+	vkSwapchainSupportInfo info;
 	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &info.capabilities);
 
 	uint32_t formatCount = 0;
@@ -86,7 +86,7 @@ vk_swapchainSupportInfo vk_utilFunctions::querySwapchainSupport(VkPhysicalDevice
 	return info;
 }
 
-bool vk_utilFunctions::checkPhysicalDeviceSuitability(VkPhysicalDevice device, VkSurfaceKHR surface, bool extensionsSupported)
+bool vkUtils::checkPhysicalDeviceSuitability(VkPhysicalDevice device, VkSurfaceKHR surface, bool extensionsSupported)
 {
 	VkPhysicalDeviceProperties deviceProperties = {};
 	vkGetPhysicalDeviceProperties(device, &deviceProperties);
@@ -104,12 +104,12 @@ bool vk_utilFunctions::checkPhysicalDeviceSuitability(VkPhysicalDevice device, V
 		return false;
 	}
 
-	vk_queueFamilyIndices indices = findQueueFamilies(device, surface);
+	vkQueueFamilyIndices indices = findQueueFamilies(device, surface);
 
 	bool swapChainSupportAdequate = false;
 	if (extensionsSupported)
 	{
-		vk_swapchainSupportInfo info = querySwapchainSupport(device, surface);
+		vkSwapchainSupportInfo info = querySwapchainSupport(device, surface);
 		swapChainSupportAdequate = (!info.formats.empty()) && (!info.presentModes.empty());
 	}
 
@@ -120,7 +120,7 @@ bool vk_utilFunctions::checkPhysicalDeviceSuitability(VkPhysicalDevice device, V
 // - Swapchain ----------------------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------
 
-VkSurfaceFormatKHR vk_utilFunctions::chooseSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
+VkSurfaceFormatKHR vkUtils::chooseSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
 {
 	for (const auto& availableFormat : availableFormats)
 	{
@@ -133,7 +133,7 @@ VkSurfaceFormatKHR vk_utilFunctions::chooseSurfaceFormat(const std::vector<VkSur
 	return availableFormats[0];
 }
 
-VkPresentModeKHR vk_utilFunctions::choosePresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes)
+VkPresentModeKHR vkUtils::choosePresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes)
 {
 	for (const auto& availablePresentMode : availablePresentModes)
 	{
@@ -146,7 +146,7 @@ VkPresentModeKHR vk_utilFunctions::choosePresentMode(const std::vector<VkPresent
 	return VK_PRESENT_MODE_FIFO_KHR;
 }
 
-VkExtent2D vk_utilFunctions::chooseExtent(const VkSurfaceCapabilitiesKHR& capabilities, int width, int height)
+VkExtent2D vkUtils::chooseExtent(const VkSurfaceCapabilitiesKHR& capabilities, int width, int height)
 {
 	if (capabilities.currentExtent.width != UINT_MAX)
 	{
@@ -171,11 +171,11 @@ VkExtent2D vk_utilFunctions::chooseExtent(const VkSurfaceCapabilitiesKHR& capabi
 // - Shader loading -----------------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------
 
-VkShaderModule vk_utilFunctions::createShaderModule(VkDevice logicalDevice, const std::vector<char>& bytecode)
+VkShaderModule vkUtils::createShaderModule(VkDevice logicalDevice, const std::vector<char>& bytecode)
 {
 	if (bytecode.empty())
 	{
-		printVkError("createShaderModule()", "Argument \"const std::vector<char>& bytecode\" is empty.");
+		printVkError("vkUtils::createShaderModule()", "Argument \"const std::vector<char>& bytecode\" is empty.");
 		return nullptr;
 	}
 
@@ -189,14 +189,14 @@ VkShaderModule vk_utilFunctions::createShaderModule(VkDevice logicalDevice, cons
 
 	if (result != VK_SUCCESS)
 	{
-		printVkResultError(result, "createShaderModule()", "Couldn't create the shader module.");
+		printVkResultError(result, "vkUtils::createShaderModule()", "Couldn't create the shader module.");
 		return nullptr;
 	}
 
 	return shaderModule;
 }
 
-VkShaderModule vk_utilFunctions::createShaderModuleFromText(VkDevice logicalDevice, const char* fileName)
+VkShaderModule vkUtils::createShaderModuleFromText(VkDevice logicalDevice, const char* fileName)
 {
 	/*
 		Pick up from where you left off at https://youtu.be/Qbs9v1W7St8?t=416

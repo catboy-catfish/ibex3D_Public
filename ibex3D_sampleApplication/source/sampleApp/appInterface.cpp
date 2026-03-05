@@ -11,7 +11,7 @@ bool appInterface::initialize(appRuntime* runtimePtr, void* pWindow)
 {
 	m_appRuntime = runtimePtr;
 	
-	m_renderingContext = new vk_renderingContext;
+	m_renderingContext = new vkRenderingContext;
 	if (!m_renderingContext->initialize("ibex3D Sample Application", pWindow))
 	{
 		return false;

@@ -28,7 +28,9 @@
     <ClInclude Include="include\ibexVulkan\vkUtils.h">
       <Filter>ibexVulkan</Filter>
     </ClInclude>
-    <ClInclude Include="include\ibexVulkan\vkVertexBufferClass.h" />
+    <ClInclude Include="include\ibexVulkan\vkVertexBufferClass.h">
+      <Filter>ibexVulkan</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\sampleApp\appInterface.cpp">
@@ -52,8 +54,12 @@
     <ClCompile Include="source\ibexVulkan\vkUtils.cpp">
       <Filter>ibexVulkan</Filter>
     </ClCompile>
-    <ClCompile Include="source\sampleApp\main.cpp" />
-    <ClCompile Include="source\ibexVulkan\vkVertexBufferClass.cpp" />
+    <ClCompile Include="source\sampleApp\main.cpp">
+      <Filter>sampleApp</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ibexVulkan\vkVertexBufferClass.cpp">
+      <Filter>ibexVulkan</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="ibex3D">
@@ -71,9 +77,16 @@
     <Filter Include="ibex3D\utility">
       <UniqueIdentifier>{420fe6d9-7b0a-44b8-afde-03833488ded4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="shaders">
+      <UniqueIdentifier>{0fffc31f-984c-4110-afd4-198bdb8646c3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="shaders\shader.frag" />
-    <None Include="shaders\shader.vert" />
+    <None Include="shaders\shader.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\shader.vert">
+      <Filter>shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
