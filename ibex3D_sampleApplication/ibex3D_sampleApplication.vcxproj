@@ -1,17 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Debug|Win32">
-      <Configuration>Debug</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|Win32">
-      <Configuration>Release</Configuration>
-      <Platform>Win32</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|x64">
       <Configuration>Release</Configuration>
@@ -19,28 +11,31 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\core\timerClass.cpp" />
-    <ClCompile Include="source\application\appInterface.cpp" />
-    <ClCompile Include="source\core\appRuntime_win32.cpp" />
-    <ClCompile Include="source\utility\windowsUtilFunctions.cpp" />
-    <ClCompile Include="source\vkHelpers\vkRenderingContext_win32.cpp" />
-    <ClCompile Include="source\main.cpp" />
-    <ClCompile Include="source\vkHelpers\vkUtilFunctions.cpp" />
+    <ClInclude Include="include\ibex3D\core\appRuntime.h" />
+    <ClInclude Include="include\ibex3D\core\timerClass.h" />
+    <ClInclude Include="include\ibex3D\utility\memoryUtils.h" />
+    <ClInclude Include="include\ibex3D\utility\utilFunctions.h" />
+    <ClInclude Include="include\ibex3D\utility\windowsUtils.h" />
+    <ClInclude Include="include\ibexVulkan\vkFunctionPtrs.h" />
+    <ClInclude Include="include\ibexVulkan\vkRenderingContext.h" />
+    <ClInclude Include="include\ibexVulkan\vkUtils.h" />
+    <ClInclude Include="include\ibexVulkan\vkVertexBufferClass.h" />
+    <ClInclude Include="include\sampleApp\appInterface.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\application\appInterface.h" />
-    <ClInclude Include="include\core\appRuntime.h" />
-    <ClInclude Include="include\core\timerClass.h" />
-    <ClInclude Include="include\utility\memoryUtils.h" />
-    <ClInclude Include="include\utility\utilFunctions.h" />
-    <ClInclude Include="include\utility\windowsUtilFunctions.h" />
-    <ClInclude Include="include\vkHelpers\vkFunctionPointers.h" />
-    <ClInclude Include="include\vkHelpers\vkRenderingContext.h" />
-    <ClInclude Include="include\vkHelpers\vkUtilFunctions.h" />
+    <ClCompile Include="source\ibex3D\core\appRuntime_win32.cpp" />
+    <ClCompile Include="source\ibex3D\core\timerClass.cpp" />
+    <ClCompile Include="source\ibex3D\utility\utilFunctions.cpp" />
+    <ClCompile Include="source\ibex3D\utility\windowsUtilFunctions.cpp" />
+    <ClCompile Include="source\ibexVulkan\vkRenderingContext_win32.cpp" />
+    <ClCompile Include="source\ibexVulkan\vkUtils.cpp" />
+    <ClCompile Include="source\ibexVulkan\vkVertexBufferClass.cpp" />
+    <ClCompile Include="source\sampleApp\appInterface.cpp" />
+    <ClCompile Include="source\sampleApp\main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="include\vkShaders\shader.frag" />
-    <None Include="include\vkShaders\shader.vert" />
+    <None Include="shaders\shader.frag" />
+    <None Include="shaders\shader.vert" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
@@ -57,20 +52,7 @@
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
@@ -85,13 +67,7 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
@@ -99,15 +75,7 @@
     <OutDir>$(SolutionDir)output/binaries/$(Configuration)-$(Platform)/</OutDir>
     <IntDir>$(SolutionDir)output/intermediate/$(Configuration)-$(Platform)/</IntDir>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(SolutionDir)output/binaries/$(Configuration)-$(Platform)/</OutDir>
-    <IntDir>$(SolutionDir)output/intermediate/$(Configuration)-$(Platform)/</IntDir>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(SolutionDir)output/binaries/$(Configuration)-$(Platform)/</OutDir>
-    <IntDir>$(SolutionDir)output/intermediate/$(Configuration)-$(Platform)/</IntDir>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)output/binaries/$(Configuration)-$(Platform)/</OutDir>
     <IntDir>$(SolutionDir)output/intermediate/$(Configuration)-$(Platform)/</IntDir>
   </PropertyGroup>
@@ -115,28 +83,9 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>IBEX3D_PLATFORM_WIN32;IBEX3D_VULKAN_USE_VALIDATION_LAYERS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>IBEX3D_PLATFORM_WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)include/;$(VULKAN_SDK)/Include/;</AdditionalIncludeDirectories>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <LanguageStandard>Default</LanguageStandard>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-    </ClCompile>
-    <Link>
-      <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(VULKAN_SDK)/Lib/</AdditionalLibraryDirectories>
-      <AdditionalDependencies>vulkan-1.lib;glslangd.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>IBEX3D_PLATFORM_WIN32;IBEX3D_VULKAN_USE_VALIDATION_LAYERS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)include/;$(VULKAN_SDK)/Include/;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VULKAN_SDK)/Include/;$(ProjectDir)include/;$(SolutionDir)libraries/include/</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <LanguageStandard>Default</LanguageStandard>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
@@ -155,30 +104,9 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>IBEX3D_PLATFORM_WIN32;IBEX3D_VULKAN_USE_VALIDATION_LAYERS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>IBEX3D_PLATFORM_WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)include/;$(VULKAN_SDK)/Include/;</AdditionalIncludeDirectories>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <LanguageStandard>Default</LanguageStandard>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-    </ClCompile>
-    <Link>
-      <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(VULKAN_SDK)/Lib/</AdditionalLibraryDirectories>
-      <AdditionalDependencies>vulkan-1.lib;glslang.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>IBEX3D_PLATFORM_WIN32;IBEX3D_VULKAN_USE_VALIDATION_LAYERS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)include/;$(VULKAN_SDK)/Include/;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(VULKAN_SDK)/Include/;$(ProjectDir)include/;$(SolutionDir)libraries/include/</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <LanguageStandard>Default</LanguageStandard>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>

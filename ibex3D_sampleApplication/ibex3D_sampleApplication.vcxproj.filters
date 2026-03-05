@@ -1,74 +1,79 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="NewFilter1">
-      <UniqueIdentifier>{982a5067-722c-4d36-a41d-8b132817f5d4}</UniqueIdentifier>
+    <ClInclude Include="include\sampleApp\appInterface.h">
+      <Filter>sampleApp</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ibex3D\core\appRuntime.h">
+      <Filter>ibex3D\core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ibex3D\core\timerClass.h">
+      <Filter>ibex3D\core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ibex3D\utility\memoryUtils.h">
+      <Filter>ibex3D\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ibex3D\utility\utilFunctions.h">
+      <Filter>ibex3D\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ibex3D\utility\windowsUtils.h">
+      <Filter>ibex3D\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ibexVulkan\vkFunctionPtrs.h">
+      <Filter>ibexVulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ibexVulkan\vkRenderingContext.h">
+      <Filter>ibexVulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ibexVulkan\vkUtils.h">
+      <Filter>ibexVulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ibexVulkan\vkVertexBufferClass.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="source\sampleApp\appInterface.cpp">
+      <Filter>sampleApp</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ibex3D\core\appRuntime_win32.cpp">
+      <Filter>ibex3D\core</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ibex3D\core\timerClass.cpp">
+      <Filter>ibex3D\core</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ibex3D\utility\utilFunctions.cpp">
+      <Filter>ibex3D\utility</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ibex3D\utility\windowsUtilFunctions.cpp">
+      <Filter>ibex3D\utility</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ibexVulkan\vkRenderingContext_win32.cpp">
+      <Filter>ibexVulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ibexVulkan\vkUtils.cpp">
+      <Filter>ibexVulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="source\sampleApp\main.cpp" />
+    <ClCompile Include="source\ibexVulkan\vkVertexBufferClass.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="ibex3D">
+      <UniqueIdentifier>{4eff8279-bd35-49af-b9ce-5997a9f9d7f7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="sampleApplication">
-      <UniqueIdentifier>{bfe7ddbb-3f3e-4dda-aa6e-9437a17e8410}</UniqueIdentifier>
+    <Filter Include="ibexVulkan">
+      <UniqueIdentifier>{360f4903-ba0c-4bd6-a5f8-1fd6d7523bcc}</UniqueIdentifier>
     </Filter>
-    <Filter Include="sampleApplication\application">
-      <UniqueIdentifier>{b0b08c06-897a-44b8-97a6-22d094658c2b}</UniqueIdentifier>
+    <Filter Include="sampleApp">
+      <UniqueIdentifier>{0815c615-db27-42f7-8e9f-190d0685f0e7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="sampleApplication\core">
-      <UniqueIdentifier>{1ba338ee-67c6-4d26-a43f-33dce4d5b625}</UniqueIdentifier>
+    <Filter Include="ibex3D\core">
+      <UniqueIdentifier>{137d49d6-b351-4b2a-b26b-10f8290e5f12}</UniqueIdentifier>
     </Filter>
-    <Filter Include="sampleApplication\vkhelpers">
-      <UniqueIdentifier>{11732c26-6202-485c-972b-e3771bb8d49e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="sampleApplication\application\appInterface">
-      <UniqueIdentifier>{008cda51-4dbb-4a64-b69f-107135e1ad52}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="sampleApplication\core\appRuntime">
-      <UniqueIdentifier>{88c80c19-80b5-4cf7-8583-5c7a160b9002}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="sampleApplication\core\timer">
-      <UniqueIdentifier>{16e6c676-d679-4d8a-97d6-6e85445c6990}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="sampleApplication\core\platformIncludes">
-      <UniqueIdentifier>{a0d5f388-2c65-43b1-b3bb-dd7a47d40c26}</UniqueIdentifier>
+    <Filter Include="ibex3D\utility">
+      <UniqueIdentifier>{420fe6d9-7b0a-44b8-afde-03833488ded4}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\vkHelpers\vkRenderingContext_win32.cpp">
-      <Filter>sampleApplication\vkhelpers</Filter>
-    </ClCompile>
-    <ClCompile Include="source\main.cpp">
-      <Filter>sampleApplication</Filter>
-    </ClCompile>
-    <ClCompile Include="source\application\appInterface.cpp">
-      <Filter>sampleApplication\application\appInterface</Filter>
-    </ClCompile>
-    <ClCompile Include="source\core\appRuntime_win32.cpp">
-      <Filter>sampleApplication\core\appRuntime</Filter>
-    </ClCompile>
-    <ClCompile Include="source\core\timerClass.cpp">
-      <Filter>sampleApplication\core\timer</Filter>
-    </ClCompile>
-    <ClCompile Include="source\utility\windowsUtilFunctions.cpp" />
-    <ClCompile Include="source\vkHelpers\vkUtilFunctions.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="include\vkHelpers\vkRenderingContext.h">
-      <Filter>sampleApplication\vkhelpers</Filter>
-    </ClInclude>
-    <ClInclude Include="include\application\appInterface.h">
-      <Filter>sampleApplication\application\appInterface</Filter>
-    </ClInclude>
-    <ClInclude Include="include\core\appRuntime.h">
-      <Filter>sampleApplication\core\appRuntime</Filter>
-    </ClInclude>
-    <ClInclude Include="include\core\timerClass.h">
-      <Filter>sampleApplication\core\timer</Filter>
-    </ClInclude>
-    <ClInclude Include="include\vkHelpers\vkUtilFunctions.h" />
-    <ClInclude Include="include\utility\utilFunctions.h" />
-    <ClInclude Include="include\utility\windowsUtilFunctions.h" />
-    <ClInclude Include="include\vkHelpers\vkFunctionPointers.h" />
-    <ClInclude Include="include\utility\memoryUtils.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="include\vkShaders\shader.vert" />
-    <None Include="include\vkShaders\shader.frag" />
+    <None Include="shaders\shader.frag" />
+    <None Include="shaders\shader.vert" />
   </ItemGroup>
 </Project>

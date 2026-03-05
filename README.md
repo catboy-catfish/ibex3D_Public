@@ -1,7 +1,3 @@
-### Important notice
-
-Despite the project having a Win32 platform configuration, it only supports building for 64-bit. This is because multiple parts of the code only work on x64, and the Vulkan SDK version 1.4.341.0 seems to only support x64 as well. I'd like to support 32-bit platforms eventually, but not right now.
-
 ### Readme
 
 This is the repository for the game engine I'm trying to create, ibex3D. It is written in C++, uses the Win32 API for windowing, and the Vulkan API to render graphics. It's based off of the Vulkan Tutorial by Alexander Overvoorde, but I've made some architectural changes to make it more my style.
