@@ -1,6 +1,6 @@
 #include <ibexVulkan/vkRenderingContext.h>
 #include <ibexVulkan/vkFunctionPtrs.h>
-#include <ibexVulkan/vkVertexBufferClass.h>
+#include <ibexVulkan/vkMeshClass.h>
 #include <ibexVulkan/vkUtils.h>
 
 #include <ibex3D/utility/utilFunctions.h>
@@ -89,7 +89,7 @@ bool vkRenderingContext::initialize(const char* appName, void* wndMemory)
 	IBEX3D_BASSERT(initGraphicsPipeline());
 	IBEX3D_BASSERT(initFramebuffers());
 	IBEX3D_BASSERT(initCommandPool());
-	IBEX3D_BASSERT(initVertexBuffer());
+	IBEX3D_BASSERT(initMeshClass());
 	IBEX3D_BASSERT(initCommandBuffers());
 	IBEX3D_BASSERT(initSyncObjects());
 
@@ -588,8 +588,8 @@ bool vkRenderingContext::initGraphicsPipeline()
 
 #pragma region Vertex input and assembly states
 	auto bindingDesc = vkVertex::getBindingDesc();
-	auto attribDescs = vkVertex::getAttribDescs();
-	
+	auto attribDescs = vkVertex::getAttributeDescs();
+
 	VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
 	vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 	vertexInputInfo.vertexBindingDescriptionCount = 1;
@@ -603,7 +603,7 @@ bool vkRenderingContext::initGraphicsPipeline()
 	inputAssemblyInfo.primitiveRestartEnable = VK_FALSE;
 #pragma endregion
 
-#pragma region Viewport and scissor info
+#pragma region Viewport info
 	VkViewport viewport = {};
 	viewport.x = 0.0f;
 	viewport.y = 0.0f;
@@ -615,9 +615,7 @@ bool vkRenderingContext::initGraphicsPipeline()
 	VkRect2D scissor = {};
 	scissor.offset = { 0, 0 };
 	scissor.extent = m_swapchainExtent;
-#pragma endregion
 
-#pragma region Viewport state info
 	VkPipelineViewportStateCreateInfo viewportStateInfo = {};
 	viewportStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
 	viewportStateInfo.viewportCount = 1;
@@ -827,11 +825,11 @@ bool vkRenderingContext::initCommandPool()
 	return true;
 }
 
-bool vkRenderingContext::initVertexBuffer()
-{
-	m_vertexBuffer = new vkVertexBufferClass;
+bool vkRenderingContext::initMeshClass()
+{	
+	m_meshClass = new vkMeshClass;
 	
-	if (!m_vertexBuffer->initialize(m_physicalDevice, m_logicalDevice))
+	if (!m_meshClass->initialize(m_physicalDevice, m_logicalDevice, m_commandPool, m_graphicsQueue))
 	{
 		return false;
 	}
@@ -946,11 +944,13 @@ bool vkRenderingContext::recordCommandBuffer(VkCommandBuffer buffer, uint32_t im
 	scissor.extent = m_swapchainExtent;
 	vkCmdSetScissor(buffer, 0, 1, &scissor);
 
-	VkBuffer vertexBuffers[] = { m_vertexBuffer->vtxBuffer };
+	VkBuffer vertexBuffers[] = { m_meshClass->vtxBuffer };
 	VkDeviceSize offsets[] = { 0 };
+	
 	vkCmdBindVertexBuffers(buffer, 0, 1, vertexBuffers, offsets);
+	vkCmdBindIndexBuffer(buffer, m_meshClass->idxBuffer, 0, VK_INDEX_TYPE_UINT32);
 
-	vkCmdDraw(buffer, static_cast<uint32_t>(m_vertexBuffer->vertices.size()), 1, 0, 0);
+	vkCmdDrawIndexed(buffer, static_cast<uint32_t>(m_meshClass->indices.size()), 1, 0, 0, 0);
 
 	vkCmdEndRenderPass(buffer);
 
@@ -980,13 +980,13 @@ void vkRenderingContext::recreateSwapchain()
 	initFramebuffers();
 }
 
-void vkRenderingContext::cleanupSwapchain(VkDevice logicalDevice)
+void vkRenderingContext::cleanupSwapchain(VkDevice device)
 {
 	for (auto framebuffer : m_swapchainFramebuffers)
 	{
 		if (framebuffer != nullptr)
 		{
-			vkDestroyFramebuffer(logicalDevice, framebuffer, nullptr);
+			vkDestroyFramebuffer(device, framebuffer, nullptr);
 		}
 	}
 
@@ -996,7 +996,7 @@ void vkRenderingContext::cleanupSwapchain(VkDevice logicalDevice)
 	{
 		if (imageView != nullptr)
 		{
-			vkDestroyImageView(logicalDevice, imageView, nullptr);
+			vkDestroyImageView(device, imageView, nullptr);
 		}
 	}
 
@@ -1004,7 +1004,7 @@ void vkRenderingContext::cleanupSwapchain(VkDevice logicalDevice)
 
 	if (m_swapchain != nullptr)
 	{
-		vkDestroySwapchainKHR(logicalDevice, m_swapchain, nullptr);
+		vkDestroySwapchainKHR(device, m_swapchain, nullptr);
 		m_swapchain = nullptr;
 	}
 }
@@ -1018,11 +1018,11 @@ void vkRenderingContext::cleanupLogicalDevice()
 
 		cleanupSwapchain(m_logicalDevice);
 
-		if (m_vertexBuffer != nullptr)
+		if (m_meshClass != nullptr)
 		{
-			m_vertexBuffer->cleanup(m_logicalDevice);
-			delete m_vertexBuffer;
-			m_vertexBuffer = nullptr;
+			m_meshClass->cleanup(m_logicalDevice);
+			delete m_meshClass;
+			m_meshClass = nullptr;
 		}
 
 		if (m_graphicsPipeline != nullptr)

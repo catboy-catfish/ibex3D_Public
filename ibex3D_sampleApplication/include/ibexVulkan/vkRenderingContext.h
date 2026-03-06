@@ -2,7 +2,7 @@
 #include <vulkan/vulkan.h>
 #include <vector>
 
-struct vkVertexBufferClass;
+struct vkMeshClass;
 
 class vkRenderingContext
 {
@@ -22,14 +22,14 @@ private:
 	bool initGraphicsPipeline();
 	bool initFramebuffers();
 	bool initCommandPool();
-	bool initVertexBuffer();
+	bool initMeshClass();
 	bool initCommandBuffers();
 	bool initSyncObjects();
 
 	bool recordCommandBuffer(VkCommandBuffer buffer, uint32_t imageIndex);
 	void recreateSwapchain();
 
-	void cleanupSwapchain(VkDevice logicalDevice);
+	void cleanupSwapchain(VkDevice device);
 	void cleanupLogicalDevice();
 	void cleanupInstance();
 
@@ -47,7 +47,6 @@ private:
 	VkDebugUtilsMessengerEXT m_debugMessenger = nullptr;
 	VkSurfaceKHR m_surface = nullptr;
 	VkPhysicalDevice m_physicalDevice = nullptr;
-
 	VkDevice m_logicalDevice = nullptr;
 	VkQueue m_graphicsQueue = nullptr;
 	VkQueue m_presentQueue = nullptr;
@@ -69,5 +68,5 @@ private:
 	std::vector<VkSemaphore> m_renderFinishedSemaphores;
 	std::vector<VkFence> m_inFlightFences;
 
-	vkVertexBufferClass* m_vertexBuffer = nullptr;
+	vkMeshClass* m_meshClass = nullptr;
 };

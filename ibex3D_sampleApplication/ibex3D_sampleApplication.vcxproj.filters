@@ -28,7 +28,7 @@
     <ClInclude Include="include\ibexVulkan\vkUtils.h">
       <Filter>ibexVulkan</Filter>
     </ClInclude>
-    <ClInclude Include="include\ibexVulkan\vkVertexBufferClass.h">
+    <ClInclude Include="include\ibexVulkan\vkMeshClass.h">
       <Filter>ibexVulkan</Filter>
     </ClInclude>
   </ItemGroup>
@@ -54,11 +54,11 @@
     <ClCompile Include="source\ibexVulkan\vkUtils.cpp">
       <Filter>ibexVulkan</Filter>
     </ClCompile>
+    <ClCompile Include="source\ibexVulkan\vkMeshClass.cpp">
+      <Filter>ibexVulkan</Filter>
+    </ClCompile>
     <ClCompile Include="source\sampleApp\main.cpp">
       <Filter>sampleApp</Filter>
-    </ClCompile>
-    <ClCompile Include="source\ibexVulkan\vkVertexBufferClass.cpp">
-      <Filter>ibexVulkan</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -78,7 +78,7 @@
       <UniqueIdentifier>{420fe6d9-7b0a-44b8-afde-03833488ded4}</UniqueIdentifier>
     </Filter>
     <Filter Include="shaders">
-      <UniqueIdentifier>{0fffc31f-984c-4110-afd4-198bdb8646c3}</UniqueIdentifier>
+      <UniqueIdentifier>{06d9f600-56ec-494e-ab3f-96257fa9f0a8}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
