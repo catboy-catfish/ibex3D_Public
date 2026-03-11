@@ -19,9 +19,6 @@
     <ClInclude Include="include\ibex3D\utility\windowsUtils.h">
       <Filter>ibex3D\utility</Filter>
     </ClInclude>
-    <ClInclude Include="include\ibexVulkan\vkFunctionPtrs.h">
-      <Filter>ibexVulkan</Filter>
-    </ClInclude>
     <ClInclude Include="include\ibexVulkan\vkRenderingContext.h">
       <Filter>ibexVulkan</Filter>
     </ClInclude>
@@ -86,6 +83,9 @@
       <Filter>shaders</Filter>
     </None>
     <None Include="shaders\shader.vert">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shaders\compile.bat">
       <Filter>shaders</Filter>
     </None>
   </ItemGroup>

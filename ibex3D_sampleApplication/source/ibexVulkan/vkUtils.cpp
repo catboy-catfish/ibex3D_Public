@@ -4,9 +4,51 @@
 #include <glslang/Include/glslang_c_interface.h>
 #include <glslang/Public/resource_limits_c.h>
 
+#include <algorithm>
 #include <limits>
 #include <set>
 #include <stdio.h>
+
+// ----------------------------------------------------------------------------------------------------
+// - Extension functions ------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------
+
+#ifdef IBEX3D_VULKAN_USE_VALIDATION_LAYERS
+VkResult vkExtFunctions::CreateDebugUtilsMessengerEXT
+(
+	VkInstance instance,
+	const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
+	const VkAllocationCallbacks* pAllocator,
+	VkDebugUtilsMessengerEXT* pDebugMessenger
+)
+{
+	auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
+
+	if (func != nullptr)
+	{
+		return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
+	}
+	else
+	{
+		return VK_ERROR_EXTENSION_NOT_PRESENT;
+	}
+}
+
+void vkExtFunctions::DestroyDebugUtilsMessengerEXT
+(
+	VkInstance instance,
+	VkDebugUtilsMessengerEXT debugMessenger,
+	const VkAllocationCallbacks* pAllocator
+)
+{
+	auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
+
+	if (func != nullptr)
+	{
+		func(instance, debugMessenger, pAllocator);
+	}
+}
+#endif
 
 // ----------------------------------------------------------------------------------------------------
 // - Logging ------------------------------------------------------------------------------------------
@@ -160,8 +202,8 @@ VkExtent2D vkUtils::chooseExtent(const VkSurfaceCapabilitiesKHR& capabilities, i
 			static_cast<uint32_t>(height)
 		};
 
-		actualExtent.width = clamp(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
-		actualExtent.height = clamp(actualExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
+		actualExtent.width = std::clamp(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
+		actualExtent.height = std::clamp(actualExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
 
 		return actualExtent;
 	}

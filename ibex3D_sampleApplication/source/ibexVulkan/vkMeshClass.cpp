@@ -1,6 +1,8 @@
 #include <ibexVulkan/vkMeshClass.h>
 #include <ibexVulkan/vkUtils.h>
 
+#include <glm/gtc/matrix_transform.hpp>
+
 VkVertexInputBindingDescription vkVertex::getBindingDesc()
 {
 	VkVertexInputBindingDescription bindingDesc = {};
@@ -183,7 +185,138 @@ bool vkMeshClass::initIndexBuffer(VkPhysicalDevice physicalDevice, VkDevice logi
 	return true;
 }
 
-bool vkMeshClass::initialize(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue)
+bool vkMeshClass::initUniformBuffers(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, size_t maxFramesInFlight)
+{
+	VkDeviceSize bufferSize = sizeof(vkUniformBufferData);
+
+	uniBuffers.resize(maxFramesInFlight);
+	uniBuffersMemory.resize(maxFramesInFlight);
+	uniBuffersMapped.resize(maxFramesInFlight);
+
+	for (size_t i = 0; i < maxFramesInFlight; i++)
+	{
+		if (!vkUtils::createBuffer
+		(
+			physicalDevice,
+			logicalDevice,
+			bufferSize,
+			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+			uniBuffers[i],
+			uniBuffersMemory[i]
+		))
+		{
+			return false;
+		}
+
+		vkMapMemory(logicalDevice, uniBuffersMemory[i], 0, bufferSize, 0, &uniBuffersMapped[i]);
+		// TODO: Add error checking?
+	}
+	
+	return true;
+}
+
+bool vkMeshClass::initDescriptorSetLayout(VkDevice logicalDevice)
+{
+	VkDescriptorSetLayoutBinding uboLayoutBinding = {};
+	uboLayoutBinding.binding = 0;
+	uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	uboLayoutBinding.descriptorCount = 1;
+	uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	uboLayoutBinding.pImmutableSamplers = nullptr;
+
+	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
+	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+	layoutInfo.bindingCount = 1;
+	layoutInfo.pBindings = &uboLayoutBinding;
+
+	VkResult result = vkCreateDescriptorSetLayout(logicalDevice, &layoutInfo, nullptr, &descriptorSetLayout);
+
+	if (result != VK_SUCCESS)
+	{
+		vkUtils::printVkResultError(result, "vkMeshClass::initDescriptorSetLayout()", "Couldn't create the descriptor set layout for the uniform buffer.");
+		return false;
+	}
+	
+	return true;
+}
+
+bool vkMeshClass::initDescriptorPoolAndSets(VkDevice logicalDevice, size_t maxFramesInFlight)
+{	
+	VkDescriptorPoolSize poolSize = {};
+	poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	poolSize.descriptorCount = static_cast<uint32_t>(maxFramesInFlight);
+
+	VkDescriptorPoolCreateInfo poolInfo = {};
+	poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+	poolInfo.poolSizeCount = 1;
+	poolInfo.pPoolSizes = &poolSize;
+	poolInfo.maxSets = poolSize.descriptorCount;
+
+	VkResult result = vkCreateDescriptorPool(logicalDevice, &poolInfo, nullptr, &descriptorPool);
+
+	if (result != VK_SUCCESS)
+	{
+		vkUtils::printVkResultError(result, "vkMeshClass::initDescriptorPoolAndSets()", "Couldn't create the descriptor pool.");
+		return false;
+	}
+
+	// ----------------------------------------------------------------------------------------------------
+
+	std::vector<VkDescriptorSetLayout> layouts(maxFramesInFlight, descriptorSetLayout);
+
+	VkDescriptorSetAllocateInfo allocInfo = {};
+	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+	allocInfo.descriptorPool = descriptorPool;
+	allocInfo.descriptorSetCount = static_cast<uint32_t>(maxFramesInFlight);
+	allocInfo.pSetLayouts = layouts.data();
+
+	descriptorSets.resize(maxFramesInFlight);
+
+	result = vkAllocateDescriptorSets(logicalDevice, &allocInfo, descriptorSets.data());
+
+	if (result != VK_SUCCESS)
+	{
+		vkUtils::printVkResultError(result, "vkMeshClass::initDescriptorPoolAndSets()", "Couldn't allocate the descriptor sets.");
+		return false;
+	}
+
+	for (size_t i = 0; i < maxFramesInFlight; i++)
+	{
+		VkDescriptorBufferInfo bufferInfo = {};
+		bufferInfo.buffer = uniBuffers[i];
+		bufferInfo.offset = 0;
+		bufferInfo.range = sizeof(vkUniformBufferData);
+		
+		VkWriteDescriptorSet descriptorWrite = {};
+		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWrite.dstSet = descriptorSets[i];
+		descriptorWrite.dstBinding = 0;
+		descriptorWrite.dstArrayElement = 0;
+		descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		descriptorWrite.descriptorCount = 1;
+		descriptorWrite.pBufferInfo = &bufferInfo;
+		descriptorWrite.pImageInfo = nullptr;		// Optional
+		descriptorWrite.pTexelBufferView = nullptr;	// Optional
+
+		vkUpdateDescriptorSets(logicalDevice, 1, &descriptorWrite, 0, nullptr);
+	}
+
+	return true;
+}
+
+void vkMeshClass::updateUniformBuffer(uint32_t currentImage, const VkExtent2D& swapchainExtent)
+{
+	vkUniformBufferData data = {};
+	data.modelMatrix = glm::rotate(glm::mat4(1.0f), currentRotation, glm::vec3(0.0f, 0.0f, 1.0f));
+	data.viewMatrix = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	data.projMatrix = glm::perspective(glm::radians(45.0f), swapchainExtent.width / (float)swapchainExtent.height, 0.1f, 10.0f);
+	data.projMatrix[1][1] *= -1.0f;
+
+	memcpy(uniBuffersMapped[currentImage], &data, sizeof(data));
+}
+
+bool vkMeshClass::initialize(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, size_t maxFramesInFlight)
 {
 	initMeshData();
 	
@@ -196,12 +329,68 @@ bool vkMeshClass::initialize(VkPhysicalDevice physicalDevice, VkDevice logicalDe
 	{
 		return false;
 	}
-	
+
+	if (!initUniformBuffers(physicalDevice, logicalDevice, maxFramesInFlight))
+	{
+		return false;
+	}
+
+	if (!initDescriptorPoolAndSets(logicalDevice, maxFramesInFlight))
+	{
+		return false;
+	}
+
 	return true;
 }
 
-void vkMeshClass::cleanup(VkDevice logicalDevice)
+void vkMeshClass::setMeshRotation(float rotation)
 {
+	currentRotation = rotation;
+}
+
+void vkMeshClass::draw(VkCommandBuffer buffer, VkPipelineLayout pipelineLayout, uint32_t currentFrame)
+{
+	VkBuffer vertexBuffers[] = { vtxBuffer };
+	VkDeviceSize offsets[] = { 0 };
+
+	vkCmdBindVertexBuffers(buffer, 0, 1, vertexBuffers, offsets);
+	vkCmdBindIndexBuffer(buffer, idxBuffer, 0, VK_INDEX_TYPE_UINT32);
+	vkCmdBindDescriptorSets(buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
+
+	vkCmdDrawIndexed(buffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+}
+
+void vkMeshClass::cleanup(VkDevice logicalDevice)
+{	
+	for (auto& buffer : uniBuffers)
+	{
+		vkDestroyBuffer(logicalDevice, buffer, nullptr);
+		buffer = nullptr;
+	}
+
+	uniBuffers.clear();
+
+	for (auto& memory : uniBuffersMemory)
+	{
+		vkUnmapMemory(logicalDevice, memory);
+		vkFreeMemory(logicalDevice, memory, nullptr);
+		memory = nullptr;
+	}
+
+	uniBuffersMemory.clear();
+	
+	if (descriptorPool != nullptr)
+	{
+		vkDestroyDescriptorPool(logicalDevice, descriptorPool, nullptr);
+		descriptorPool = nullptr;
+	}
+
+	if (descriptorSetLayout != nullptr)
+	{
+		vkDestroyDescriptorSetLayout(logicalDevice, descriptorSetLayout, nullptr);
+		descriptorSetLayout = nullptr;
+	}
+
 	vkUtils::destroyBuffer(logicalDevice, idxBuffer, idxBufferMemory);
 	vkUtils::destroyBuffer(logicalDevice, vtxBuffer, vtxBufferMemory);
 }

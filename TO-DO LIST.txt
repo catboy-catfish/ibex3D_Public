@@ -1,0 +1,10 @@
+- Switch from Visual Studio (Microsoft exclusive) to something like CMake to decrease platform dependence
+- Use meta build systems to exclude source code files depending on build platform
+
+- Find a way to compile GLSL bytecode to SPIR-V at runtime using GLSL or SPIR-V
+- Find a way to allocate the vertex, index and uniform buffer memory with one allocation
+- Find a way to consolidate the vertex, index and uniform buffers into one buffer using offsets
+- Investigate push constants as a replacement for uniform buffers
+
+- Investigate and implement custom memory allocation functions instead of overriding the new and delete operators
+- Make the engine code prettier

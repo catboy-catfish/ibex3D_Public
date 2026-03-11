@@ -5,6 +5,8 @@
 
 std::vector<char> ibex3D_utilFunctions::readFile(const std::string& filePath)
 {
+	// Pick up from where you left off at https://youtu.be/Qbs9v1W7St8?si=guDlWk9bBXZzHxOe&t=476
+	
 	std::ifstream file(filePath, std::ios::ate | std::ios::binary);
 
 	if (!file.is_open())
@@ -22,4 +24,13 @@ std::vector<char> ibex3D_utilFunctions::readFile(const std::string& filePath)
 
 	file.close();
 	return buffer;
+}
+
+void ibex3D_utilFunctions::fuck()
+{
+#ifdef _MSC_VER
+	__debugbreak();
+#endif
+	
+	printf("FUCK\n");
 }

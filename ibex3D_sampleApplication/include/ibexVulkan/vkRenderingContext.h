@@ -8,6 +8,7 @@ class vkRenderingContext
 {
 public:
 	bool initialize(const char* appName, void* wndMemory);
+	void setMeshRotation(float rotation);
 	bool drawFrame();
 	void enableResizedFlag();
 	void cleanup();
@@ -19,6 +20,7 @@ private:
 	bool initLogicalDevice();
 	bool initSwapchain(int wndWidth, int wndHeight);
 	bool initRenderPass();
+	bool initDescriptorSetLayout();
 	bool initGraphicsPipeline();
 	bool initFramebuffers();
 	bool initCommandPool();
@@ -52,17 +54,17 @@ private:
 	VkQueue m_presentQueue = nullptr;
 
 	VkSwapchainKHR m_swapchain = nullptr;
-	VkFormat m_swapchainImageFormat;
+	VkFormat m_swapchainImageFormat = VK_FORMAT_UNDEFINED;
 	VkExtent2D m_swapchainExtent = {};
 	std::vector<VkImage> m_swapchainImages;
 	std::vector<VkImageView> m_swapchainImageViews;
 	std::vector<VkFramebuffer> m_swapchainFramebuffers;
-
 	VkRenderPass m_renderPass = nullptr;
 	VkPipelineLayout m_pipelineLayout = nullptr;
 	VkPipeline m_graphicsPipeline = nullptr;
-	VkCommandPool m_commandPool = nullptr;
+
 	uint32_t m_currentFrame = 0;
+	VkCommandPool m_commandPool = nullptr;
 	std::vector<VkCommandBuffer> m_commandBuffers;
 	std::vector<VkSemaphore> m_imageAvailableSemaphores;
 	std::vector<VkSemaphore> m_renderFinishedSemaphores;

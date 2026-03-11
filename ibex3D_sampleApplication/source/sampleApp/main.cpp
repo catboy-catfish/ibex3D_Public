@@ -2,8 +2,8 @@
 #include <ibex3D/core/appRuntime.h>
 
 /*
-	https://vulkan-tutorial.com/Vertex_buffers/Vertex_buffer_creation
-	Pick up from where you left off at "Filling the vertex buffer".
+	https://vulkan-tutorial.com/Uniform_buffers/Descriptor_pool_and_sets
+	Refer to "Alignment requirements".
 */
 
 int main()
@@ -21,3 +21,6 @@ int main()
 
 	return 0;
 }
+
+// Copy the below line for utility
+// ----------------------------------------------------------------------------------------------------
