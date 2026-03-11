@@ -4,7 +4,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
-class win32_utils
+class win32Utils
 {
 public:
 	static bool getWindowDimensions(HWND hWnd, int& width, int& height);

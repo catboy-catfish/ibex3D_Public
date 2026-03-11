@@ -9,7 +9,7 @@ struct vkQueueFamilyIndices
 
 	bool isComplete() const
 	{
-		return (graphicsFamily >= 0) && (presentFamily >= 0);
+		return (graphicsFamily > -1) && (presentFamily > -1);
 	}
 };
 
@@ -20,10 +20,30 @@ struct vkSwapchainSupportInfo
 	std::vector<VkPresentModeKHR> presentModes;
 };
 
+class vkExtFunctions
+{
+public:
+#ifdef IBEX3D_VULKAN_USE_VALIDATION_LAYERS
+	static VkResult CreateDebugUtilsMessengerEXT
+	(
+		VkInstance instance,
+		const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
+		const VkAllocationCallbacks* pAllocator,
+		VkDebugUtilsMessengerEXT* pDebugMessenger
+	);
+
+	static void DestroyDebugUtilsMessengerEXT
+	(
+		VkInstance instance,
+		VkDebugUtilsMessengerEXT debugMessenger,
+		const VkAllocationCallbacks* pAllocator
+	);
+#endif
+};
+
 class vkUtils
 {
 public:
-	
 	// Logging
 	static void printVkError(const char* functionName, const char* message);
 	static void printVkResultError(VkResult result, const char* functionName, const char* message);

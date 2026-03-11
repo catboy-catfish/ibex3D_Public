@@ -4,11 +4,11 @@
 #include <string>
 #include <stdio.h>
 
-bool win32_utils::getWindowDimensions(HWND hWnd, int& width, int& height)
+bool win32Utils::getWindowDimensions(HWND hWnd, int& width, int& height)
 {
 	if (hWnd == nullptr)
 	{
-		printf("WIN32 ERROR - win32_utils::getWindowDimensions(): Argument \"HWND hWnd\" is nullptr.\n");
+		printf("WIN32 ERROR - win32Utils::getWindowDimensions(): Argument \"HWND hWnd\" is nullptr.\n");
 		return false;
 	}
 
@@ -16,7 +16,7 @@ bool win32_utils::getWindowDimensions(HWND hWnd, int& width, int& height)
 
 	if (GetClientRect(hWnd, &wndRect) == 0)
 	{
-		printf("WIN32 ERROR - win32_utils::getWindowDimensions(): Failed to get the client window rect.\n");
+		printf("WIN32 ERROR - win32Utils::getWindowDimensions(): Failed to get the client window rect.\n");
 		return false;
 	}
 
@@ -26,7 +26,7 @@ bool win32_utils::getWindowDimensions(HWND hWnd, int& width, int& height)
 	return true;
 }
 
-const char* win32_utils::hresultToText(HRESULT hr)
+const char* win32Utils::hresultToText(HRESULT hr)
 {
 	// FIX: Text is only readable in release mode, not debug mode.
 	

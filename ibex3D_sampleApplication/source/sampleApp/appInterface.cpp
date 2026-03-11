@@ -1,7 +1,8 @@
 #include <sampleApp/appInterface.h>
-
 #include <ibex3D/core/appRuntime.h>
 #include <ibexVulkan/vkRenderingContext.h>
+
+#define MAX_MESH_ROTATION 6.28f
 
 // ----------------------------------------------------------------------------------------------------
 // - Main events --------------------------------------------------------------------------------------
@@ -20,12 +21,22 @@ bool appInterface::initialize(appRuntime* runtimePtr, void* pWindow)
 	return true;
 }
 
-void appInterface::update(float deltaTime) {}
-
-void appInterface::render()
+void appInterface::update(float deltaTime)
 {
+	m_meshRotation += deltaTime;
+
+	if (m_meshRotation >= MAX_MESH_ROTATION)
+	{
+		printf("Mesh rotation has exceeded tau, wrapping...\n");
+		m_meshRotation -= MAX_MESH_ROTATION;
+	}
+}
+
+void appInterface::render(float deltaTime)
+{	
 	if (m_renderingContext != nullptr)
 	{
+		m_renderingContext->setMeshRotation(m_meshRotation);
 		m_renderingContext->drawFrame();
 	}
 }
@@ -54,11 +65,17 @@ void appInterface::windowEvent_onResize(int wndWidth, int wndHeight)
 	}
 }
 
-void appInterface::windowEvent_onFocus() {}
+void appInterface::windowEvent_onFocus()
+{
+}
 
-void appInterface::windowEvent_onUnfocus() {}
+void appInterface::windowEvent_onUnfocus()
+{
+}
 
-void appInterface::windowEvent_onClose() {}
+void appInterface::windowEvent_onClose()
+{
+}
 
 // ----------------------------------------------------------------------------------------------------
 // - Helper functions ---------------------------------------------------------------------------------

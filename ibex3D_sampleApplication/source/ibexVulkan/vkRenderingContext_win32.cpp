@@ -1,5 +1,4 @@
 #include <ibexVulkan/vkRenderingContext.h>
-#include <ibexVulkan/vkFunctionPtrs.h>
 #include <ibexVulkan/vkMeshClass.h>
 #include <ibexVulkan/vkUtils.h>
 
@@ -11,6 +10,7 @@
 #include <stdio.h>
 #include <set>
 
+static bool myGlobalBool = true;
 static const int MAX_FRAMES_IN_FLIGHT = 2;
 
 static std::vector<const char*> requiredExtensions;
@@ -78,7 +78,7 @@ static void configureRequiredExtensionsAndLayers()
 bool vkRenderingContext::initialize(const char* appName, void* wndMemory)
 {	
 	int wndWidth, wndHeight;
-	IBEX3D_BASSERT(win32_utils::getWindowDimensions(static_cast<HWND>(wndMemory), wndWidth, wndHeight));
+	IBEX3D_BASSERT(win32Utils::getWindowDimensions(static_cast<HWND>(wndMemory), wndWidth, wndHeight));
 	
 	IBEX3D_BASSERT(initInstance(appName));
 	IBEX3D_BASSERT(initSurface(wndMemory));
@@ -86,6 +86,7 @@ bool vkRenderingContext::initialize(const char* appName, void* wndMemory)
 	IBEX3D_BASSERT(initLogicalDevice());
 	IBEX3D_BASSERT(initSwapchain(wndWidth, wndHeight));
 	IBEX3D_BASSERT(initRenderPass());
+	IBEX3D_BASSERT(initDescriptorSetLayout());
 	IBEX3D_BASSERT(initGraphicsPipeline());
 	IBEX3D_BASSERT(initFramebuffers());
 	IBEX3D_BASSERT(initCommandPool());
@@ -94,6 +95,14 @@ bool vkRenderingContext::initialize(const char* appName, void* wndMemory)
 	IBEX3D_BASSERT(initSyncObjects());
 
 	return true;
+}
+
+void vkRenderingContext::setMeshRotation(float rotation)
+{
+	if (m_meshClass != nullptr)
+	{
+		m_meshClass->setMeshRotation(rotation);
+	}
 }
 
 bool vkRenderingContext::drawFrame()
@@ -112,6 +121,11 @@ bool vkRenderingContext::drawFrame()
 	{
 		vkUtils::printVkResultError(result, "vkRenderingContext::drawFrame()", "Couldn't acquire the swapchain image.");
 		return false;
+	}
+
+	if (m_meshClass != nullptr)
+	{
+		m_meshClass->updateUniformBuffer(m_currentFrame, m_swapchainExtent);
 	}
 
 	// Only reset the fence if we are submitting work.
@@ -230,16 +244,16 @@ bool vkRenderingContext::initInstance(const char* appName)
 
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::printVkResultError(result, "vkRenderingContext::initInstance()", "Couldn't initialize the instance.");
+		vkUtils::printVkResultError(result, "vkRenderingContext::initInstance()", "Couldn't create the instance.");
 		return false;
 	}
 
 #ifdef IBEX3D_VULKAN_USE_VALIDATION_LAYERS
-	result = CreateDebugUtilsMessengerEXT(m_instance, &messengerInfo, nullptr, &m_debugMessenger);
+	result = vkExtFunctions::CreateDebugUtilsMessengerEXT(m_instance, &messengerInfo, nullptr, &m_debugMessenger);
 
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::printVkResultError(result, "vkRenderingContext::initInstance()", "Couldn't initialize the debug utils messenger.");
+		vkUtils::printVkResultError(result, "vkRenderingContext::initInstance()", "Couldn't create the debug utils messenger.");
 		return false;
 	}
 #endif
@@ -266,7 +280,7 @@ bool vkRenderingContext::initSurface(void* wndMemory)
 
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::printVkResultError(result, "vkRenderingContext::initSurface()", "Couldn't initialize the Win32 window surface.");
+		vkUtils::printVkResultError(result, "vkRenderingContext::initSurface()", "Couldn't create the Win32 window surface.");
 		return false;
 	}
 	
@@ -360,7 +374,7 @@ bool vkRenderingContext::initLogicalDevice()
 
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::printVkResultError(result, "vkRenderingContext::initLogicalDevice()", "Couldn't initialize the logical device.");
+		vkUtils::printVkResultError(result, "vkRenderingContext::initLogicalDevice()", "Couldn't create the logical device.");
 		return false;
 	}
 
@@ -433,7 +447,7 @@ bool vkRenderingContext::initSwapchain(int wndWidth, int wndHeight)
 
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::printVkResultError(result, "vkRenderingContext::initSwapchain()", "Couldn't initialize the swapchain.");
+		vkUtils::printVkResultError(result, "vkRenderingContext::initSwapchain()", "Couldn't create the swapchain.");
 		return false;
 	}
 
@@ -522,11 +536,23 @@ bool vkRenderingContext::initRenderPass()
 
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::printVkResultError(result, "vkRenderingContext::initRenderPass()", "Couldn't initialize the render pass.");
+		vkUtils::printVkResultError(result, "vkRenderingContext::initRenderPass()", "Couldn't create the render pass.");
 		return false;
 	}
 #pragma endregion
 
+	return true;
+}
+
+bool vkRenderingContext::initDescriptorSetLayout()
+{
+	m_meshClass = new vkMeshClass;
+
+	if (!m_meshClass->initDescriptorSetLayout(m_logicalDevice))
+	{
+		return false;
+	}
+	
 	return true;
 }
 
@@ -632,7 +658,7 @@ bool vkRenderingContext::initGraphicsPipeline()
 	rasterStateInfo.polygonMode = VK_POLYGON_MODE_FILL;
 	rasterStateInfo.lineWidth = 1.0f;
 	rasterStateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
-	rasterStateInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
+	rasterStateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 	rasterStateInfo.depthBiasEnable = VK_FALSE;
 	rasterStateInfo.depthBiasConstantFactor = 0.0f;
 	rasterStateInfo.depthBiasClamp = 0.0f;
@@ -680,8 +706,8 @@ bool vkRenderingContext::initGraphicsPipeline()
 #pragma region Pipeline layout
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
 	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	pipelineLayoutInfo.setLayoutCount = 0;
-	pipelineLayoutInfo.pSetLayouts = nullptr;
+	pipelineLayoutInfo.setLayoutCount = 1;
+	pipelineLayoutInfo.pSetLayouts = &m_meshClass->descriptorSetLayout;
 	pipelineLayoutInfo.pushConstantRangeCount = 0;
 	pipelineLayoutInfo.pPushConstantRanges = nullptr;
 
@@ -689,7 +715,7 @@ bool vkRenderingContext::initGraphicsPipeline()
 
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::printVkResultError(result, "vkRenderingContext::initGraphicsPipeline()", "Couldn't initialize the graphics pipeline layout.");
+		vkUtils::printVkResultError(result, "vkRenderingContext::initGraphicsPipeline()", "Couldn't create the graphics pipeline layout.");
 		
 		if (frgShaderModule != nullptr)
 		{
@@ -736,7 +762,7 @@ bool vkRenderingContext::initGraphicsPipeline()
 
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::printVkResultError(result, "vkRenderingContext::initGraphicsPipeline()", "Couldn't initialize the graphics pipeline.");
+		vkUtils::printVkResultError(result, "vkRenderingContext::initGraphicsPipeline()", "Couldn't create the graphics pipeline.");
 
 		if (frgShaderModule != nullptr)
 		{
@@ -791,7 +817,7 @@ bool vkRenderingContext::initFramebuffers()
 
 		if (result != VK_SUCCESS)
 		{
-			vkUtils::printVkResultError(result, "vkRenderingContext::initFramebuffers()", "Couldn't initialize one or more of the required framebuffers.");
+			vkUtils::printVkResultError(result, "vkRenderingContext::initFramebuffers()", "Couldn't create one or more of the required framebuffers.");
 			return false;
 		}
 	}
@@ -818,7 +844,7 @@ bool vkRenderingContext::initCommandPool()
 
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::printVkResultError(result, "vkRenderingContext::initCommandBuffers()", "Couldn't initialize the command pool.");
+		vkUtils::printVkResultError(result, "vkRenderingContext::initCommandBuffers()", "Couldn't create the command pool.");
 		return false;
 	}
 	
@@ -827,14 +853,19 @@ bool vkRenderingContext::initCommandPool()
 
 bool vkRenderingContext::initMeshClass()
 {	
-	m_meshClass = new vkMeshClass;
-	
-	if (!m_meshClass->initialize(m_physicalDevice, m_logicalDevice, m_commandPool, m_graphicsQueue))
+	if (m_meshClass != nullptr)
+	{
+		if (!m_meshClass->initialize(m_physicalDevice, m_logicalDevice, m_commandPool, m_graphicsQueue, MAX_FRAMES_IN_FLIGHT))
+		{
+			return false;
+		}
+
+		return true;
+	}
+	else
 	{
 		return false;
 	}
-
-	return true;
 }
 
 bool vkRenderingContext::initCommandBuffers()
@@ -944,13 +975,7 @@ bool vkRenderingContext::recordCommandBuffer(VkCommandBuffer buffer, uint32_t im
 	scissor.extent = m_swapchainExtent;
 	vkCmdSetScissor(buffer, 0, 1, &scissor);
 
-	VkBuffer vertexBuffers[] = { m_meshClass->vtxBuffer };
-	VkDeviceSize offsets[] = { 0 };
-	
-	vkCmdBindVertexBuffers(buffer, 0, 1, vertexBuffers, offsets);
-	vkCmdBindIndexBuffer(buffer, m_meshClass->idxBuffer, 0, VK_INDEX_TYPE_UINT32);
-
-	vkCmdDrawIndexed(buffer, static_cast<uint32_t>(m_meshClass->indices.size()), 1, 0, 0, 0);
+	m_meshClass->draw(buffer, m_pipelineLayout, m_currentFrame);
 
 	vkCmdEndRenderPass(buffer);
 
@@ -966,14 +991,17 @@ bool vkRenderingContext::recordCommandBuffer(VkCommandBuffer buffer, uint32_t im
 }
 
 void vkRenderingContext::recreateSwapchain()
-{	
-	int wndWidth = 0;
-	int wndHeight = 0;
-	win32_utils::getWindowDimensions(static_cast<HWND>(m_wndMemory), wndWidth, wndHeight);
+{
+	int wndWidth, wndHeight;
 
-	if ((wndWidth == 0) || (wndHeight == 0)) return;
+	if (!win32Utils::getWindowDimensions(static_cast<HWND>(m_wndMemory), wndWidth, wndHeight))
+	{
+		return;
+	}
 
+	// Idk how it does it, but this prevents a validation layer error.
 	vkDeviceWaitIdle(m_logicalDevice);
+
 	cleanupSwapchain(m_logicalDevice);
 
 	initSwapchain(wndWidth, wndHeight);
@@ -1013,7 +1041,6 @@ void vkRenderingContext::cleanupLogicalDevice()
 {
 	if (m_logicalDevice != nullptr)
 	{
-		// Idk how it does it, but this prevents a validation layer error.
 		vkDeviceWaitIdle(m_logicalDevice);
 
 		cleanupSwapchain(m_logicalDevice);
@@ -1085,7 +1112,7 @@ void vkRenderingContext::cleanupInstance()
 #ifdef IBEX3D_VULKAN_USE_VALIDATION_LAYERS
 		if (m_debugMessenger != nullptr)
 		{
-			DestroyDebugUtilsMessengerEXT(m_instance, m_debugMessenger, nullptr);
+			vkExtFunctions::DestroyDebugUtilsMessengerEXT(m_instance, m_debugMessenger, nullptr);
 			m_debugMessenger = nullptr;
 		}
 #endif

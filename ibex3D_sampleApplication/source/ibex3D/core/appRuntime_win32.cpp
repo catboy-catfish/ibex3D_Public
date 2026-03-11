@@ -6,7 +6,7 @@
 #include <stdio.h>
 
 // ----------------------------------------------------------------------------------------------------
-// - Windows-specific stuff ---------------------------------------------------------------------------
+// - Win32-specific stuff -----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------
 
 struct windowData_t
@@ -19,13 +19,12 @@ struct windowData_t
 static LRESULT CALLBACK windowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	LONG_PTR rtLongPtr = GetWindowLongPtrA(hWnd, GWLP_USERDATA);
+	auto rtHandle = reinterpret_cast<appRuntime*>(GetWindowLongPtrA(hWnd, GWLP_USERDATA));
 
-	if (rtLongPtr == 0)
+	if (rtHandle == nullptr)
 	{
 		return DefWindowProcA(hWnd, msg, wParam, lParam);
 	}
-
-	auto rtHandle = reinterpret_cast<appRuntime*>(GetWindowLongPtrA(hWnd, GWLP_USERDATA));
 
 	switch (msg)
 	{
@@ -36,22 +35,22 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 		}
 		case WM_SIZE:
 		{
-			rtHandle->onWindowResize();
+			rtHandle->windowEvent_onResize();
 			break;
 		}
 		case WM_SETFOCUS:
 		{
-			rtHandle->onWindowFocus();
+			rtHandle->windowEvent_onFocus();
 			break;
 		}
 		case WM_KILLFOCUS:
 		{
-			rtHandle->onWindowUnfocus();
+			rtHandle->windowEvent_onUnfocus();
 			break;
 		}
 		case WM_CLOSE:
 		{
-			rtHandle->onWindowClose();
+			rtHandle->windowEvent_onClose();
 			break;
 		}
 	}
@@ -60,7 +59,7 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 }
 
 // ----------------------------------------------------------------------------------------------------
-// - Public functions ---------------------------------------------------------------------------------
+// - Main public functions ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------
 
 bool appRuntime::initialize(int wndWidth, int wndHeight, const char* wndTitle)
@@ -96,60 +95,11 @@ void appRuntime::update()
 	if (pAppInterface != nullptr)
 	{
 		pAppInterface->update(deltaTime);
-		pAppInterface->render();
+		pAppInterface->render(deltaTime);
 	}
 }
 
-void appRuntime::onWindowResize()
-{	
-	if (pWindowData == nullptr)
-	{
-		return;
-	}
-	
-	auto wndData = static_cast<windowData_t*>(pWindowData);
-
-	int wndWidth = 0;
-	int wndHeight = 0;
-
-	if (!win32_utils::getWindowDimensions(wndData->hWnd, wndWidth, wndHeight))
-	{
-		return;
-	}
-
-	if (pAppInterface != nullptr)
-	{
-		pAppInterface->windowEvent_onResize(wndWidth, wndHeight);
-	}
-}
-
-void appRuntime::onWindowFocus()
-{
-	if (pAppInterface != nullptr)
-	{
-		pAppInterface->windowEvent_onFocus();
-	}
-}
-
-void appRuntime::onWindowUnfocus()
-{
-	if (pAppInterface != nullptr)
-	{
-		pAppInterface->windowEvent_onUnfocus();
-	}
-}
-
-void appRuntime::onWindowClose()
-{
-	if (pAppInterface != nullptr)
-	{
-		pAppInterface->windowEvent_onClose();
-	}
-
-	close();
-}
-
-void appRuntime::close()
+void appRuntime::forceClose()
 {
 	m_keepRunningFlag = false;
 
@@ -172,7 +122,56 @@ void appRuntime::cleanup()
 }
 
 // ----------------------------------------------------------------------------------------------------
-// - Window functions ---------------------------------------------------------------------------------
+// - Window event functions ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------
+
+void appRuntime::windowEvent_onResize()
+{	
+	if (pWindowData != nullptr)
+	{
+		auto wndData = static_cast<windowData_t*>(pWindowData);
+
+		int wndWidth, wndHeight;
+		if (!win32Utils::getWindowDimensions(wndData->hWnd, wndWidth, wndHeight))
+		{
+			return;
+		}
+
+		if (pAppInterface != nullptr)
+		{
+			pAppInterface->windowEvent_onResize(wndWidth, wndHeight);
+		}
+	}
+}
+
+void appRuntime::windowEvent_onFocus()
+{
+	if (pAppInterface != nullptr)
+	{
+		pAppInterface->windowEvent_onFocus();
+	}
+}
+
+void appRuntime::windowEvent_onUnfocus()
+{
+	if (pAppInterface != nullptr)
+	{
+		pAppInterface->windowEvent_onUnfocus();
+	}
+}
+
+void appRuntime::windowEvent_onClose()
+{
+	if (pAppInterface != nullptr)
+	{
+		pAppInterface->windowEvent_onClose();
+	}
+
+	m_keepRunningFlag = false;
+}
+
+// ----------------------------------------------------------------------------------------------------
+// - Window creation functions ------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------
 
 bool appRuntime::initWindow(int wndWidth, int wndHeight, const char* wndTitle)
@@ -320,14 +319,14 @@ bool appRuntime::isSafeToStartRunning()
 
 	if (pAppInterface == nullptr)
 	{
-		printf("RUNTIME ERROR - appRuntime::isSafeToStartRunning() : pAppInterface is nullptr.\n");
+		printf("RUNTIME ERROR - appRuntime::isSafeToStartRunning(): pAppInterface is nullptr.\n");
 		return false;
 	}
 	else
 	{
 		if (!pAppInterface->isSafeToStartRunning())
 		{
-			printf("RUNTIME ERROR - appRuntime::isSafeToStartRunning(): pAppInterface->isSafeToStartRunning() failed.\n");
+			printf("RUNTIME ERROR - appRuntime::isSafeToStartRunning(): pAppInterface->isSafeToStartRunning() returned false.\n");
 			return false;
 		}
 	}

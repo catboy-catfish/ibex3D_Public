@@ -19,9 +19,6 @@
     <ClInclude Include="include\ibex3D\utility\windowsUtils.h">
       <Filter>ibex3D\utility</Filter>
     </ClInclude>
-    <ClInclude Include="include\ibexVulkan\vkFunctionPtrs.h">
-      <Filter>ibexVulkan</Filter>
-    </ClInclude>
     <ClInclude Include="include\ibexVulkan\vkRenderingContext.h">
       <Filter>ibexVulkan</Filter>
     </ClInclude>
@@ -57,9 +54,7 @@
     <ClCompile Include="source\ibexVulkan\vkMeshClass.cpp">
       <Filter>ibexVulkan</Filter>
     </ClCompile>
-    <ClCompile Include="source\sampleApp\main.cpp">
-      <Filter>sampleApp</Filter>
-    </ClCompile>
+    <ClCompile Include="source\sampleApp\main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="ibex3D">
@@ -88,5 +83,6 @@
     <None Include="shaders\shader.vert">
       <Filter>shaders</Filter>
     </None>
+    <None Include="shaders\compile.bat" />
   </ItemGroup>
 </Project>
