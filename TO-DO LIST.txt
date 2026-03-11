@@ -1,3 +1,5 @@
+- Update README.md
+
 - Switch from Visual Studio (Microsoft exclusive) to something like CMake to decrease platform dependence
 - Use meta build systems to exclude source code files depending on build platform
 
