@@ -54,9 +54,7 @@
     <ClCompile Include="source\ibexVulkan\vkMeshClass.cpp">
       <Filter>ibexVulkan</Filter>
     </ClCompile>
-    <ClCompile Include="source\sampleApp\main.cpp">
-      <Filter>sampleApp</Filter>
-    </ClCompile>
+    <ClCompile Include="source\sampleApp\main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="ibex3D">
