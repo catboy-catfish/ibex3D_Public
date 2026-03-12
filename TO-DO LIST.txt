@@ -1,10 +1,8 @@
 TO-DO LIST:
-- Update README.md
-
 - Switch from Visual Studio (Microsoft exclusive) to something like CMake to decrease platform dependence
 - Use meta build systems to exclude source code files depending on build platform
 
-- Find a way to compile GLSL bytecode to SPIR-V at runtime using GLSL or SPIR-V
+- Find a way to compile GLSL shader code to SPIR-V bytecode at runtime with glslang or libshaderc
 - Find a way to allocate the vertex, index and uniform buffer memory with one allocation
 - Find a way to consolidate the vertex, index and uniform buffers into one buffer using offsets
 - Investigate push constants as a replacement for uniform buffers

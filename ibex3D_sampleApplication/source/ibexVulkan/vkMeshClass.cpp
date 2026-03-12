@@ -14,9 +14,9 @@ VkVertexInputBindingDescription vkVertex::getBindingDesc()
 	return bindingDesc;
 }
 
-std::array<VkVertexInputAttributeDescription, 2> vkVertex::getAttributeDescs()
+std::array<VkVertexInputAttributeDescription, 3> vkVertex::getAttributeDescs()
 {
-	std::array<VkVertexInputAttributeDescription, 2> attribDescs = {};
+	std::array<VkVertexInputAttributeDescription, 3> attribDescs = {};
 	
 	// Position
 	attribDescs[0].binding = 0;
@@ -24,11 +24,17 @@ std::array<VkVertexInputAttributeDescription, 2> vkVertex::getAttributeDescs()
 	attribDescs[0].format = VK_FORMAT_R32G32_SFLOAT;
 	attribDescs[0].offset = offsetof(vkVertex, position);
 
-	// Color
+	// Texture cordinates
 	attribDescs[1].binding = 0;
 	attribDescs[1].location = 1;
-	attribDescs[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-	attribDescs[1].offset = offsetof(vkVertex, color);
+	attribDescs[1].format = VK_FORMAT_R32G32_SFLOAT;
+	attribDescs[1].offset = offsetof(vkVertex, texCoord);
+
+	// Color
+	attribDescs[2].binding = 0;
+	attribDescs[2].location = 2;
+	attribDescs[2].format = VK_FORMAT_R32G32B32_SFLOAT;
+	attribDescs[2].offset = offsetof(vkVertex, color);
 
 	return attribDescs;
 }
@@ -37,10 +43,10 @@ void vkMeshClass::initMeshData()
 {
 	vertices =
 	{
-		{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-		{{ 0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
-		{{ 0.5f,  0.5f}, {0.0f, 0.0f, 1.0f}},
-		{{-0.5f,  0.5f}, {1.0f, 1.0f, 1.0f}}
+		{{-0.5f, -0.5f}, {1.0f, 0.0f}, {1.0f, 0.0f, 0.0f}},
+		{{ 0.5f, -0.5f}, {0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+		{{ 0.5f,  0.5f}, {0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
+		{{-0.5f,  0.5f}, {1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}}
 	};
 
 	indices =
@@ -225,10 +231,22 @@ bool vkMeshClass::initDescriptorSetLayout(VkDevice logicalDevice)
 	uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 	uboLayoutBinding.pImmutableSamplers = nullptr;
 
+	VkDescriptorSetLayoutBinding samplerLayoutBinding = {};
+	samplerLayoutBinding.binding = 1;
+	samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	samplerLayoutBinding.descriptorCount = 1;
+	samplerLayoutBinding.pImmutableSamplers = nullptr;
+	samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+	std::array<VkDescriptorSetLayoutBinding, 2> bindings =
+	{
+		uboLayoutBinding, samplerLayoutBinding
+	};
+
 	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
 	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-	layoutInfo.bindingCount = 1;
-	layoutInfo.pBindings = &uboLayoutBinding;
+	layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
+	layoutInfo.pBindings = bindings.data();
 
 	VkResult result = vkCreateDescriptorSetLayout(logicalDevice, &layoutInfo, nullptr, &descriptorSetLayout);
 
@@ -241,17 +259,19 @@ bool vkMeshClass::initDescriptorSetLayout(VkDevice logicalDevice)
 	return true;
 }
 
-bool vkMeshClass::initDescriptorPoolAndSets(VkDevice logicalDevice, size_t maxFramesInFlight)
+bool vkMeshClass::initDescriptorPoolAndSets(VkDevice logicalDevice, VkImageView textureImageView, VkSampler textureSampler, size_t maxFramesInFlight)
 {	
-	VkDescriptorPoolSize poolSize = {};
-	poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	poolSize.descriptorCount = static_cast<uint32_t>(maxFramesInFlight);
+	std::array<VkDescriptorPoolSize, 2> poolSizes = {};
+	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	poolSizes[0].descriptorCount = static_cast<uint32_t>(maxFramesInFlight);
+	poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	poolSizes[1].descriptorCount = poolSizes[0].descriptorCount;
 
 	VkDescriptorPoolCreateInfo poolInfo = {};
 	poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-	poolInfo.poolSizeCount = 1;
-	poolInfo.pPoolSizes = &poolSize;
-	poolInfo.maxSets = poolSize.descriptorCount;
+	poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
+	poolInfo.pPoolSizes = poolSizes.data();
+	poolInfo.maxSets = static_cast<uint32_t>(maxFramesInFlight);
 
 	VkResult result = vkCreateDescriptorPool(logicalDevice, &poolInfo, nullptr, &descriptorPool);
 
@@ -288,18 +308,30 @@ bool vkMeshClass::initDescriptorPoolAndSets(VkDevice logicalDevice, size_t maxFr
 		bufferInfo.offset = 0;
 		bufferInfo.range = sizeof(vkUniformBufferData);
 		
-		VkWriteDescriptorSet descriptorWrite = {};
-		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		descriptorWrite.dstSet = descriptorSets[i];
-		descriptorWrite.dstBinding = 0;
-		descriptorWrite.dstArrayElement = 0;
-		descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		descriptorWrite.descriptorCount = 1;
-		descriptorWrite.pBufferInfo = &bufferInfo;
-		descriptorWrite.pImageInfo = nullptr;		// Optional
-		descriptorWrite.pTexelBufferView = nullptr;	// Optional
+		VkDescriptorImageInfo imageInfo = {};
+		imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		imageInfo.imageView = textureImageView;
+		imageInfo.sampler = textureSampler;
 
-		vkUpdateDescriptorSets(logicalDevice, 1, &descriptorWrite, 0, nullptr);
+		std::array<VkWriteDescriptorSet, 2> descriptorWrites = {};
+
+		descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWrites[0].dstSet = descriptorSets[i];
+		descriptorWrites[0].dstBinding = 0;
+		descriptorWrites[0].dstArrayElement = 0;
+		descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		descriptorWrites[0].descriptorCount = 1;
+		descriptorWrites[0].pBufferInfo = &bufferInfo;
+
+		descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWrites[1].dstSet = descriptorSets[i];
+		descriptorWrites[1].dstBinding = 1;
+		descriptorWrites[1].dstArrayElement = 0;
+		descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		descriptorWrites[1].descriptorCount = 1;
+		descriptorWrites[1].pImageInfo = &imageInfo;
+
+		vkUpdateDescriptorSets(logicalDevice, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 	}
 
 	return true;
@@ -316,7 +348,7 @@ void vkMeshClass::updateUniformBuffer(uint32_t currentImage, const VkExtent2D& s
 	memcpy(uniBuffersMapped[currentImage], &data, sizeof(data));
 }
 
-bool vkMeshClass::initialize(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, size_t maxFramesInFlight)
+bool vkMeshClass::initialize(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkImageView textureImageView, VkSampler textureSampler, VkCommandPool commandPool, VkQueue graphicsQueue, size_t maxFramesInFlight)
 {
 	initMeshData();
 	
@@ -335,7 +367,7 @@ bool vkMeshClass::initialize(VkPhysicalDevice physicalDevice, VkDevice logicalDe
 		return false;
 	}
 
-	if (!initDescriptorPoolAndSets(logicalDevice, maxFramesInFlight))
+	if (!initDescriptorPoolAndSets(logicalDevice, textureImageView, textureSampler, maxFramesInFlight))
 	{
 		return false;
 	}

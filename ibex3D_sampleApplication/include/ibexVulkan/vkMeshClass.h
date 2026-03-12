@@ -10,12 +10,13 @@
 struct vkVertex
 {
 	glm::vec2 position;
+	glm::vec2 texCoord;
 	glm::vec3 color;
 
 	// ----------------------------------------------------------------------------------------------------
 
 	static VkVertexInputBindingDescription getBindingDesc();
-	static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescs();
+	static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescs();
 };
 
 struct vkUniformBufferData
@@ -56,11 +57,11 @@ struct vkMeshClass
 	bool initIndexBuffer(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue);
 	bool initUniformBuffers(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, size_t maxFramesInFlight);
 	bool initDescriptorSetLayout(VkDevice logicalDevice);
-	bool initDescriptorPoolAndSets(VkDevice logicalDevice, size_t maxFramesInFlight);
+	bool initDescriptorPoolAndSets(VkDevice logicalDevice, VkImageView textureImageView, VkSampler textureSampler, size_t maxFramesInFlight);
 
 	void updateUniformBuffer(uint32_t currentImage, const VkExtent2D& swapchainExtent);
 
-	bool initialize(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, size_t maxFramesInFlight);
+	bool initialize(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkImageView textureImageView, VkSampler textureSampler, VkCommandPool commandPool, VkQueue graphicsQueue, size_t maxFramesInFlight);
 	void setMeshRotation(float rotation);
 	void draw(VkCommandBuffer buffer, VkPipelineLayout pipelineLayout, uint32_t currentFrame);
 	void cleanup(VkDevice logicalDevice);

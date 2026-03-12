@@ -978,7 +978,7 @@ bool vkRenderingContext::initTextureSampler()
 
 bool vkRenderingContext::initMeshClass()
 {	
-	if (!m_meshClass.initialize(m_physicalDevice, m_logicalDevice, m_commandPool, m_graphicsQueue, MAX_FRAMES_IN_FLIGHT))
+	if (!m_meshClass.initialize(m_physicalDevice, m_logicalDevice, m_textureImageView, m_textureSampler, m_commandPool, m_graphicsQueue, MAX_FRAMES_IN_FLIGHT))
 	{
 		return false;
 	}

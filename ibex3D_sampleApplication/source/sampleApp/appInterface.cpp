@@ -1,4 +1,5 @@
 #include <sampleApp/appInterface.h>
+
 #include <ibex3D/core/appRuntime.h>
 #include <ibexVulkan/vkRenderingContext.h>
 
@@ -27,7 +28,7 @@ void appInterface::update(float deltaTime)
 
 	if (m_meshRotation >= MAX_MESH_ROTATION)
 	{
-		printf("Mesh rotation has exceeded 2*PI, wrapping...\n");
+		// printf("Mesh rotation has exceeded 2*PI, wrapping...\n");
 		m_meshRotation -= MAX_MESH_ROTATION;
 	}
 }

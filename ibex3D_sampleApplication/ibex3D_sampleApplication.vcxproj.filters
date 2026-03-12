@@ -92,5 +92,28 @@
     <Filter Include="sampleApp\appInterface">
       <UniqueIdentifier>{139baaab-a8bb-4745-834a-0b85947e9679}</UniqueIdentifier>
     </Filter>
+    <Filter Include="assets">
+      <UniqueIdentifier>{527df12e-740e-4ee3-ae28-a5b9334bb6e4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="assets\shaders">
+      <UniqueIdentifier>{a784c131-f5e8-4b63-9b16-0cf1e07ea21e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="assets\images">
+      <UniqueIdentifier>{c8710c5f-51e9-42b9-9b2b-00d190359dbb}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="assets\shaders\compile.bat">
+      <Filter>assets\shaders</Filter>
+    </None>
+    <None Include="assets\shaders\shader.frag">
+      <Filter>assets\shaders</Filter>
+    </None>
+    <None Include="assets\shaders\shader.vert">
+      <Filter>assets\shaders</Filter>
+    </None>
+    <None Include="assets\images\texture.jpg">
+      <Filter>assets\images</Filter>
+    </None>
   </ItemGroup>
 </Project>
