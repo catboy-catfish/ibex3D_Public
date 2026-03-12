@@ -1,11 +1,13 @@
 #include <ibexVulkan/vkRenderingContext.h>
-#include <ibexVulkan/vkMeshClass.h>
 #include <ibexVulkan/vkUtils.h>
 
 #include <ibex3D/utility/utilFunctions.h>
 #include <ibex3D/utility/windowsUtils.h>
 
 #include <vulkan/vulkan_win32.h>
+
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb/image.h>
 
 #include <stdio.h>
 #include <set>
@@ -90,6 +92,7 @@ bool vkRenderingContext::initialize(const char* appName, void* wndMemory)
 	IBEX3D_BASSERT(initGraphicsPipeline());
 	IBEX3D_BASSERT(initFramebuffers());
 	IBEX3D_BASSERT(initCommandPool());
+	IBEX3D_BASSERT(initTextureImage());
 	IBEX3D_BASSERT(initMeshClass());
 	IBEX3D_BASSERT(initCommandBuffers());
 	IBEX3D_BASSERT(initSyncObjects());
@@ -99,10 +102,7 @@ bool vkRenderingContext::initialize(const char* appName, void* wndMemory)
 
 void vkRenderingContext::setMeshRotation(float rotation)
 {
-	if (m_meshClass != nullptr)
-	{
-		m_meshClass->setMeshRotation(rotation);
-	}
+	m_meshClass.setMeshRotation(rotation);
 }
 
 bool vkRenderingContext::drawFrame()
@@ -123,10 +123,7 @@ bool vkRenderingContext::drawFrame()
 		return false;
 	}
 
-	if (m_meshClass != nullptr)
-	{
-		m_meshClass->updateUniformBuffer(m_currentFrame, m_swapchainExtent);
-	}
+	m_meshClass.updateUniformBuffer(m_currentFrame, m_swapchainExtent);
 
 	// Only reset the fence if we are submitting work.
 	vkResetFences(m_logicalDevice, 1, &m_inFlightFences[m_currentFrame]);
@@ -546,9 +543,7 @@ bool vkRenderingContext::initRenderPass()
 
 bool vkRenderingContext::initDescriptorSetLayout()
 {
-	m_meshClass = new vkMeshClass;
-
-	if (!m_meshClass->initDescriptorSetLayout(m_logicalDevice))
+	if (!m_meshClass.initDescriptorSetLayout(m_logicalDevice))
 	{
 		return false;
 	}
@@ -560,10 +555,10 @@ bool vkRenderingContext::initGraphicsPipeline()
 {
 #pragma region Shader modules and stages info
 	// TODO: Figure out how to compile the GLSL shaders into SPIR-V at runtime using libshaderc
-	auto vtxShaderBytecode = ibex3D_utilFunctions::readFile("shaders/shader.vert.spv");
+	auto vtxShaderBytecode = ibex3D_utilFunctions::readFile("assets/shaders/shader.vert.spv");
 	if (vtxShaderBytecode.empty()) return false;
 
-	auto frgShaderBytecode = ibex3D_utilFunctions::readFile("shaders/shader.frag.spv");
+	auto frgShaderBytecode = ibex3D_utilFunctions::readFile("assets/shaders/shader.frag.spv");
 	if (frgShaderBytecode.empty()) return false;
 
 	VkShaderModule vtxShaderModule = vkUtils::createShaderModule(m_logicalDevice, vtxShaderBytecode);
@@ -707,7 +702,7 @@ bool vkRenderingContext::initGraphicsPipeline()
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
 	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	pipelineLayoutInfo.setLayoutCount = 1;
-	pipelineLayoutInfo.pSetLayouts = &m_meshClass->descriptorSetLayout;
+	pipelineLayoutInfo.pSetLayouts = &m_meshClass.descriptorSetLayout;
 	pipelineLayoutInfo.pushConstantRangeCount = 0;
 	pipelineLayoutInfo.pPushConstantRanges = nullptr;
 
@@ -851,21 +846,110 @@ bool vkRenderingContext::initCommandPool()
 	return true;
 }
 
+bool vkRenderingContext::initTextureImage()
+{
+	int texWidth = 0;
+	int texHeight = 0;
+	int texChannels = 0;
+	stbi_uc* pixels = stbi_load("assets/images/texture.jpg", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+
+	if (pixels == nullptr)
+	{
+		vkUtils::printVkError("vkRenderingContext::initTextureImage()", "Couldn't load the texture data.\n");
+		return false;
+	}
+
+	VkDeviceSize imageSize = texWidth * texHeight * 4;
+
+	VkBuffer stagingBuffer = nullptr;
+	VkDeviceMemory stagingBufferMemory = nullptr;
+
+	if (!vkUtils::createBuffer
+	(
+		m_physicalDevice,
+		m_logicalDevice,
+		imageSize,
+		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+		stagingBuffer,
+		stagingBufferMemory
+	))
+	{
+		stbi_image_free(pixels);
+		return false;
+	}
+
+	void* data;
+	vkMapMemory(m_logicalDevice, stagingBufferMemory, 0, imageSize, 0, &data);
+	memcpy(data, pixels, static_cast<uint32_t>(imageSize));
+	vkUnmapMemory(m_logicalDevice, stagingBufferMemory);
+
+	stbi_image_free(pixels);
+
+	if (!vkUtils::createImage
+	(
+		m_physicalDevice,
+		m_logicalDevice,
+		texWidth,
+		texHeight,
+		VK_FORMAT_R8G8B8A8_SRGB,
+		VK_IMAGE_TILING_OPTIMAL,
+		VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+		m_textureImage,
+		m_textureImageMemory
+	))
+	{
+		vkUtils::destroyBuffer(m_logicalDevice, stagingBuffer, stagingBufferMemory);
+		return false;
+	}
+
+	vkUtils::transitionImageLayout
+	(
+		m_logicalDevice,
+		m_textureImage,
+		VK_FORMAT_R8G8B8A8_SRGB,
+		VK_IMAGE_LAYOUT_UNDEFINED,
+		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+		m_commandPool,
+		m_graphicsQueue
+	);
+
+	// TODO: Error check?
+	vkUtils::copyBufferToImage
+	(
+		m_logicalDevice,
+		m_commandPool,
+		m_graphicsQueue,
+		stagingBuffer,
+		m_textureImage,
+		static_cast<uint32_t>(texWidth),
+		static_cast<uint32_t>(texHeight)
+	);
+
+	vkUtils::transitionImageLayout
+	(
+		m_logicalDevice,
+		m_textureImage,
+		VK_FORMAT_R8G8B8A8_SRGB,
+		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+		VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+		m_commandPool,
+		m_graphicsQueue
+	);
+
+	vkUtils::destroyBuffer(m_logicalDevice, stagingBuffer, stagingBufferMemory);
+	return true;
+}
+
 bool vkRenderingContext::initMeshClass()
 {	
-	if (m_meshClass != nullptr)
-	{
-		if (!m_meshClass->initialize(m_physicalDevice, m_logicalDevice, m_commandPool, m_graphicsQueue, MAX_FRAMES_IN_FLIGHT))
-		{
-			return false;
-		}
-
-		return true;
-	}
-	else
+	if (!m_meshClass.initialize(m_physicalDevice, m_logicalDevice, m_commandPool, m_graphicsQueue, MAX_FRAMES_IN_FLIGHT))
 	{
 		return false;
 	}
+
+	return true;
 }
 
 bool vkRenderingContext::initCommandBuffers()
@@ -975,7 +1059,7 @@ bool vkRenderingContext::recordCommandBuffer(VkCommandBuffer buffer, uint32_t im
 	scissor.extent = m_swapchainExtent;
 	vkCmdSetScissor(buffer, 0, 1, &scissor);
 
-	m_meshClass->draw(buffer, m_pipelineLayout, m_currentFrame);
+	m_meshClass.draw(buffer, m_pipelineLayout, m_currentFrame);
 
 	vkCmdEndRenderPass(buffer);
 
@@ -1045,12 +1129,19 @@ void vkRenderingContext::cleanupLogicalDevice()
 
 		cleanupSwapchain(m_logicalDevice);
 
-		if (m_meshClass != nullptr)
+		if (m_textureImage != nullptr)
 		{
-			m_meshClass->cleanup(m_logicalDevice);
-			delete m_meshClass;
-			m_meshClass = nullptr;
+			vkDestroyImage(m_logicalDevice, m_textureImage, nullptr);
+			m_textureImage = nullptr;
 		}
+
+		if (m_textureImageMemory != nullptr)
+		{
+			vkFreeMemory(m_logicalDevice, m_textureImageMemory, nullptr);
+			m_textureImageMemory = nullptr;
+		}
+
+		m_meshClass.cleanup(m_logicalDevice);
 
 		if (m_graphicsPipeline != nullptr)
 		{

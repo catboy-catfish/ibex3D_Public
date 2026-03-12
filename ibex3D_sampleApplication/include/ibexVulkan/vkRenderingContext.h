@@ -1,6 +1,5 @@
 #pragma once
-#include <vulkan/vulkan.h>
-#include <vector>
+#include <ibexVulkan/vkMeshClass.h>
 
 struct vkMeshClass;
 
@@ -24,6 +23,7 @@ private:
 	bool initGraphicsPipeline();
 	bool initFramebuffers();
 	bool initCommandPool();
+	bool initTextureImage();
 	bool initMeshClass();
 	bool initCommandBuffers();
 	bool initSyncObjects();
@@ -63,12 +63,15 @@ private:
 	VkPipelineLayout m_pipelineLayout = nullptr;
 	VkPipeline m_graphicsPipeline = nullptr;
 
+	vkMeshClass m_meshClass;
+
+	VkImage m_textureImage = nullptr;
+	VkDeviceMemory m_textureImageMemory = nullptr;
+
 	uint32_t m_currentFrame = 0;
 	VkCommandPool m_commandPool = nullptr;
 	std::vector<VkCommandBuffer> m_commandBuffers;
 	std::vector<VkSemaphore> m_imageAvailableSemaphores;
 	std::vector<VkSemaphore> m_renderFinishedSemaphores;
 	std::vector<VkFence> m_inFlightFences;
-
-	vkMeshClass* m_meshClass = nullptr;
 };
