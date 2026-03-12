@@ -155,7 +155,7 @@ bool vkUtils::checkPhysicalDeviceSuitability(VkPhysicalDevice device, VkSurfaceK
 		swapChainSupportAdequate = (!info.formats.empty()) && (!info.presentModes.empty());
 	}
 
-	return indices.isComplete() && extensionsSupported && swapChainSupportAdequate;
+	return indices.isComplete() && extensionsSupported && swapChainSupportAdequate && deviceFeatures.samplerAnisotropy;
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -454,6 +454,32 @@ bool vkUtils::createImage(VkPhysicalDevice physicalDevice, VkDevice logicalDevic
 
 	vkBindImageMemory(logicalDevice, image, imageMemory, 0);
 	return true;
+}
+
+VkImageView vkUtils::createImageView(VkDevice logicalDevice, VkImage image, VkFormat format)
+{
+	VkImageView imageView = nullptr;
+
+	VkImageViewCreateInfo viewInfo = {};
+	viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+	viewInfo.image = image;
+	viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	viewInfo.format = format;
+	viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	viewInfo.subresourceRange.baseMipLevel = 0;
+	viewInfo.subresourceRange.levelCount = 1;
+	viewInfo.subresourceRange.baseArrayLayer = 0;
+	viewInfo.subresourceRange.layerCount = 1;
+
+	VkResult result = vkCreateImageView(logicalDevice, &viewInfo, nullptr, &imageView);
+
+	if (result != VK_SUCCESS)
+	{
+		vkUtils::printVkResultError(result, "vkUtils::createImageView()", "Couldn't create the image view.");
+		return nullptr;
+	}
+
+	return imageView;
 }
 
 bool vkUtils::copyBufferToImage(VkDevice logicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height)

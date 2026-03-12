@@ -1,15 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClInclude Include="include\sampleApp\appInterface.h">
-      <Filter>sampleApp</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ibex3D\core\appRuntime.h">
-      <Filter>ibex3D\core</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ibex3D\core\timerClass.h">
-      <Filter>ibex3D\core</Filter>
-    </ClInclude>
     <ClInclude Include="include\ibex3D\utility\memoryUtils.h">
       <Filter>ibex3D\utility</Filter>
     </ClInclude>
@@ -19,42 +10,53 @@
     <ClInclude Include="include\ibex3D\utility\windowsUtils.h">
       <Filter>ibex3D\utility</Filter>
     </ClInclude>
-    <ClInclude Include="include\ibexVulkan\vkRenderingContext.h">
-      <Filter>ibexVulkan</Filter>
+    <ClInclude Include="include\ibex3D\core\appRuntime.h">
+      <Filter>ibex3D\core\appRuntime</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ibex3D\core\timerClass.h">
+      <Filter>ibex3D\core\timerClass</Filter>
     </ClInclude>
     <ClInclude Include="include\ibexVulkan\vkUtils.h">
-      <Filter>ibexVulkan</Filter>
+      <Filter>ibexVulkan\vkUtils</Filter>
     </ClInclude>
     <ClInclude Include="include\ibexVulkan\vkMeshClass.h">
-      <Filter>ibexVulkan</Filter>
+      <Filter>ibexVulkan\vkMeshClass</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ibexVulkan\vkRenderingContext.h">
+      <Filter>ibexVulkan\vkRenderingContext</Filter>
+    </ClInclude>
+    <ClInclude Include="include\sampleApp\appInterface.h">
+      <Filter>sampleApp\appInterface</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\sampleApp\appInterface.cpp">
-      <Filter>sampleApp</Filter>
-    </ClCompile>
-    <ClCompile Include="source\ibex3D\core\appRuntime_win32.cpp">
-      <Filter>ibex3D\core</Filter>
-    </ClCompile>
-    <ClCompile Include="source\ibex3D\core\timerClass.cpp">
-      <Filter>ibex3D\core</Filter>
-    </ClCompile>
     <ClCompile Include="source\ibex3D\utility\utilFunctions.cpp">
       <Filter>ibex3D\utility</Filter>
     </ClCompile>
     <ClCompile Include="source\ibex3D\utility\windowsUtilFunctions.cpp">
       <Filter>ibex3D\utility</Filter>
     </ClCompile>
-    <ClCompile Include="source\ibexVulkan\vkRenderingContext_win32.cpp">
-      <Filter>ibexVulkan</Filter>
+    <ClCompile Include="source\ibex3D\core\appRuntime_win32.cpp">
+      <Filter>ibex3D\core\appRuntime</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ibex3D\core\timerClass.cpp">
+      <Filter>ibex3D\core\timerClass</Filter>
     </ClCompile>
     <ClCompile Include="source\ibexVulkan\vkUtils.cpp">
-      <Filter>ibexVulkan</Filter>
+      <Filter>ibexVulkan\vkUtils</Filter>
     </ClCompile>
     <ClCompile Include="source\ibexVulkan\vkMeshClass.cpp">
-      <Filter>ibexVulkan</Filter>
+      <Filter>ibexVulkan\vkMeshClass</Filter>
     </ClCompile>
-    <ClCompile Include="source\sampleApp\main.cpp" />
+    <ClCompile Include="source\ibexVulkan\vkRenderingContext_win32.cpp">
+      <Filter>ibexVulkan\vkRenderingContext</Filter>
+    </ClCompile>
+    <ClCompile Include="source\sampleApp\main.cpp">
+      <Filter>sampleApp</Filter>
+    </ClCompile>
+    <ClCompile Include="source\sampleApp\appInterface.cpp">
+      <Filter>sampleApp\appInterface</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="ibex3D">
@@ -71,6 +73,24 @@
     </Filter>
     <Filter Include="ibex3D\utility">
       <UniqueIdentifier>{420fe6d9-7b0a-44b8-afde-03833488ded4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\core\appRuntime">
+      <UniqueIdentifier>{2d5e1e2e-dd8e-43ed-be04-8ac436237f74}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\core\timerClass">
+      <UniqueIdentifier>{3f9e7674-9e77-4b9c-b8f5-688e878d07a5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibexVulkan\vkUtils">
+      <UniqueIdentifier>{17eef45c-99e1-4079-9294-b6ef4af655e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibexVulkan\vkMeshClass">
+      <UniqueIdentifier>{2af6fead-42b0-406e-b016-6f0b58751fc3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibexVulkan\vkRenderingContext">
+      <UniqueIdentifier>{b6999d60-d730-45d5-b322-b8e0e18f4ced}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sampleApp\appInterface">
+      <UniqueIdentifier>{139baaab-a8bb-4745-834a-0b85947e9679}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

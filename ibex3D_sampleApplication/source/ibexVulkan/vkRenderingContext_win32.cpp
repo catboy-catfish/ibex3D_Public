@@ -93,6 +93,8 @@ bool vkRenderingContext::initialize(const char* appName, void* wndMemory)
 	IBEX3D_BASSERT(initFramebuffers());
 	IBEX3D_BASSERT(initCommandPool());
 	IBEX3D_BASSERT(initTextureImage());
+	IBEX3D_BASSERT(initTextureImageView());
+	IBEX3D_BASSERT(initTextureSampler());
 	IBEX3D_BASSERT(initMeshClass());
 	IBEX3D_BASSERT(initCommandBuffers());
 	IBEX3D_BASSERT(initSyncObjects());
@@ -349,8 +351,8 @@ bool vkRenderingContext::initLogicalDevice()
 		queueInfos.push_back(queueInfo);
 	}
 
-	// This is empty for now, but we'll come back to it.
 	VkPhysicalDeviceFeatures deviceFeatures = {};
+	deviceFeatures.samplerAnisotropy = VK_TRUE;
 
 	VkDeviceCreateInfo logicalDeviceInfo = {};
 	logicalDeviceInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -461,23 +463,11 @@ bool vkRenderingContext::initSwapchain(int wndWidth, int wndHeight)
 
 	for (size_t i = 0; i < m_swapchainImages.size(); i++)
 	{
-		VkImageViewCreateInfo imageViewInfo = {};
-		imageViewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		imageViewInfo.image = m_swapchainImages[i];
-		imageViewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-		imageViewInfo.format = m_swapchainImageFormat;
-		imageViewInfo.components = { VK_COMPONENT_SWIZZLE_IDENTITY };
-		imageViewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		imageViewInfo.subresourceRange.baseMipLevel = 0;
-		imageViewInfo.subresourceRange.levelCount = 1;
-		imageViewInfo.subresourceRange.baseArrayLayer = 0;
-		imageViewInfo.subresourceRange.layerCount = 1;
+		m_swapchainImageViews[i] = vkUtils::createImageView(m_logicalDevice, m_swapchainImages[i], m_swapchainImageFormat);
 
-		result = vkCreateImageView(m_logicalDevice, &imageViewInfo, nullptr, &m_swapchainImageViews[i]);
-
-		if (result != VK_SUCCESS)
+		if (m_swapchainImageViews[i] == nullptr)
 		{
-			vkUtils::printVkResultError(result, "vkRenderingContext::initSwapchain()", "Couldn't create one or more of the image views.");
+			vkUtils::printVkError("vkRenderingContext::initSwapchain()", "Couldn't create one or more of the swapchain image views.");
 			return false;
 		}
 	}
@@ -904,6 +894,7 @@ bool vkRenderingContext::initTextureImage()
 		return false;
 	}
 
+	// TODO: Error check these later?
 	vkUtils::transitionImageLayout
 	(
 		m_logicalDevice,
@@ -915,7 +906,6 @@ bool vkRenderingContext::initTextureImage()
 		m_graphicsQueue
 	);
 
-	// TODO: Error check?
 	vkUtils::copyBufferToImage
 	(
 		m_logicalDevice,
@@ -939,6 +929,50 @@ bool vkRenderingContext::initTextureImage()
 	);
 
 	vkUtils::destroyBuffer(m_logicalDevice, stagingBuffer, stagingBufferMemory);
+	return true;
+}
+
+bool vkRenderingContext::initTextureImageView()
+{
+	m_textureImageView = vkUtils::createImageView(m_logicalDevice, m_textureImage, VK_FORMAT_R8G8B8A8_SRGB);
+
+	if (m_textureImageView == nullptr)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+bool vkRenderingContext::initTextureSampler()
+{
+	VkPhysicalDeviceProperties pdProperties = {};
+	vkGetPhysicalDeviceProperties(m_physicalDevice, &pdProperties);
+	
+	VkSamplerCreateInfo samplerInfo = {};
+	samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+	samplerInfo.magFilter = VK_FILTER_LINEAR;
+	samplerInfo.minFilter = VK_FILTER_LINEAR;
+	samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	samplerInfo.anisotropyEnable = VK_TRUE;
+	samplerInfo.maxAnisotropy = pdProperties.limits.maxSamplerAnisotropy;
+	samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+	samplerInfo.unnormalizedCoordinates = VK_FALSE;
+	samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+	samplerInfo.mipLodBias = 0.0f;
+	samplerInfo.minLod = 0.0f;
+	samplerInfo.maxLod = 0.0f;
+
+	VkResult result = vkCreateSampler(m_logicalDevice, &samplerInfo, nullptr, &m_textureSampler);
+
+	if (result != VK_SUCCESS)
+	{
+		vkUtils::printVkResultError(result, "vkRenderingContext::initTextureSampler()", "Couldn't create the texture sampler.");
+		return false;
+	}
+
 	return true;
 }
 
@@ -1128,6 +1162,18 @@ void vkRenderingContext::cleanupLogicalDevice()
 		vkDeviceWaitIdle(m_logicalDevice);
 
 		cleanupSwapchain(m_logicalDevice);
+
+		if (m_textureSampler != nullptr)
+		{
+			vkDestroySampler(m_logicalDevice, m_textureSampler, nullptr);
+			m_textureSampler = nullptr;
+		}
+
+		if (m_textureImageMemory != nullptr)
+		{
+			vkFreeMemory(m_logicalDevice, m_textureImageMemory, nullptr);
+			m_textureImageMemory = nullptr;
+		}
 
 		if (m_textureImage != nullptr)
 		{

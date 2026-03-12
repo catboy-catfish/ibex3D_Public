@@ -24,6 +24,8 @@ private:
 	bool initFramebuffers();
 	bool initCommandPool();
 	bool initTextureImage();
+	bool initTextureImageView();
+	bool initTextureSampler();
 	bool initMeshClass();
 	bool initCommandBuffers();
 	bool initSyncObjects();
@@ -67,6 +69,8 @@ private:
 
 	VkImage m_textureImage = nullptr;
 	VkDeviceMemory m_textureImageMemory = nullptr;
+	VkImageView m_textureImageView = nullptr;
+	VkSampler m_textureSampler = nullptr;
 
 	uint32_t m_currentFrame = 0;
 	VkCommandPool m_commandPool = nullptr;
