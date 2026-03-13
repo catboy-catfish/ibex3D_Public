@@ -1,7 +1,6 @@
 #pragma once
 #include <ibexVulkan/vkMeshClass.h>
-
-struct vkMeshClass;
+#include <ibexVulkan/vkTextureClass.h>
 
 class vkRenderingContext
 {
@@ -21,11 +20,10 @@ private:
 	bool initRenderPass();
 	bool initDescriptorSetLayout();
 	bool initGraphicsPipeline();
-	bool initFramebuffers();
 	bool initCommandPool();
-	bool initTextureImage();
-	bool initTextureImageView();
-	bool initTextureSampler();
+	bool initDepthResources();
+	bool initFramebuffers();
+	bool initTextureClass();
 	bool initMeshClass();
 	bool initCommandBuffers();
 	bool initSyncObjects();
@@ -65,17 +63,17 @@ private:
 	VkPipelineLayout m_pipelineLayout = nullptr;
 	VkPipeline m_graphicsPipeline = nullptr;
 
-	vkMeshClass m_meshClass;
-
-	VkImage m_textureImage = nullptr;
-	VkDeviceMemory m_textureImageMemory = nullptr;
-	VkImageView m_textureImageView = nullptr;
-	VkSampler m_textureSampler = nullptr;
-
 	uint32_t m_currentFrame = 0;
 	VkCommandPool m_commandPool = nullptr;
 	std::vector<VkCommandBuffer> m_commandBuffers;
 	std::vector<VkSemaphore> m_imageAvailableSemaphores;
 	std::vector<VkSemaphore> m_renderFinishedSemaphores;
 	std::vector<VkFence> m_inFlightFences;
+
+	vkTextureClass m_textureClass;
+	vkMeshClass m_meshClass;
+
+	VkImage m_depthImage = nullptr;
+	VkDeviceMemory m_depthImageMemory = nullptr;
+	VkImageView m_depthImageView = nullptr;
 };

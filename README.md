@@ -1,7 +1,3 @@
-### For L. (Temporary)
-
-L., if you want to download and test out a compiled binary of the ibex3D sample application, [download this zip file](https://drive.google.com/file/d/1Uyl4a_a0IxE_NnrSTju7FbiT3yqSXPd1/view?usp=sharing), extract it somewhere and run the executable. I hope it works. Please read the contents below if you run into any trouble.
-
 ### Readme
 
 This is the repository for the game engine I'm trying to create, ibex3D. It is written in C++, uses the Win32 API for windowing, and the Vulkan API to render graphics. It's based off of the Vulkan Tutorial by Alexander Overvoorde, but I've made some architectural changes to make it more my style. I want to look into other tutorials and learn more, so that I can eventually keep improving it until it's capable of what I want to make with it in the future.

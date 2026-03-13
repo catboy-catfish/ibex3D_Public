@@ -21,20 +21,20 @@ std::array<VkVertexInputAttributeDescription, 3> vkVertex::getAttributeDescs()
 	// Position
 	attribDescs[0].binding = 0;
 	attribDescs[0].location = 0;
-	attribDescs[0].format = VK_FORMAT_R32G32_SFLOAT;
+	attribDescs[0].format = VK_FORMAT_R32G32B32_SFLOAT;
 	attribDescs[0].offset = offsetof(vkVertex, position);
 
-	// Texture cordinates
+	// Color
 	attribDescs[1].binding = 0;
 	attribDescs[1].location = 1;
-	attribDescs[1].format = VK_FORMAT_R32G32_SFLOAT;
-	attribDescs[1].offset = offsetof(vkVertex, texCoord);
+	attribDescs[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+	attribDescs[1].offset = offsetof(vkVertex, color);
 
-	// Color
+	// Texture cordinates
 	attribDescs[2].binding = 0;
 	attribDescs[2].location = 2;
-	attribDescs[2].format = VK_FORMAT_R32G32B32_SFLOAT;
-	attribDescs[2].offset = offsetof(vkVertex, color);
+	attribDescs[2].format = VK_FORMAT_R32G32_SFLOAT;
+	attribDescs[2].offset = offsetof(vkVertex, texCoord);
 
 	return attribDescs;
 }
@@ -43,15 +43,23 @@ void vkMeshClass::initMeshData()
 {
 	vertices =
 	{
-		{{-0.5f, -0.5f}, {1.0f, 0.0f}, {1.0f, 0.0f, 0.0f}},
-		{{ 0.5f, -0.5f}, {0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}},
-		{{ 0.5f,  0.5f}, {0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}},
-		{{-0.5f,  0.5f}, {1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}}
+		{{-0.5f, -0.5f,  0.0f}, {1.0f, 0.0f, 1.0f}, {1.0f, 0.0f}},		// Top left
+		{{ 0.5f, -0.5f,  0.5f}, {1.0f, 0.0f, 1.0f}, {0.0f, 0.0f}},		// Top right
+		{{ 0.5f,  0.5f,  0.0f}, {1.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},		// Bottom right
+		{{-0.5f,  0.5f, -0.5f}, {1.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},		// Bottom left
+
+		// Plane B - Position, color, UV coords
+		{{-0.5f, -0.5f,  0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},		// Top left
+		{{ 0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},		// Top right
+		{{ 0.5f,  0.5f,  0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f}},		// Bottom right
+		{{-0.5f,  0.5f,  0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f}}		// Bottom left
+
 	};
 
 	indices =
 	{
-		0, 1, 2, 2, 3, 0
+		0, 1, 2, 2, 3, 0,
+		4, 5, 6, 6, 7, 4
 	};
 }
 

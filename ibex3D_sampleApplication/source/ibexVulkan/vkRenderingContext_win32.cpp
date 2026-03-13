@@ -6,9 +6,6 @@
 
 #include <vulkan/vulkan_win32.h>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb/image.h>
-
 #include <stdio.h>
 #include <set>
 
@@ -31,7 +28,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback
 {
 	if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
 	{
-		printf("VULKAN ERROR (Validation layer) - %s\n", pCallbackData->pMessage);
+		printf("VULKAN ERROR (Validation layer) - %s\n\n", pCallbackData->pMessage);
 	}
 	
 	return VK_FALSE;
@@ -90,11 +87,10 @@ bool vkRenderingContext::initialize(const char* appName, void* wndMemory)
 	IBEX3D_BASSERT(initRenderPass());
 	IBEX3D_BASSERT(initDescriptorSetLayout());
 	IBEX3D_BASSERT(initGraphicsPipeline());
-	IBEX3D_BASSERT(initFramebuffers());
 	IBEX3D_BASSERT(initCommandPool());
-	IBEX3D_BASSERT(initTextureImage());
-	IBEX3D_BASSERT(initTextureImageView());
-	IBEX3D_BASSERT(initTextureSampler());
+	IBEX3D_BASSERT(initDepthResources());
+	IBEX3D_BASSERT(initFramebuffers());
+	IBEX3D_BASSERT(initTextureClass());
 	IBEX3D_BASSERT(initMeshClass());
 	IBEX3D_BASSERT(initCommandBuffers());
 	IBEX3D_BASSERT(initSyncObjects());
@@ -124,7 +120,7 @@ bool vkRenderingContext::drawFrame()
 		vkUtils::printVkResultError(result, "vkRenderingContext::drawFrame()", "Couldn't acquire the swapchain image.");
 		return false;
 	}
-
+	
 	m_meshClass.updateUniformBuffer(m_currentFrame, m_swapchainExtent);
 
 	// Only reset the fence if we are submitting work.
@@ -463,7 +459,7 @@ bool vkRenderingContext::initSwapchain(int wndWidth, int wndHeight)
 
 	for (size_t i = 0; i < m_swapchainImages.size(); i++)
 	{
-		m_swapchainImageViews[i] = vkUtils::createImageView(m_logicalDevice, m_swapchainImages[i], m_swapchainImageFormat);
+		m_swapchainImageViews[i] = vkUtils::createImageView(m_logicalDevice, m_swapchainImages[i], m_swapchainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
 
 		if (m_swapchainImageViews[i] == nullptr)
 		{
@@ -494,26 +490,52 @@ bool vkRenderingContext::initRenderPass()
 	colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 #pragma endregion
 
+#pragma region Depth attachment and reference
+	VkAttachmentDescription depthAttachment = {};
+	depthAttachment.format = vkUtils::findDepthFormat(m_physicalDevice);
+
+	if (depthAttachment.format == VK_FORMAT_MAX_ENUM)
+	{
+		vkUtils::printVkError("vkRenderingContext::initRenderPass()", "Couldn't find a suitable depth attachment format.");
+		return false;
+	}
+
+	depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+	depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+	VkAttachmentReference depthAttachmentRef = {};
+	depthAttachmentRef.attachment = 1;
+	depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+#pragma endregion
+
 #pragma region Subpass and dependency
 	VkSubpassDescription subpass = {};
 	subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 	subpass.colorAttachmentCount = 1;
 	subpass.pColorAttachments = &colorAttachmentRef;
+	subpass.pDepthStencilAttachment = &depthAttachmentRef;
 
 	VkSubpassDependency subpassDependency = {};
 	subpassDependency.srcSubpass = VK_SUBPASS_EXTERNAL;
 	subpassDependency.dstSubpass = 0;	// The index 0 represents our first subpass.
-	subpassDependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	subpassDependency.srcAccessMask = 0;
-	subpassDependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	subpassDependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	subpassDependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+	subpassDependency.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+	subpassDependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+	subpassDependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 #pragma endregion
 
 #pragma region Render pass
+	std::array<VkAttachmentDescription, 2> attachments = { colorAttachment, depthAttachment };
+	
 	VkRenderPassCreateInfo renderPassInfo = {};
 	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-	renderPassInfo.attachmentCount = 1;
-	renderPassInfo.pAttachments = &colorAttachment;
+	renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+	renderPassInfo.pAttachments = attachments.data();
 	renderPassInfo.subpassCount = 1;
 	renderPassInfo.pSubpasses = &subpass;
 	renderPassInfo.dependencyCount = 1;
@@ -688,6 +710,20 @@ bool vkRenderingContext::initGraphicsPipeline()
 	colorBlendInfo.blendConstants[3] = 0.0f;
 #pragma endregion
 
+#pragma region Depth stencil state info
+	VkPipelineDepthStencilStateCreateInfo depthStencilInfo = {};
+	depthStencilInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+	depthStencilInfo.depthTestEnable = VK_TRUE;
+	depthStencilInfo.depthWriteEnable = VK_TRUE;
+	depthStencilInfo.depthCompareOp = VK_COMPARE_OP_LESS;
+	depthStencilInfo.depthBoundsTestEnable = VK_FALSE;
+	depthStencilInfo.minDepthBounds = 0.0f;		// Optional
+	depthStencilInfo.maxDepthBounds = 1.0f;		// Optional
+	depthStencilInfo.stencilTestEnable = VK_FALSE;
+	depthStencilInfo.front = {};				// Optional
+	depthStencilInfo.back = {};					// Optional
+#pragma endregion
+
 #pragma region Pipeline layout
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
 	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -734,7 +770,7 @@ bool vkRenderingContext::initGraphicsPipeline()
 	pipelineInfo.pViewportState = &viewportStateInfo;
 	pipelineInfo.pRasterizationState = &rasterStateInfo;
 	pipelineInfo.pMultisampleState = &multisamplingInfo;
-	pipelineInfo.pDepthStencilState = nullptr;
+	pipelineInfo.pDepthStencilState = &depthStencilInfo;
 	pipelineInfo.pColorBlendState = &colorBlendInfo;
 	pipelineInfo.pDynamicState = &dynamicStateInfo;
 	pipelineInfo.layout = m_pipelineLayout;
@@ -781,35 +817,6 @@ bool vkRenderingContext::initGraphicsPipeline()
 	return true;
 }
 
-bool vkRenderingContext::initFramebuffers()
-{
-	m_swapchainFramebuffers.resize(m_swapchainImageViews.size());
-
-	for (size_t i = 0; i < m_swapchainImageViews.size(); i++)
-	{
-		VkImageView attachments[] = { m_swapchainImageViews[i] };
-
-		VkFramebufferCreateInfo framebufferInfo = {};
-		framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-		framebufferInfo.renderPass = m_renderPass;
-		framebufferInfo.attachmentCount = 1;
-		framebufferInfo.pAttachments = attachments;
-		framebufferInfo.width = m_swapchainExtent.width;
-		framebufferInfo.height = m_swapchainExtent.height;
-		framebufferInfo.layers = 1;
-
-		VkResult result = vkCreateFramebuffer(m_logicalDevice, &framebufferInfo, nullptr, &m_swapchainFramebuffers[i]);
-
-		if (result != VK_SUCCESS)
-		{
-			vkUtils::printVkResultError(result, "vkRenderingContext::initFramebuffers()", "Couldn't create one or more of the required framebuffers.");
-			return false;
-		}
-	}
-
-	return true;
-}
-
 bool vkRenderingContext::initCommandPool()
 {
 	vkQueueFamilyIndices indices = vkUtils::findQueueFamilies(m_physicalDevice, m_surface);
@@ -832,153 +839,119 @@ bool vkRenderingContext::initCommandPool()
 		vkUtils::printVkResultError(result, "vkRenderingContext::initCommandBuffers()", "Couldn't create the command pool.");
 		return false;
 	}
-	
+
 	return true;
 }
 
-bool vkRenderingContext::initTextureImage()
+bool vkRenderingContext::initDepthResources()
 {
-	int texWidth = 0;
-	int texHeight = 0;
-	int texChannels = 0;
-	stbi_uc* pixels = stbi_load("assets/images/texture.jpg", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+	VkFormat depthFormat = vkUtils::findDepthFormat(m_physicalDevice);
 
-	if (pixels == nullptr)
+	// FIX: Could this be cause for a false alarm?
+	if (depthFormat == VK_FORMAT_MAX_ENUM)
 	{
-		vkUtils::printVkError("vkRenderingContext::initTextureImage()", "Couldn't load the texture data.\n");
+		vkUtils::printVkError("vkRenderingContext::initDepthResources()", "Couldn't find a suitable format for the depth image.");
 		return false;
 	}
-
-	VkDeviceSize imageSize = texWidth * texHeight * 4;
-
-	VkBuffer stagingBuffer = nullptr;
-	VkDeviceMemory stagingBufferMemory = nullptr;
-
-	if (!vkUtils::createBuffer
-	(
-		m_physicalDevice,
-		m_logicalDevice,
-		imageSize,
-		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-		stagingBuffer,
-		stagingBufferMemory
-	))
-	{
-		stbi_image_free(pixels);
-		return false;
-	}
-
-	void* data;
-	vkMapMemory(m_logicalDevice, stagingBufferMemory, 0, imageSize, 0, &data);
-	memcpy(data, pixels, static_cast<uint32_t>(imageSize));
-	vkUnmapMemory(m_logicalDevice, stagingBufferMemory);
-
-	stbi_image_free(pixels);
 
 	if (!vkUtils::createImage
 	(
-		m_physicalDevice,
-		m_logicalDevice,
-		texWidth,
-		texHeight,
-		VK_FORMAT_R8G8B8A8_SRGB,
+		m_physicalDevice, m_logicalDevice,
+		m_swapchainExtent.width, m_swapchainExtent.height,
+		depthFormat,
 		VK_IMAGE_TILING_OPTIMAL,
-		VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+		VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
 		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-		m_textureImage,
-		m_textureImageMemory
+		m_depthImage, m_depthImageMemory
 	))
 	{
-		vkUtils::destroyBuffer(m_logicalDevice, stagingBuffer, stagingBufferMemory);
+		vkUtils::printVkError("vkRenderingContext::initDepthResources()", "Couldn't create the depth image.");
 		return false;
 	}
 
-	// TODO: Error check these later?
-	vkUtils::transitionImageLayout
+	m_depthImageView = vkUtils::createImageView(m_logicalDevice, m_depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+
+	if (m_depthImageView == nullptr)
+	{
+		vkUtils::printVkError("vkRenderingContext::initDepthResources()", "Couldn't create the depth image view.");
+		return false;
+	}
+
+	if (!vkUtils::transitionImageLayout
 	(
 		m_logicalDevice,
-		m_textureImage,
-		VK_FORMAT_R8G8B8A8_SRGB,
+		m_depthImage,
+		depthFormat,
 		VK_IMAGE_LAYOUT_UNDEFINED,
-		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+		VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
 		m_commandPool,
 		m_graphicsQueue
-	);
-
-	vkUtils::copyBufferToImage
-	(
-		m_logicalDevice,
-		m_commandPool,
-		m_graphicsQueue,
-		stagingBuffer,
-		m_textureImage,
-		static_cast<uint32_t>(texWidth),
-		static_cast<uint32_t>(texHeight)
-	);
-
-	vkUtils::transitionImageLayout
-	(
-		m_logicalDevice,
-		m_textureImage,
-		VK_FORMAT_R8G8B8A8_SRGB,
-		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-		VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-		m_commandPool,
-		m_graphicsQueue
-	);
-
-	vkUtils::destroyBuffer(m_logicalDevice, stagingBuffer, stagingBufferMemory);
-	return true;
-}
-
-bool vkRenderingContext::initTextureImageView()
-{
-	m_textureImageView = vkUtils::createImageView(m_logicalDevice, m_textureImage, VK_FORMAT_R8G8B8A8_SRGB);
-
-	if (m_textureImageView == nullptr)
+	))
 	{
+		vkUtils::printVkError("vkRenderingContext::initDepthResources()", "Couldn't transition the depth image layout.");
 		return false;
 	}
 
 	return true;
 }
 
-bool vkRenderingContext::initTextureSampler()
+bool vkRenderingContext::initFramebuffers()
 {
-	VkPhysicalDeviceProperties pdProperties = {};
-	vkGetPhysicalDeviceProperties(m_physicalDevice, &pdProperties);
+	m_swapchainFramebuffers.resize(m_swapchainImageViews.size());
+
+	for (size_t i = 0; i < m_swapchainImageViews.size(); i++)
+	{
+		VkImageView attachments[] = 
+		{ 
+			m_swapchainImageViews[i],
+			m_depthImageView
+		};
+
+		uint32_t numAttachments = static_cast<uint32_t>(sizeof(attachments) / sizeof(attachments[0]));
+
+		VkFramebufferCreateInfo framebufferInfo = {};
+		framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+		framebufferInfo.renderPass = m_renderPass;
+		framebufferInfo.attachmentCount = numAttachments;
+		framebufferInfo.pAttachments = attachments;
+		framebufferInfo.width = m_swapchainExtent.width;
+		framebufferInfo.height = m_swapchainExtent.height;
+		framebufferInfo.layers = 1;
+
+		VkResult result = vkCreateFramebuffer(m_logicalDevice, &framebufferInfo, nullptr, &m_swapchainFramebuffers[i]);
+
+		if (result != VK_SUCCESS)
+		{
+			vkUtils::printVkResultError(result, "vkRenderingContext::initFramebuffers()", "Couldn't create one or more of the required framebuffers.");
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool vkRenderingContext::initTextureClass()
+{
+	if (!m_textureClass.initialize(m_logicalDevice, m_physicalDevice, m_commandPool, m_graphicsQueue))
+	{
+		return false;
+	}
 	
-	VkSamplerCreateInfo samplerInfo = {};
-	samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-	samplerInfo.magFilter = VK_FILTER_LINEAR;
-	samplerInfo.minFilter = VK_FILTER_LINEAR;
-	samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-	samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-	samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-	samplerInfo.anisotropyEnable = VK_TRUE;
-	samplerInfo.maxAnisotropy = pdProperties.limits.maxSamplerAnisotropy;
-	samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-	samplerInfo.unnormalizedCoordinates = VK_FALSE;
-	samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-	samplerInfo.mipLodBias = 0.0f;
-	samplerInfo.minLod = 0.0f;
-	samplerInfo.maxLod = 0.0f;
-
-	VkResult result = vkCreateSampler(m_logicalDevice, &samplerInfo, nullptr, &m_textureSampler);
-
-	if (result != VK_SUCCESS)
-	{
-		vkUtils::printVkResultError(result, "vkRenderingContext::initTextureSampler()", "Couldn't create the texture sampler.");
-		return false;
-	}
-
 	return true;
 }
 
 bool vkRenderingContext::initMeshClass()
 {	
-	if (!m_meshClass.initialize(m_physicalDevice, m_logicalDevice, m_textureImageView, m_textureSampler, m_commandPool, m_graphicsQueue, MAX_FRAMES_IN_FLIGHT))
+	if (!m_meshClass.initialize
+	(
+		m_physicalDevice, 
+		m_logicalDevice, 
+		m_textureClass.imageView, 
+		m_textureClass.sampler,
+		m_commandPool,
+		m_graphicsQueue,
+		MAX_FRAMES_IN_FLIGHT
+	))
 	{
 		return false;
 	}
@@ -1065,7 +1038,9 @@ bool vkRenderingContext::recordCommandBuffer(VkCommandBuffer buffer, uint32_t im
 		return false;
 	}
 
-	VkClearValue clearColor = { {{ 0.0f, 0.0f, 0.0f, 1.0f }} };
+	std::array<VkClearValue, 2> clearValues = {};
+	clearValues[0].color = { { 0.0f, 0.0f, 0.0f, 1.0f } };
+	clearValues[1].depthStencil = { 1.0f, 0 };
 
 	VkRenderPassBeginInfo renderPassInfo = {};
 	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -1073,8 +1048,8 @@ bool vkRenderingContext::recordCommandBuffer(VkCommandBuffer buffer, uint32_t im
 	renderPassInfo.framebuffer = m_swapchainFramebuffers[imageIndex];
 	renderPassInfo.renderArea.offset = { 0, 0 };
 	renderPassInfo.renderArea.extent = m_swapchainExtent;
-	renderPassInfo.clearValueCount = 1;
-	renderPassInfo.pClearValues = &clearColor;
+	renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
+	renderPassInfo.pClearValues = clearValues.data();
 
 	vkCmdBeginRenderPass(buffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 	vkCmdBindPipeline(buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline);
@@ -1110,24 +1085,44 @@ bool vkRenderingContext::recordCommandBuffer(VkCommandBuffer buffer, uint32_t im
 
 void vkRenderingContext::recreateSwapchain()
 {
-	int wndWidth, wndHeight;
+	int wndWidth = 0;
+	int wndHeight = 0;
+	win32Utils::getWindowDimensions(static_cast<HWND>(m_wndMemory), wndWidth, wndHeight);
 
-	if (!win32Utils::getWindowDimensions(static_cast<HWND>(m_wndMemory), wndWidth, wndHeight))
+	if (wndWidth == 0 || wndHeight == 0) 
 	{
+		// Window is minimized
 		return;
 	}
 
-	// Idk how it does it, but this prevents a validation layer error.
 	vkDeviceWaitIdle(m_logicalDevice);
-
 	cleanupSwapchain(m_logicalDevice);
 
 	initSwapchain(wndWidth, wndHeight);
+	initDepthResources();
 	initFramebuffers();
 }
 
 void vkRenderingContext::cleanupSwapchain(VkDevice device)
 {
+	if (m_depthImageView != nullptr)
+	{
+		vkDestroyImageView(m_logicalDevice, m_depthImageView, nullptr);
+		m_depthImageView = nullptr;
+	}
+	
+	if (m_depthImage != nullptr)
+	{
+		vkDestroyImage(m_logicalDevice, m_depthImage, nullptr);
+		m_depthImage = nullptr;
+	}
+
+	if (m_depthImageMemory != nullptr)
+	{
+		vkFreeMemory(m_logicalDevice, m_depthImageMemory, nullptr);
+		m_depthImageMemory = nullptr;
+	}
+
 	for (auto framebuffer : m_swapchainFramebuffers)
 	{
 		if (framebuffer != nullptr)
@@ -1163,31 +1158,8 @@ void vkRenderingContext::cleanupLogicalDevice()
 
 		cleanupSwapchain(m_logicalDevice);
 
-		if (m_textureSampler != nullptr)
-		{
-			vkDestroySampler(m_logicalDevice, m_textureSampler, nullptr);
-			m_textureSampler = nullptr;
-		}
-
-		if (m_textureImageMemory != nullptr)
-		{
-			vkFreeMemory(m_logicalDevice, m_textureImageMemory, nullptr);
-			m_textureImageMemory = nullptr;
-		}
-
-		if (m_textureImage != nullptr)
-		{
-			vkDestroyImage(m_logicalDevice, m_textureImage, nullptr);
-			m_textureImage = nullptr;
-		}
-
-		if (m_textureImageMemory != nullptr)
-		{
-			vkFreeMemory(m_logicalDevice, m_textureImageMemory, nullptr);
-			m_textureImageMemory = nullptr;
-		}
-
 		m_meshClass.cleanup(m_logicalDevice);
+		m_textureClass.cleanup(m_logicalDevice);
 
 		if (m_graphicsPipeline != nullptr)
 		{
