@@ -9,7 +9,6 @@
 #include <stdio.h>
 #include <set>
 
-static bool myGlobalBool = true;
 static const int MAX_FRAMES_IN_FLIGHT = 2;
 
 static std::vector<const char*> requiredExtensions;
@@ -26,9 +25,23 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback
 	void* pUserData
 )
 {
-	if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
+	switch (messageSeverity)
 	{
-		printf("VULKAN ERROR (Validation layer) - %s\n\n", pCallbackData->pMessage);
+		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
+		{
+			printf("VULKAN MESSAGE (Validation layer) - %s\n\n", pCallbackData->pMessage);
+			break;
+		}
+		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
+		{
+			printf("VULKAN WARNING (Validation layer) - %s\n\n", pCallbackData->pMessage);
+			break;
+		}
+		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
+		{
+			printf("VULKAN ERROR (Validation layer) - %s\n\n", pCallbackData->pMessage);
+			break;
+		}
 	}
 	
 	return VK_FALSE;
