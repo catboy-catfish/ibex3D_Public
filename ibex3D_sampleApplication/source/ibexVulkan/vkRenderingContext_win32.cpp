@@ -9,14 +9,14 @@
 #include <stdio.h>
 #include <set>
 
+// Set back to 2 later
 static const int MAX_FRAMES_IN_FLIGHT = 2;
 
 static std::vector<const char*> requiredExtensions;
 static std::vector<const char*> requiredDeviceExtensions;
-
-#ifdef IBEX3D_VULKAN_USE_VALIDATION_LAYERS
 static std::vector<const char*> requiredLayers;
 
+#ifdef IBEX3D_VULKAN_USE_VALIDATION_LAYERS
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback
 (
 	VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -117,10 +117,10 @@ void vkRenderingContext::setMeshRotation(float rotation)
 
 bool vkRenderingContext::drawFrame()
 {	
-	vkWaitForFences(m_logicalDevice, 1, &m_inFlightFences[m_currentFrame], VK_TRUE, UINT64_MAX);
+	vkWaitForFences(m_logicalDevice, 1, &m_frameFences[m_currentFrame], VK_TRUE, UINT64_MAX);
 
 	uint32_t imageIndex = 0;
-	VkResult result = vkAcquireNextImageKHR(m_logicalDevice, m_swapchain, UINT64_MAX, m_imageAvailableSemaphores[m_currentFrame], VK_NULL_HANDLE, &imageIndex);
+	VkResult result = vkAcquireNextImageKHR(m_logicalDevice, m_swapchain, UINT64_MAX, m_frameSemaphores[m_currentFrame], nullptr, &imageIndex);
 
 	if (result == VK_ERROR_OUT_OF_DATE_KHR)
 	{	
@@ -132,32 +132,28 @@ bool vkRenderingContext::drawFrame()
 		vkUtils::printVkResultError(result, "vkRenderingContext::drawFrame()", "Couldn't acquire the swapchain image.");
 		return false;
 	}
-	
+
 	m_meshClass.updateUniformBuffer(m_currentFrame, m_swapchainExtent);
 
-	// Only reset the fence if we are submitting work.
-	vkResetFences(m_logicalDevice, 1, &m_inFlightFences[m_currentFrame]);
-
+	vkResetFences(m_logicalDevice, 1, &m_frameFences[m_currentFrame]);
 	vkResetCommandBuffer(m_commandBuffers[m_currentFrame], 0);
 	recordCommandBuffer(m_commandBuffers[m_currentFrame], imageIndex);
 
 	// - Submitting command buffer ------------------------------------------------------------------------
 
-	VkSemaphore waitSemaphores[] = { m_imageAvailableSemaphores[m_currentFrame] };
-	VkSemaphore signalSemaphores[] = { m_renderFinishedSemaphores[m_currentFrame] };
-	VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+	VkPipelineStageFlags waitStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
 	VkSubmitInfo submitInfo = {};
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 	submitInfo.waitSemaphoreCount = 1;
-	submitInfo.pWaitSemaphores = waitSemaphores;
-	submitInfo.pWaitDstStageMask = waitStages;
 	submitInfo.signalSemaphoreCount = 1;
-	submitInfo.pSignalSemaphores = signalSemaphores;
 	submitInfo.commandBufferCount = 1;
+	submitInfo.pWaitSemaphores = &m_frameSemaphores[m_currentFrame];
+	submitInfo.pSignalSemaphores = &m_swapchainSemaphores[imageIndex];
 	submitInfo.pCommandBuffers = &m_commandBuffers[m_currentFrame];
+	submitInfo.pWaitDstStageMask = &waitStage;
 
-	result = vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, m_inFlightFences[m_currentFrame]);
+	result = vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, m_frameFences[m_currentFrame]);
 
 	if (result != VK_SUCCESS)
 	{
@@ -167,14 +163,12 @@ bool vkRenderingContext::drawFrame()
 
 	// - Presentation -------------------------------------------------------------------------------------
 
-	VkSwapchainKHR swapchains[] = { m_swapchain };
-
 	VkPresentInfoKHR presentInfo = {};
 	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 	presentInfo.waitSemaphoreCount = 1;
-	presentInfo.pWaitSemaphores = signalSemaphores;
 	presentInfo.swapchainCount = 1;
-	presentInfo.pSwapchains = swapchains;
+	presentInfo.pWaitSemaphores = &m_swapchainSemaphores[imageIndex];
+	presentInfo.pSwapchains = &m_swapchain;
 	presentInfo.pImageIndices = &imageIndex;
 	presentInfo.pResults = nullptr;
 
@@ -393,24 +387,23 @@ bool vkRenderingContext::initLogicalDevice()
 
 bool vkRenderingContext::initSwapchain(int wndWidth, int wndHeight)
 {
-#pragma region Swapchain
 	vkSwapchainSupportInfo scSupport = vkUtils::querySwapchainSupport(m_physicalDevice, m_surface);
 
 	VkSurfaceFormatKHR surfaceFormat = vkUtils::chooseSurfaceFormat(scSupport.formats);
 	VkPresentModeKHR presentMode = vkUtils::choosePresentMode(scSupport.presentModes);
 	VkExtent2D extent = vkUtils::chooseExtent(scSupport.capabilities, wndWidth, wndHeight);
 
-	uint32_t imageCount = scSupport.capabilities.minImageCount + 1;
+	m_swapchainImageCount = scSupport.capabilities.minImageCount + 1;
 
-	if ((scSupport.capabilities.maxImageCount > 0) && (imageCount > scSupport.capabilities.maxImageCount))
+	if ((scSupport.capabilities.maxImageCount > 0) && (m_swapchainImageCount > scSupport.capabilities.maxImageCount))
 	{
-		imageCount = scSupport.capabilities.maxImageCount;
+		m_swapchainImageCount = scSupport.capabilities.maxImageCount;
 	}
 
 	VkSwapchainCreateInfoKHR swapchainInfo = {};
 	swapchainInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
 	swapchainInfo.surface = m_surface;
-	swapchainInfo.minImageCount = imageCount;
+	swapchainInfo.minImageCount = m_swapchainImageCount;
 	swapchainInfo.imageFormat = surfaceFormat.format;
 	swapchainInfo.imageColorSpace = surfaceFormat.colorSpace;
 	swapchainInfo.imageExtent = extent;
@@ -458,15 +451,15 @@ bool vkRenderingContext::initSwapchain(int wndWidth, int wndHeight)
 		return false;
 	}
 
-	result = vkGetSwapchainImagesKHR(m_logicalDevice, m_swapchain, &imageCount, nullptr);
-	m_swapchainImages.resize(imageCount);
-	result = vkGetSwapchainImagesKHR(m_logicalDevice, m_swapchain, &imageCount, m_swapchainImages.data());
+	result = vkGetSwapchainImagesKHR(m_logicalDevice, m_swapchain, &m_swapchainImageCount, nullptr);
+	m_swapchainImages.resize(m_swapchainImageCount);
+	result = vkGetSwapchainImagesKHR(m_logicalDevice, m_swapchain, &m_swapchainImageCount, m_swapchainImages.data());
 
 	m_swapchainImageFormat = surfaceFormat.format;
 	m_swapchainExtent = extent;
-#pragma endregion
 
-#pragma region Image views
+	// ----------------------------------------------------------------------------------------------------
+
 	m_swapchainImageViews.resize(m_swapchainImages.size());
 
 	for (size_t i = 0; i < m_swapchainImages.size(); i++)
@@ -479,7 +472,6 @@ bool vkRenderingContext::initSwapchain(int wndWidth, int wndHeight)
 			return false;
 		}
 	}
-#pragma endregion
 
 	return true;
 }
@@ -982,9 +974,9 @@ bool vkRenderingContext::initCommandBuffers()
 
 bool vkRenderingContext::initSyncObjects()
 {
-	m_imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-	m_renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-	m_inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+	m_swapchainSemaphores.resize(m_swapchainImageCount);
+	m_frameSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+	m_frameFences.resize(MAX_FRAMES_IN_FLIGHT);
 	
 	VkSemaphoreCreateInfo semaphoreInfo = {};
 	semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -993,29 +985,32 @@ bool vkRenderingContext::initSyncObjects()
 	fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 	fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
+	for (size_t i = 0; i < m_swapchainImageCount; i++)
+	{
+		VkResult result = vkCreateSemaphore(m_logicalDevice, &semaphoreInfo, nullptr, &m_swapchainSemaphores[i]);
+
+		if (result != VK_SUCCESS)
+		{
+			vkUtils::printVkResultError(result, "vkRenderingContext::initSyncObjects()", "Couldn't create the semaphore for one or more swapchain images.");
+			return false;
+		}
+	}
+
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 	{
-		VkResult result = vkCreateSemaphore(m_logicalDevice, &semaphoreInfo, nullptr, &m_imageAvailableSemaphores[i]);
+		VkResult result = vkCreateSemaphore(m_logicalDevice, &semaphoreInfo, nullptr, &m_frameSemaphores[i]);
 
 		if (result != VK_SUCCESS)
 		{
-			vkUtils::printVkResultError(result, "vkRenderingContext::initSyncObjects()", "Couldn't create the \"image available\" semaphore for one or more frames in flight.");
+			vkUtils::printVkResultError(result, "vkRenderingContext::initSyncObjects()", "Couldn't create the semaphore for one or more frames in flight.");
 			return false;
 		}
 
-		result = vkCreateSemaphore(m_logicalDevice, &semaphoreInfo, nullptr, &m_renderFinishedSemaphores[i]);
+		result = vkCreateFence(m_logicalDevice, &fenceInfo, nullptr, &m_frameFences[i]);
 
 		if (result != VK_SUCCESS)
 		{
-			vkUtils::printVkResultError(result, "vkRenderingContext::initSyncObjects()", "Couldn't create the \"render finished\" semaphore for one or more frames in flight.");
-			return false;
-		}
-
-		result = vkCreateFence(m_logicalDevice, &fenceInfo, nullptr, &m_inFlightFences[i]);
-
-		if (result != VK_SUCCESS)
-		{
-			vkUtils::printVkResultError(result, "vkRenderingContext::initSyncObjects()", "Couldn't create the \"in flight\" fence for one or more frames in flight.");
+			vkUtils::printVkResultError(result, "vkRenderingContext::initSyncObjects()", "Couldn't create the fence for one or more frames in flight.");
 			return false;
 		}
 	}
@@ -1178,29 +1173,29 @@ void vkRenderingContext::cleanupLogicalDevice()
 			m_renderPass = nullptr;
 		}
 
-		for (auto& semaphore : m_imageAvailableSemaphores)
+		for (auto& semaphore : m_swapchainSemaphores)
 		{
 			vkDestroySemaphore(m_logicalDevice, semaphore, nullptr);
 			semaphore = nullptr;
 		}
 
-		m_imageAvailableSemaphores.clear();
+		m_swapchainSemaphores.clear();
 
-		for (auto& semaphore : m_renderFinishedSemaphores)
+		for (auto& semaphore : m_frameSemaphores)
 		{
 			vkDestroySemaphore(m_logicalDevice, semaphore, nullptr);
 			semaphore = nullptr;
 		}
 
-		m_renderFinishedSemaphores.clear();
+		m_frameSemaphores.clear();
 
-		for (auto& fence : m_inFlightFences)
+		for (auto& fence : m_frameFences)
 		{
 			vkDestroyFence(m_logicalDevice, fence, nullptr);
 			fence = nullptr;
 		}
 
-		m_inFlightFences.clear();
+		m_frameFences.clear();
 
 		if (m_commandPool != nullptr)
 		{
@@ -1243,9 +1238,9 @@ void vkRenderingContext::cleanupInstance()
 
 bool vkRenderingContext::checkInstanceLayerSupport()
 {
-#ifdef IBEX3D_VULKAN_USE_VALIDATION_LAYERS
 	if (requiredLayers.empty()) return true;
 
+#ifdef IBEX3D_VULKAN_USE_VALIDATION_LAYERS
 	uint32_t layerCount = 0;
 	vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
 

@@ -54,6 +54,7 @@ private:
 	VkSwapchainKHR m_swapchain = nullptr;
 	VkFormat m_swapchainImageFormat = VK_FORMAT_UNDEFINED;
 	VkExtent2D m_swapchainExtent = {};
+	uint32_t m_swapchainImageCount = 0;
 	std::vector<VkImage> m_swapchainImages;
 	std::vector<VkImageView> m_swapchainImageViews;
 	std::vector<VkFramebuffer> m_swapchainFramebuffers;
@@ -64,9 +65,9 @@ private:
 	uint32_t m_currentFrame = 0;
 	VkCommandPool m_commandPool = nullptr;
 	std::vector<VkCommandBuffer> m_commandBuffers;
-	std::vector<VkSemaphore> m_imageAvailableSemaphores;
-	std::vector<VkSemaphore> m_renderFinishedSemaphores;
-	std::vector<VkFence> m_inFlightFences;
+	std::vector<VkSemaphore> m_swapchainSemaphores;
+	std::vector<VkSemaphore> m_frameSemaphores;
+	std::vector<VkFence> m_frameFences;
 
 	vkMeshClass m_meshClass;
 

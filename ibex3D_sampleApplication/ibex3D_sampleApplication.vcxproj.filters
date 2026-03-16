@@ -136,7 +136,7 @@
     <None Include="assets\images\texture.jpg">
       <Filter>assets\images</Filter>
     </None>
-    <None Include="assets\models\viking_room.obbj">
+    <None Include="assets\models\viking_room.obj">
       <Filter>assets\models</Filter>
     </None>
   </ItemGroup>
