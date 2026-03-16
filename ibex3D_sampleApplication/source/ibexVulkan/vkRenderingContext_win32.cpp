@@ -103,7 +103,6 @@ bool vkRenderingContext::initialize(const char* appName, void* wndMemory)
 	IBEX3D_BASSERT(initCommandPool());
 	IBEX3D_BASSERT(initDepthResources());
 	IBEX3D_BASSERT(initFramebuffers());
-	IBEX3D_BASSERT(initTextureClass());
 	IBEX3D_BASSERT(initMeshClass());
 	IBEX3D_BASSERT(initCommandBuffers());
 	IBEX3D_BASSERT(initSyncObjects());
@@ -943,24 +942,12 @@ bool vkRenderingContext::initFramebuffers()
 	return true;
 }
 
-bool vkRenderingContext::initTextureClass()
-{
-	if (!m_textureClass.initialize(m_logicalDevice, m_physicalDevice, m_commandPool, m_graphicsQueue))
-	{
-		return false;
-	}
-	
-	return true;
-}
-
 bool vkRenderingContext::initMeshClass()
 {	
 	if (!m_meshClass.initialize
 	(
+		m_logicalDevice,
 		m_physicalDevice, 
-		m_logicalDevice, 
-		m_textureClass.imageView, 
-		m_textureClass.sampler,
 		m_commandPool,
 		m_graphicsQueue,
 		MAX_FRAMES_IN_FLIGHT
@@ -1172,7 +1159,6 @@ void vkRenderingContext::cleanupLogicalDevice()
 		cleanupSwapchain(m_logicalDevice);
 
 		m_meshClass.cleanup(m_logicalDevice);
-		m_textureClass.cleanup(m_logicalDevice);
 
 		if (m_graphicsPipeline != nullptr)
 		{

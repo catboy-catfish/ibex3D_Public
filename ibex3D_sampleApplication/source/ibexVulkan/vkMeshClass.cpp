@@ -1,7 +1,35 @@
 #include <ibexVulkan/vkMeshClass.h>
 #include <ibexVulkan/vkUtils.h>
 
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/hash.hpp>
+
+#define TINYOBJLOADER_IMPLEMENTATION
+#include <tinyobjloader/tiny_obj_loader.h>
+
+#include <string>
+#include <unordered_map>
+
+namespace std
+{
+	template<> struct hash<vkVertex>
+	{
+		size_t operator()(vkVertex const& vertex) const
+		{
+			// TODO: Look into hashing to understand this bullshit
+
+			return ((hash<glm::vec3>()(vertex.position) ^
+				(hash<glm::vec3>()(vertex.color) << 1)) >> 1) ^
+				(hash<glm::vec2>()(vertex.texCoord) << 1);
+		}
+	};
+}
+
+bool vkVertex::operator ==(const vkVertex& other) const
+{
+	return (position == other.position) && (color == other.color) && (texCoord == other.texCoord);
+}
 
 VkVertexInputBindingDescription vkVertex::getBindingDesc()
 {
@@ -39,28 +67,71 @@ std::array<VkVertexInputAttributeDescription, 3> vkVertex::getAttributeDescs()
 	return attribDescs;
 }
 
-void vkMeshClass::initMeshData()
+// ----------------------------------------------------------------------------------------------------
+
+bool vkMeshClass::initTexture(VkDevice device, VkPhysicalDevice physDevice, const char* textureFilePath, VkCommandPool cmdPool, VkQueue gfxQueue)
 {
-	vertices =
+	if (!textureClass.initialize(device, physDevice, textureFilePath, cmdPool, gfxQueue))
 	{
-		{{-0.5f, -0.5f,  0.0f}, {1.0f, 0.0f, 1.0f}, {1.0f, 0.0f}},		// Top left
-		{{ 0.5f, -0.5f,  0.5f}, {1.0f, 0.0f, 1.0f}, {0.0f, 0.0f}},		// Top right
-		{{ 0.5f,  0.5f,  0.0f}, {1.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},		// Bottom right
-		{{-0.5f,  0.5f, -0.5f}, {1.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},		// Bottom left
+		return false;
+	}
+	
+	return true;
+}
 
-		// Plane B - Position, color, UV coords
-		{{-0.5f, -0.5f,  0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},		// Top left
-		{{ 0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},		// Top right
-		{{ 0.5f,  0.5f,  0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f}},		// Bottom right
-		{{-0.5f,  0.5f,  0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f}}		// Bottom left
+bool vkMeshClass::initModel(const char* meshFilePath)
+{
+	tinyobj::attrib_t attrib;
+	std::vector<tinyobj::shape_t> shapes;
+	std::vector<tinyobj::material_t> materials;
+	std::string err;
 
-	};
-
-	indices =
+	if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, meshFilePath))
 	{
-		0, 1, 2, 2, 3, 0,
-		4, 5, 6, 6, 7, 4
-	};
+		vkUtils::printVkError("vkMeshClass::initModel()", "Couldn't load the model file.\n");
+		return false;
+	}
+	
+	std::unordered_map<vkVertex, uint32_t> uniqueVertices{};
+
+	for (const auto& shape : shapes)
+	{
+		for (const auto& index : shape.mesh.indices)
+		{
+			vkVertex vertex = {};
+
+			int startVertexIdx = 3 * index.vertex_index;
+			int startTexCoordIdx = 2 * index.texcoord_index;
+
+			vertex.position =
+			{
+				attrib.vertices[startVertexIdx],
+				attrib.vertices[startVertexIdx + 1],
+				attrib.vertices[startVertexIdx + 2]
+			};
+
+			vertex.texCoord =
+			{
+				attrib.texcoords[startTexCoordIdx],
+				1.0f - attrib.texcoords[startTexCoordIdx + 1],
+			};
+
+			vertex.color = { 1.0f, 1.0f, 1.0f };
+
+			if (uniqueVertices.count(vertex) == 0)
+			{
+				uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
+				vertices.push_back(vertex);
+			}
+
+			indices.push_back(uniqueVertices[vertex]);
+		}
+	}
+
+	auto numVertices = vertices.size();
+	auto numIndices = indices.size();
+
+	return true;
 }
 
 bool vkMeshClass::initVertexBuffer(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue)
@@ -356,9 +427,20 @@ void vkMeshClass::updateUniformBuffer(uint32_t currentImage, const VkExtent2D& s
 	memcpy(uniBuffersMapped[currentImage], &data, sizeof(data));
 }
 
-bool vkMeshClass::initialize(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkImageView textureImageView, VkSampler textureSampler, VkCommandPool commandPool, VkQueue graphicsQueue, size_t maxFramesInFlight)
+bool vkMeshClass::initialize(VkDevice logicalDevice, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, size_t maxFramesInFlight)
 {
-	initMeshData();
+	const char* meshFilePath = "assets/models/viking_room.obj";
+	const char* textureFilePath = "assets/images/viking_room.png";
+	
+	if (!initTexture(logicalDevice, physicalDevice, textureFilePath, commandPool, graphicsQueue))
+	{
+		return false;
+	}
+	
+	if (!initModel(meshFilePath))
+	{
+		return false;
+	}
 	
 	if (!initVertexBuffer(physicalDevice, logicalDevice, commandPool, graphicsQueue))
 	{
@@ -375,7 +457,7 @@ bool vkMeshClass::initialize(VkPhysicalDevice physicalDevice, VkDevice logicalDe
 		return false;
 	}
 
-	if (!initDescriptorPoolAndSets(logicalDevice, textureImageView, textureSampler, maxFramesInFlight))
+	if (!initDescriptorPoolAndSets(logicalDevice, textureClass.imageView, textureClass.sampler, maxFramesInFlight))
 	{
 		return false;
 	}
@@ -433,4 +515,6 @@ void vkMeshClass::cleanup(VkDevice logicalDevice)
 
 	vkUtils::destroyBuffer(logicalDevice, idxBuffer, idxBufferMemory);
 	vkUtils::destroyBuffer(logicalDevice, vtxBuffer, vtxBufferMemory);
+
+	textureClass.cleanup(logicalDevice);
 }

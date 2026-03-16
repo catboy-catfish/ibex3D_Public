@@ -1,6 +1,6 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
+#include <ibexVulkan/vkTextureClass.h>
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -15,6 +15,10 @@ struct vkVertex
 	glm::vec3 color;
 	glm::vec2 texCoord;
 
+	// ----------------------------------------------------------------------------------------------------
+	
+	bool operator == (const vkVertex& other) const;
+	
 	// ----------------------------------------------------------------------------------------------------
 
 	static VkVertexInputBindingDescription getBindingDesc();
@@ -32,15 +36,17 @@ struct vkMeshClass
 {
 	// ----------------------------------------------------------------------------------------------------
 	
+	vkTextureClass textureClass;
+
 	std::vector<vkVertex> vertices;
-	VkBuffer vtxBuffer = nullptr;
-	VkDeviceMemory vtxBufferMemory = nullptr;
-
 	std::vector<uint32_t> indices;
-	VkBuffer idxBuffer = nullptr;
-	VkDeviceMemory idxBufferMemory = nullptr;
 
+	VkBuffer vtxBuffer = nullptr;
+	VkBuffer idxBuffer = nullptr;
 	std::vector<VkBuffer> uniBuffers;
+
+	VkDeviceMemory vtxBufferMemory = nullptr;
+	VkDeviceMemory idxBufferMemory = nullptr;
 	std::vector<VkDeviceMemory> uniBuffersMemory;
 	std::vector<void*> uniBuffersMapped;
 
@@ -54,7 +60,8 @@ struct vkMeshClass
 
 	// ----------------------------------------------------------------------------------------------------
 
-	void initMeshData();
+	bool initTexture(VkDevice device, VkPhysicalDevice physDevice, const char* textureFilePath, VkCommandPool cmdPool, VkQueue gfxQueue);
+	bool initModel(const char* meshFilePath);
 	bool initVertexBuffer(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue);
 	bool initIndexBuffer(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue);
 	bool initUniformBuffers(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, size_t maxFramesInFlight);
@@ -63,7 +70,7 @@ struct vkMeshClass
 
 	void updateUniformBuffer(uint32_t currentImage, const VkExtent2D& swapchainExtent);
 
-	bool initialize(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkImageView textureImageView, VkSampler textureSampler, VkCommandPool commandPool, VkQueue graphicsQueue, size_t maxFramesInFlight);
+	bool initialize(VkDevice logicalDevice, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, size_t maxFramesInFlight);
 	void setMeshRotation(float rotation);
 	void draw(VkCommandBuffer buffer, VkPipelineLayout pipelineLayout, uint32_t currentFrame);
 	void cleanup(VkDevice logicalDevice);

@@ -119,6 +119,9 @@
     <Filter Include="ibex3D\utility\windowsUtilFunctions">
       <UniqueIdentifier>{384c8fb8-63a7-4405-b7c9-31889ead9f86}</UniqueIdentifier>
     </Filter>
+    <Filter Include="assets\models">
+      <UniqueIdentifier>{a51a472c-ab7f-4138-ae9d-39ba12a1e3d5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\shaders\compile.bat">
@@ -133,5 +136,13 @@
     <None Include="assets\images\texture.jpg">
       <Filter>assets\images</Filter>
     </None>
+    <None Include="assets\models\viking_room.obbj">
+      <Filter>assets\models</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="assets\images\viking_room.png">
+      <Filter>assets\images</Filter>
+    </Image>
   </ItemGroup>
 </Project>

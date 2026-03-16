@@ -4,10 +4,10 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/image.h>
 
-bool vkTextureClass::initImageAndView(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue)
+bool vkTextureClass::initImageAndView(VkDevice device, VkPhysicalDevice physDevice, const char* imgFilePath, VkCommandPool cmdPool, VkQueue gfxQueue)
 {
 	int texWidth, texHeight, texChannels;
-	stbi_uc* pixels = stbi_load("assets/images/texture.jpg", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+	stbi_uc* pixels = stbi_load(imgFilePath, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 
 	if (pixels == nullptr)
 	{
@@ -143,9 +143,9 @@ bool vkTextureClass::initSampler(VkDevice device, VkPhysicalDevice physDevice)
 	return true;
 }
 
-bool vkTextureClass::initialize(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue)
+bool vkTextureClass::initialize(VkDevice device, VkPhysicalDevice physDevice, const char* imgFilePath, VkCommandPool cmdPool, VkQueue gfxQueue)
 {
-	if (!initImageAndView(device, physDevice, cmdPool, gfxQueue))
+	if (!initImageAndView(device, physDevice, imgFilePath, cmdPool, gfxQueue))
 	{
 		return false;
 	}

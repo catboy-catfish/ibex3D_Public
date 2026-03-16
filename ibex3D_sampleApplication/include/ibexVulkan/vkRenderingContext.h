@@ -1,6 +1,5 @@
 #pragma once
 #include <ibexVulkan/vkMeshClass.h>
-#include <ibexVulkan/vkTextureClass.h>
 
 class vkRenderingContext
 {
@@ -23,7 +22,6 @@ private:
 	bool initCommandPool();
 	bool initDepthResources();
 	bool initFramebuffers();
-	bool initTextureClass();
 	bool initMeshClass();
 	bool initCommandBuffers();
 	bool initSyncObjects();
@@ -70,7 +68,6 @@ private:
 	std::vector<VkSemaphore> m_renderFinishedSemaphores;
 	std::vector<VkFence> m_inFlightFences;
 
-	vkTextureClass m_textureClass;
 	vkMeshClass m_meshClass;
 
 	VkImage m_depthImage = nullptr;
