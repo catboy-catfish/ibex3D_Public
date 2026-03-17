@@ -27,8 +27,8 @@ bool vkTextureClass::initImageAndView(VkDevice device, VkPhysicalDevice physDevi
 
 	if (!vkUtils::createBuffer
 	(
-		physDevice,
 		device,
+		physDevice,
 		imageSize,
 		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
@@ -50,8 +50,8 @@ bool vkTextureClass::initImageAndView(VkDevice device, VkPhysicalDevice physDevi
 
 	if (!vkUtils::createImage
 	(
-		physDevice,
 		device,
+		physDevice,
 		texWidth,
 		texHeight,
 		mipLevels,
@@ -72,13 +72,13 @@ bool vkTextureClass::initImageAndView(VkDevice device, VkPhysicalDevice physDevi
 	vkUtils::transitionImageLayout
 	(
 		device,
+		cmdPool,
+		gfxQueue,
 		image,
 		mipLevels,
 		VK_FORMAT_R8G8B8A8_SRGB,
 		VK_IMAGE_LAYOUT_UNDEFINED,
-		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-		cmdPool,
-		gfxQueue
+		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
 	);
 
 	vkUtils::copyBufferToImage
@@ -91,7 +91,7 @@ bool vkTextureClass::initImageAndView(VkDevice device, VkPhysicalDevice physDevi
 		static_cast<uint32_t>(texWidth),
 		static_cast<uint32_t>(texHeight)
 	);
-
+	
 	vkUtils::generateMipmaps(device, physDevice, cmdPool, gfxQueue, image, VK_FORMAT_R8G8B8A8_SRGB, texWidth, texHeight, mipLevels);
 	vkUtils::destroyBuffer(device, stagingBuffer, stagingBufferMemory);
 
@@ -127,7 +127,7 @@ bool vkTextureClass::initSampler(VkDevice device, VkPhysicalDevice physDevice)
 	samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
 	samplerInfo.mipLodBias = 0.0f;
 	samplerInfo.maxLod = VK_LOD_CLAMP_NONE;
-	samplerInfo.minLod = 0.0f;
+	samplerInfo.minLod = static_cast<float>(mipLevels / 2);		// Set back to 0 for full detail
 
 	VkResult result = vkCreateSampler(device, &samplerInfo, nullptr, &sampler);
 

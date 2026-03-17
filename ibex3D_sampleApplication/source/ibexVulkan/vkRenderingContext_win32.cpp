@@ -860,7 +860,7 @@ bool vkRenderingContext::initDepthResources()
 
 	if (!vkUtils::createImage
 	(
-		m_physicalDevice, m_logicalDevice,
+		m_logicalDevice, m_physicalDevice,
 		m_swapchainExtent.width, m_swapchainExtent.height, 1,
 		depthFormat,
 		VK_IMAGE_TILING_OPTIMAL,
@@ -884,13 +884,13 @@ bool vkRenderingContext::initDepthResources()
 	if (!vkUtils::transitionImageLayout
 	(
 		m_logicalDevice,
+		m_commandPool,
+		m_graphicsQueue,
 		m_depthImage,
 		1,
 		depthFormat,
 		VK_IMAGE_LAYOUT_UNDEFINED,
-		VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-		m_commandPool,
-		m_graphicsQueue
+		VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
 	))
 	{
 		vkUtils::printVkError("vkRenderingContext::initDepthResources()", "Couldn't transition the depth image layout.");

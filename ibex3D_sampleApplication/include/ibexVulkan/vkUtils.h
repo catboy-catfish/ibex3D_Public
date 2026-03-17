@@ -44,43 +44,44 @@ public:
 class vkUtils
 {
 public:
+
 	// Logging
 	static void printVkError(const char* functionName, const char* message);
 	static void printVkResultError(VkResult result, const char* functionName, const char* message);
 
 	// Physical device and swapchain
-	static vkQueueFamilyIndices findQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface);
-	static vkSwapchainSupportInfo querySwapchainSupport(VkPhysicalDevice device, VkSurfaceKHR surface);
-	static bool checkPhysicalDeviceSuitability(VkPhysicalDevice device, VkSurfaceKHR surface, bool extensionsSupported);
+	static vkQueueFamilyIndices findQueueFamilies(VkPhysicalDevice physDevice, VkSurfaceKHR surface);
+	static vkSwapchainSupportInfo querySwapchainSupport(VkPhysicalDevice physDevice, VkSurfaceKHR surface);
+	static bool checkPhysicalDeviceSuitability(VkPhysicalDevice physDevice, VkSurfaceKHR surface, bool extSupport);
 
 	// Swapchain
 	static VkSurfaceFormatKHR chooseSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
-	static VkPresentModeKHR choosePresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
-	static VkExtent2D chooseExtent(const VkSurfaceCapabilitiesKHR& capabilities, int width, int height);
+	static VkPresentModeKHR choosePresentMode(const std::vector<VkPresentModeKHR>& availableModes);
+	static VkExtent2D chooseExtent(const VkSurfaceCapabilitiesKHR& surfaceCaps, int width, int height);
 
 	// Shader loading
-	static VkShaderModule createShaderModule(VkDevice logicalDevice, const std::vector<char>& bytecode);
-	static VkShaderModule createShaderModuleFromText(VkDevice logicalDevice, const char* fileName);
+	static VkShaderModule createShaderModule(VkDevice device, const std::vector<char>& spirvBytecode);
+	static VkShaderModule createShaderModuleFromText(VkDevice device, const char* fileName);			// NOT IMPLEMENTED!!!
 
 	// Command buffers
-	static VkCommandBuffer beginSingleTimeCommands(VkDevice logicalDevice, VkCommandPool commandPool);
-	static void endSingleTimeCommands(VkDevice logicalDevice, VkCommandBuffer commandBuffer, VkCommandPool commandPool, VkQueue graphicsQueue);
+	static VkCommandBuffer beginSingleTimeCommands(VkDevice device, VkCommandPool pool);
+	static void endSingleTimeCommands(VkDevice device, VkCommandPool pool, VkQueue gfxQueue, VkCommandBuffer buffer);
 
 	// Buffers
-	static bool findMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties, uint32_t& outputMemoryType);
-	static bool createBuffer(VkPhysicalDevice physicalDevice, VkDevice vkLogicalDevice, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
-	static bool copyBuffer(VkDevice logicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
-	static void destroyBuffer(VkDevice logicalDevice, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
-
-	// Images
-	static bool createImage(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, uint32_t width, uint32_t height, uint32_t mipLevels, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
-	static VkImageView createImageView(VkDevice logicalDevice, VkImage image, uint32_t mipLevels, VkFormat format, VkImageAspectFlags aspectFlags);
-	static bool copyBufferToImage(VkDevice logicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
-	static bool generateMipmaps(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue, VkImage image, VkFormat format, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
-	static bool transitionImageLayout(VkDevice logicalDevice, VkImage image, uint32_t mipLevels, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, VkCommandPool commandPool, VkQueue graphicsQueue);
+	static bool findMemoryType(VkPhysicalDevice physDevice, uint32_t typeFilter, VkMemoryPropertyFlags memPropertyFlags, uint32_t& outputMemoryType);
+	static bool createBuffer(VkDevice device, VkPhysicalDevice physDevice, VkDeviceSize bufferSize, VkBufferUsageFlags bufferUsage, VkMemoryPropertyFlags memProperties, VkBuffer& buffer, VkDeviceMemory& bufferMem);
+	static bool copyBuffer(VkDevice device, VkCommandPool cmdPool, VkQueue gfxQueue, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize bufferSize);
+	static void destroyBuffer(VkDevice device, VkBuffer& buffer, VkDeviceMemory& bufferMem);
 
 	// Depth buffers
-	static VkFormat findSupportedFormat(VkPhysicalDevice physicalDevice, const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
-	static VkFormat findDepthFormat(VkPhysicalDevice physicalDevice);
+	static VkFormat findSupportedFormat(VkPhysicalDevice physDevice, const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+	static VkFormat findDepthFormat(VkPhysicalDevice physDevice);
 	static bool formatHasStencilComponent(VkFormat format);
+
+	// Images
+	static bool createImage(VkDevice device, VkPhysicalDevice physDevice, uint32_t width, uint32_t height, uint32_t mipLevels, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags memProperties, VkImage& image, VkDeviceMemory& imageMem);
+	static VkImageView createImageView(VkDevice device, VkImage image, uint32_t mipLevels, VkFormat format, VkImageAspectFlags aspect);
+	static bool copyBufferToImage(VkDevice device, VkCommandPool cmdPool, VkQueue gfxQueue, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
+	static bool transitionImageLayout(VkDevice device, VkCommandPool cmdPool, VkQueue gfxQueue, VkImage image, uint32_t mipLevels, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+	static bool generateMipmaps(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue, VkImage image, VkFormat format, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
 };
