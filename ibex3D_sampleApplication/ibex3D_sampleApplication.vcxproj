@@ -11,40 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\ibex3D\core\appRuntime.h" />
-    <ClInclude Include="include\ibex3D\core\timerClass.h" />
-    <ClInclude Include="include\ibex3D\utility\memoryUtils.h" />
-    <ClInclude Include="include\ibex3D\utility\utilFunctions.h" />
-    <ClInclude Include="include\ibex3D\utility\windowsUtils.h" />
-    <ClInclude Include="include\ibexVulkan\vkRenderingContext.h" />
-    <ClInclude Include="include\ibexVulkan\vkTextureClass.h" />
-    <ClInclude Include="include\ibexVulkan\vkUtils.h" />
-    <ClInclude Include="include\ibexVulkan\vkMeshClass.h" />
-    <ClInclude Include="include\sampleApp\appInterface.h" />
+    <ClInclude Include="include\ibex3D\utility\memoryFunctions.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\ibex3D\core\appRuntime_win32.cpp" />
-    <ClCompile Include="source\ibex3D\core\timerClass.cpp" />
-    <ClCompile Include="source\ibex3D\utility\utilFunctions.cpp" />
-    <ClCompile Include="source\ibex3D\utility\windowsUtilFunctions.cpp" />
-    <ClCompile Include="source\ibexVulkan\vkRenderingContext_win32.cpp" />
-    <ClCompile Include="source\ibexVulkan\vkTextureClass.cpp" />
-    <ClCompile Include="source\ibexVulkan\vkUtils.cpp" />
-    <ClCompile Include="source\ibexVulkan\vkMeshClass.cpp" />
-    <ClCompile Include="source\sampleApp\appInterface.cpp" />
     <ClCompile Include="source\sampleApp\main.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="assets\models\viking_room.obj" />
-    <None Include="assets\shaders\compile.bat" />
-    <None Include="assets\shaders\shader.frag" />
-    <None Include="assets\shaders\shader.vert" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="assets\images\texture.jpg" />
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="assets\images\viking_room.png" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
@@ -92,7 +62,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>IBEX3D_PLATFORM_WIN32;IBEX3D_VULKAN_USE_VALIDATION_LAYERS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>IBEX3D_PLATFORM_WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(VULKAN_SDK)/Include/;$(ProjectDir)include/;$(SolutionDir)libraries/include/</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -113,7 +83,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>IBEX3D_PLATFORM_WIN32;IBEX3D_VULKAN_USE_VALIDATION_LAYERS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>IBEX3D_PLATFORM_WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(VULKAN_SDK)/Include/;$(ProjectDir)include/;$(SolutionDir)libraries/include/</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>

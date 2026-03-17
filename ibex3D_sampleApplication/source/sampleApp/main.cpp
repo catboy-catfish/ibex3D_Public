@@ -1,18 +1,39 @@
-// #include <ibex3D/utility/memoryUtils.h>
-#include <ibex3D/core/appRuntime.h>
+#include <ibex3D/utility/memoryFunctions.h>
+
+struct myStruct_t
+{
+	int ID = 0;
+
+	myStruct_t()
+	{
+		printf("Constructor called for myStruct with ID %d.\n", ID);
+	}
+
+	myStruct_t(int inputID)
+	{
+		ID = inputID;
+		printf("Constructor called for myStruct with ID %d.\n", ID);
+	}
+
+	~myStruct_t()
+	{
+		printf("Destructor called for myStruct with ID %d.\n", ID);
+	}
+};
 
 int main()
 {	
-	auto runtime = new appRuntime;
+	myStruct_t* myStruct = ibex3D_alloc<myStruct_t>();
+	myStruct_t* myStruct69 = ibex3D_alloc<myStruct_t>(69);
 
-	if (runtime->initialize(1280, 720, "Hello, ibex3D!"))
-	{
-		runtime->startRunning();
-	}
+	system("pause");
 
-	runtime->cleanup();
-	delete runtime;
-	runtime = nullptr;
+	ibex3D_free<myStruct_t>(myStruct69);
+	myStruct69 = nullptr;
 
+	ibex3D_free<myStruct_t>(myStruct);
+	myStruct = nullptr;
+
+	system("pause");
 	return 0;
 }

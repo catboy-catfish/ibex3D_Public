@@ -1,148 +1,27 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClInclude Include="include\ibex3D\core\appRuntime.h">
-      <Filter>ibex3D\core\appRuntime</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ibex3D\core\timerClass.h">
-      <Filter>ibex3D\core\timerClass</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ibexVulkan\vkUtils.h">
-      <Filter>ibexVulkan\vkUtils</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ibexVulkan\vkMeshClass.h">
-      <Filter>ibexVulkan\vkMeshClass</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ibexVulkan\vkRenderingContext.h">
-      <Filter>ibexVulkan\vkRenderingContext</Filter>
-    </ClInclude>
-    <ClInclude Include="include\sampleApp\appInterface.h">
-      <Filter>sampleApp\appInterface</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ibexVulkan\vkTextureClass.h">
-      <Filter>ibexVulkan\vkTextureClass</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ibex3D\utility\memoryUtils.h">
-      <Filter>ibex3D\utility\memoryUtils</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ibex3D\utility\utilFunctions.h">
-      <Filter>ibex3D\utility\utilFunctions</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ibex3D\utility\windowsUtils.h">
-      <Filter>ibex3D\utility\windowsUtilFunctions</Filter>
+    <ClInclude Include="include\ibex3D\utility\memoryFunctions.h">
+      <Filter>ibex3D\utility\memoryFunctions</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\ibex3D\core\appRuntime_win32.cpp">
-      <Filter>ibex3D\core\appRuntime</Filter>
-    </ClCompile>
-    <ClCompile Include="source\ibex3D\core\timerClass.cpp">
-      <Filter>ibex3D\core\timerClass</Filter>
-    </ClCompile>
-    <ClCompile Include="source\ibexVulkan\vkUtils.cpp">
-      <Filter>ibexVulkan\vkUtils</Filter>
-    </ClCompile>
-    <ClCompile Include="source\ibexVulkan\vkMeshClass.cpp">
-      <Filter>ibexVulkan\vkMeshClass</Filter>
-    </ClCompile>
-    <ClCompile Include="source\ibexVulkan\vkRenderingContext_win32.cpp">
-      <Filter>ibexVulkan\vkRenderingContext</Filter>
-    </ClCompile>
     <ClCompile Include="source\sampleApp\main.cpp">
       <Filter>sampleApp</Filter>
-    </ClCompile>
-    <ClCompile Include="source\sampleApp\appInterface.cpp">
-      <Filter>sampleApp\appInterface</Filter>
-    </ClCompile>
-    <ClCompile Include="source\ibexVulkan\vkTextureClass.cpp">
-      <Filter>ibexVulkan\vkTextureClass</Filter>
-    </ClCompile>
-    <ClCompile Include="source\ibex3D\utility\utilFunctions.cpp">
-      <Filter>ibex3D\utility\utilFunctions</Filter>
-    </ClCompile>
-    <ClCompile Include="source\ibex3D\utility\windowsUtilFunctions.cpp">
-      <Filter>ibex3D\utility\windowsUtilFunctions</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="ibex3D">
       <UniqueIdentifier>{4eff8279-bd35-49af-b9ce-5997a9f9d7f7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ibexVulkan">
-      <UniqueIdentifier>{360f4903-ba0c-4bd6-a5f8-1fd6d7523bcc}</UniqueIdentifier>
-    </Filter>
     <Filter Include="sampleApp">
       <UniqueIdentifier>{0815c615-db27-42f7-8e9f-190d0685f0e7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ibex3D\core">
-      <UniqueIdentifier>{137d49d6-b351-4b2a-b26b-10f8290e5f12}</UniqueIdentifier>
     </Filter>
     <Filter Include="ibex3D\utility">
       <UniqueIdentifier>{420fe6d9-7b0a-44b8-afde-03833488ded4}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ibex3D\core\appRuntime">
-      <UniqueIdentifier>{2d5e1e2e-dd8e-43ed-be04-8ac436237f74}</UniqueIdentifier>
+    <Filter Include="ibex3D\utility\memoryFunctions">
+      <UniqueIdentifier>{4043ce92-d919-415f-9b9f-ddecfc6e23d7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ibex3D\core\timerClass">
-      <UniqueIdentifier>{3f9e7674-9e77-4b9c-b8f5-688e878d07a5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ibexVulkan\vkUtils">
-      <UniqueIdentifier>{17eef45c-99e1-4079-9294-b6ef4af655e9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ibexVulkan\vkMeshClass">
-      <UniqueIdentifier>{2af6fead-42b0-406e-b016-6f0b58751fc3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ibexVulkan\vkRenderingContext">
-      <UniqueIdentifier>{b6999d60-d730-45d5-b322-b8e0e18f4ced}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="sampleApp\appInterface">
-      <UniqueIdentifier>{139baaab-a8bb-4745-834a-0b85947e9679}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="assets">
-      <UniqueIdentifier>{527df12e-740e-4ee3-ae28-a5b9334bb6e4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="assets\shaders">
-      <UniqueIdentifier>{a784c131-f5e8-4b63-9b16-0cf1e07ea21e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="assets\images">
-      <UniqueIdentifier>{c8710c5f-51e9-42b9-9b2b-00d190359dbb}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ibexVulkan\vkTextureClass">
-      <UniqueIdentifier>{29ca2cb4-426d-4c28-b81f-bd6e9a1bd787}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ibex3D\utility\memoryUtils">
-      <UniqueIdentifier>{d00ad263-acb1-443f-99df-7a6817c20b0d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ibex3D\utility\utilFunctions">
-      <UniqueIdentifier>{3714fd07-54da-4763-bd40-3a8bf7990f68}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ibex3D\utility\windowsUtilFunctions">
-      <UniqueIdentifier>{384c8fb8-63a7-4405-b7c9-31889ead9f86}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="assets\models">
-      <UniqueIdentifier>{a51a472c-ab7f-4138-ae9d-39ba12a1e3d5}</UniqueIdentifier>
-    </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="assets\shaders\compile.bat">
-      <Filter>assets\shaders</Filter>
-    </None>
-    <None Include="assets\shaders\shader.frag">
-      <Filter>assets\shaders</Filter>
-    </None>
-    <None Include="assets\shaders\shader.vert">
-      <Filter>assets\shaders</Filter>
-    </None>
-    <None Include="assets\images\texture.jpg">
-      <Filter>assets\images</Filter>
-    </None>
-    <None Include="assets\models\viking_room.obj">
-      <Filter>assets\models</Filter>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="assets\images\viking_room.png">
-      <Filter>assets\images</Filter>
-    </Image>
   </ItemGroup>
 </Project>
