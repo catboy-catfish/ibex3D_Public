@@ -4,6 +4,7 @@
 
 struct vkTextureClass
 {
+	uint32_t mipLevels = 0;
 	VkImage image = nullptr;
 	VkDeviceMemory imageMemory = nullptr;
 	VkImageView imageView = nullptr;

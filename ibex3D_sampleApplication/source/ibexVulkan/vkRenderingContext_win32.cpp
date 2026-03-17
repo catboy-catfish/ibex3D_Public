@@ -464,7 +464,7 @@ bool vkRenderingContext::initSwapchain(int wndWidth, int wndHeight)
 
 	for (size_t i = 0; i < m_swapchainImages.size(); i++)
 	{
-		m_swapchainImageViews[i] = vkUtils::createImageView(m_logicalDevice, m_swapchainImages[i], m_swapchainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
+		m_swapchainImageViews[i] = vkUtils::createImageView(m_logicalDevice, m_swapchainImages[i], 1, m_swapchainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
 
 		if (m_swapchainImageViews[i] == nullptr)
 		{
@@ -861,7 +861,7 @@ bool vkRenderingContext::initDepthResources()
 	if (!vkUtils::createImage
 	(
 		m_physicalDevice, m_logicalDevice,
-		m_swapchainExtent.width, m_swapchainExtent.height,
+		m_swapchainExtent.width, m_swapchainExtent.height, 1,
 		depthFormat,
 		VK_IMAGE_TILING_OPTIMAL,
 		VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
@@ -873,7 +873,7 @@ bool vkRenderingContext::initDepthResources()
 		return false;
 	}
 
-	m_depthImageView = vkUtils::createImageView(m_logicalDevice, m_depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+	m_depthImageView = vkUtils::createImageView(m_logicalDevice, m_depthImage, 1, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
 
 	if (m_depthImageView == nullptr)
 	{
@@ -885,6 +885,7 @@ bool vkRenderingContext::initDepthResources()
 	(
 		m_logicalDevice,
 		m_depthImage,
+		1,
 		depthFormat,
 		VK_IMAGE_LAYOUT_UNDEFINED,
 		VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,

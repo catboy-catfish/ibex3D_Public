@@ -4,6 +4,9 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/image.h>
 
+#include <algorithm>
+#include <cmath>
+
 bool vkTextureClass::initImageAndView(VkDevice device, VkPhysicalDevice physDevice, const char* imgFilePath, VkCommandPool cmdPool, VkQueue gfxQueue)
 {
 	int texWidth, texHeight, texChannels;
@@ -14,6 +17,8 @@ bool vkTextureClass::initImageAndView(VkDevice device, VkPhysicalDevice physDevi
 		vkUtils::printVkError("vkTextureClass::initImageAndView()", "Couldn't load the texture data.\n");
 		return false;
 	}
+
+	mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))) + 1;
 
 	VkDeviceSize imageSize = texWidth * texHeight * 4;
 
@@ -49,9 +54,10 @@ bool vkTextureClass::initImageAndView(VkDevice device, VkPhysicalDevice physDevi
 		device,
 		texWidth,
 		texHeight,
+		mipLevels,
 		VK_FORMAT_R8G8B8A8_SRGB,
 		VK_IMAGE_TILING_OPTIMAL,
-		VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+		VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
 		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
 		image,
 		imageMemory
@@ -67,6 +73,7 @@ bool vkTextureClass::initImageAndView(VkDevice device, VkPhysicalDevice physDevi
 	(
 		device,
 		image,
+		mipLevels,
 		VK_FORMAT_R8G8B8A8_SRGB,
 		VK_IMAGE_LAYOUT_UNDEFINED,
 		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
@@ -85,22 +92,12 @@ bool vkTextureClass::initImageAndView(VkDevice device, VkPhysicalDevice physDevi
 		static_cast<uint32_t>(texHeight)
 	);
 
-	vkUtils::transitionImageLayout
-	(
-		device,
-		image,
-		VK_FORMAT_R8G8B8A8_SRGB,
-		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-		VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-		cmdPool,
-		gfxQueue
-	);
-
+	vkUtils::generateMipmaps(device, physDevice, cmdPool, gfxQueue, image, VK_FORMAT_R8G8B8A8_SRGB, texWidth, texHeight, mipLevels);
 	vkUtils::destroyBuffer(device, stagingBuffer, stagingBufferMemory);
 
 	// ----------------------------------------------------------------------------------------------------
 
-	imageView = vkUtils::createImageView(device, image, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
+	imageView = vkUtils::createImageView(device, image, mipLevels, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
 
 	if (imageView == nullptr)
 	{
@@ -129,8 +126,8 @@ bool vkTextureClass::initSampler(VkDevice device, VkPhysicalDevice physDevice)
 	samplerInfo.unnormalizedCoordinates = VK_FALSE;
 	samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
 	samplerInfo.mipLodBias = 0.0f;
+	samplerInfo.maxLod = VK_LOD_CLAMP_NONE;
 	samplerInfo.minLod = 0.0f;
-	samplerInfo.maxLod = 0.0f;
 
 	VkResult result = vkCreateSampler(device, &samplerInfo, nullptr, &sampler);
 
