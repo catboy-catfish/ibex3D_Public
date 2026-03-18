@@ -55,6 +55,7 @@ bool vkTextureClass::initImageAndView(VkDevice device, VkPhysicalDevice physDevi
 		texWidth,
 		texHeight,
 		mipLevels,
+		VK_SAMPLE_COUNT_1_BIT,
 		VK_FORMAT_R8G8B8A8_SRGB,
 		VK_IMAGE_TILING_OPTIMAL,
 		VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
@@ -127,7 +128,7 @@ bool vkTextureClass::initSampler(VkDevice device, VkPhysicalDevice physDevice)
 	samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
 	samplerInfo.mipLodBias = 0.0f;
 	samplerInfo.maxLod = VK_LOD_CLAMP_NONE;
-	samplerInfo.minLod = static_cast<float>(mipLevels / 2);		// Set back to 0 for full detail
+	samplerInfo.minLod = 0.0f;
 
 	VkResult result = vkCreateSampler(device, &samplerInfo, nullptr, &sampler);
 

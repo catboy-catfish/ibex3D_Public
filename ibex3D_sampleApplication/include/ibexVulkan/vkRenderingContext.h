@@ -13,13 +13,14 @@ public:
 private:
 	bool initInstance(const char* appName);
 	bool initSurface(void* wndMemory);
-	bool initPhysicalDevice();
+	bool initPhysicalDevice(VkSampleCountFlagBits msaaSamplesUsed);
 	bool initLogicalDevice();
 	bool initSwapchain(int wndWidth, int wndHeight);
 	bool initRenderPass();
 	bool initDescriptorSetLayout();
 	bool initGraphicsPipeline();
 	bool initCommandPool();
+	bool initColorResources();
 	bool initDepthResources();
 	bool initFramebuffers();
 	bool initMeshClass();
@@ -27,7 +28,7 @@ private:
 	bool initSyncObjects();
 
 	bool recordCommandBuffer(VkCommandBuffer buffer, uint32_t imageIndex);
-	void recreateSwapchain();
+	bool recreateSwapchain();
 
 	void cleanupSwapchain(VkDevice device);
 	void cleanupLogicalDevice();
@@ -39,6 +40,8 @@ private:
 	void printAvailableInstanceLayers();
 
 private:
+	// TODO: Optimize alignment by moving variables around
+
 	void* m_wndMemory = nullptr;
 
 	bool m_wasJustResized = false;
@@ -51,6 +54,7 @@ private:
 	VkQueue m_graphicsQueue = nullptr;
 	VkQueue m_presentQueue = nullptr;
 
+	VkSampleCountFlagBits m_msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 	VkSwapchainKHR m_swapchain = nullptr;
 	VkFormat m_swapchainImageFormat = VK_FORMAT_UNDEFINED;
 	VkExtent2D m_swapchainExtent = {};
@@ -70,6 +74,10 @@ private:
 	std::vector<VkFence> m_frameFences;
 
 	vkMeshClass m_meshClass;
+
+	VkImage m_colorImage = nullptr;
+	VkDeviceMemory m_colorImageMemory = nullptr;
+	VkImageView m_colorImageView = nullptr;
 
 	VkImage m_depthImage = nullptr;
 	VkDeviceMemory m_depthImageMemory = nullptr;

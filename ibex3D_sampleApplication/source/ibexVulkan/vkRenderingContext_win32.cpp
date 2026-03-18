@@ -88,19 +88,20 @@ static void configureRequiredExtensionsAndLayers()
 // - Public functions ---------------------------------------------------------------------------------
 
 bool vkRenderingContext::initialize(const char* appName, void* wndMemory)
-{	
+{		
 	int wndWidth, wndHeight;
 	IBEX3D_BASSERT(win32Utils::getWindowDimensions(static_cast<HWND>(wndMemory), wndWidth, wndHeight));
 	
 	IBEX3D_BASSERT(initInstance(appName));
 	IBEX3D_BASSERT(initSurface(wndMemory));
-	IBEX3D_BASSERT(initPhysicalDevice());
+	IBEX3D_BASSERT(initPhysicalDevice(VK_SAMPLE_COUNT_4_BIT));
 	IBEX3D_BASSERT(initLogicalDevice());
 	IBEX3D_BASSERT(initSwapchain(wndWidth, wndHeight));
 	IBEX3D_BASSERT(initRenderPass());
 	IBEX3D_BASSERT(initDescriptorSetLayout());
 	IBEX3D_BASSERT(initGraphicsPipeline());
 	IBEX3D_BASSERT(initCommandPool());
+	IBEX3D_BASSERT(initColorResources());
 	IBEX3D_BASSERT(initDepthResources());
 	IBEX3D_BASSERT(initFramebuffers());
 	IBEX3D_BASSERT(initMeshClass());
@@ -124,7 +125,7 @@ bool vkRenderingContext::drawFrame()
 
 	if (result == VK_ERROR_OUT_OF_DATE_KHR)
 	{	
-		recreateSwapchain();
+		IBEX3D_BASSERT(recreateSwapchain());
 		return true;
 	}
 	else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
@@ -157,7 +158,7 @@ bool vkRenderingContext::drawFrame()
 
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::printVkResultError(result, "vkRenderingContext::drawFrame()", "Couldn't submit the draw command buffer.");
+		vkUtils::printVkResultError(result, "vkRenderingContext::drawFrame()", "Couldn't submit the draw command to the command buffer.");
 		return false;
 	}
 
@@ -176,7 +177,7 @@ bool vkRenderingContext::drawFrame()
 
 	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || m_wasJustResized)
 	{
-		recreateSwapchain();
+		IBEX3D_BASSERT(recreateSwapchain());
 		m_wasJustResized = false;
 	}
 	else if (result != VK_SUCCESS)
@@ -288,7 +289,7 @@ bool vkRenderingContext::initSurface(void* wndMemory)
 	return true;
 }
 
-bool vkRenderingContext::initPhysicalDevice()
+bool vkRenderingContext::initPhysicalDevice(VkSampleCountFlagBits msaaSamplesUsed)
 {
 	uint32_t numDevices = 0;
 	vkEnumeratePhysicalDevices(m_instance, &numDevices, nullptr);
@@ -309,6 +310,10 @@ bool vkRenderingContext::initPhysicalDevice()
 		if (vkUtils::checkPhysicalDeviceSuitability(device, m_surface, extensionsSupported))
 		{
 			m_physicalDevice = device;
+
+			auto maxMsaaSamples = vkUtils::getMaxUsableSampleCount(device);
+			m_msaaSamples = (msaaSamplesUsed > maxMsaaSamples) ? maxMsaaSamples : msaaSamplesUsed;
+
 			break;
 		}
 	}
@@ -355,6 +360,7 @@ bool vkRenderingContext::initLogicalDevice()
 
 	VkPhysicalDeviceFeatures deviceFeatures = {};
 	deviceFeatures.samplerAnisotropy = VK_TRUE;
+	deviceFeatures.sampleRateShading = VK_TRUE;
 
 	VkDeviceCreateInfo logicalDeviceInfo = {};
 	logicalDeviceInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -481,13 +487,13 @@ bool vkRenderingContext::initRenderPass()
 #pragma region Color attachment and reference
 	VkAttachmentDescription colorAttachment = {};
 	colorAttachment.format = m_swapchainImageFormat;
-	colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+	colorAttachment.samples = m_msaaSamples;
 	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 	colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 	colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 	colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+	colorAttachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
 	VkAttachmentReference colorAttachmentRef = {};
 	colorAttachmentRef.attachment = 0;
@@ -504,7 +510,7 @@ bool vkRenderingContext::initRenderPass()
 		return false;
 	}
 
-	depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+	depthAttachment.samples = m_msaaSamples;
 	depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 	depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -517,33 +523,55 @@ bool vkRenderingContext::initRenderPass()
 	depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 #pragma endregion
 
+#pragma region Color resolve attachment and reference
+	VkAttachmentDescription colorAttachmentResolve = {};
+	colorAttachmentResolve.format = m_swapchainImageFormat;
+	colorAttachmentResolve.samples = VK_SAMPLE_COUNT_1_BIT;
+	colorAttachmentResolve.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	colorAttachmentResolve.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+	colorAttachmentResolve.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	colorAttachmentResolve.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	colorAttachmentResolve.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	colorAttachmentResolve.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+	VkAttachmentReference colorAttachmentResolveRef = {};
+	colorAttachmentResolveRef.attachment = 2;
+	colorAttachmentResolveRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+#pragma endregion
+
 #pragma region Subpass and dependency
 	VkSubpassDescription subpass = {};
 	subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 	subpass.colorAttachmentCount = 1;
 	subpass.pColorAttachments = &colorAttachmentRef;
 	subpass.pDepthStencilAttachment = &depthAttachmentRef;
+	subpass.pResolveAttachments = &colorAttachmentResolveRef;
 
 	VkSubpassDependency subpassDependency = {};
 	subpassDependency.srcSubpass = VK_SUBPASS_EXTERNAL;
 	subpassDependency.dstSubpass = 0;	// The index 0 represents our first subpass.
 	subpassDependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-	subpassDependency.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 	subpassDependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+	subpassDependency.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 	subpassDependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 #pragma endregion
 
 #pragma region Render pass
-	std::array<VkAttachmentDescription, 2> attachments = { colorAttachment, depthAttachment };
-	
+	std::array<VkAttachmentDescription, 3> attachments =
+	{
+		colorAttachment,
+		depthAttachment,
+		colorAttachmentResolve
+	};
+
 	VkRenderPassCreateInfo renderPassInfo = {};
 	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-	renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
-	renderPassInfo.pAttachments = attachments.data();
 	renderPassInfo.subpassCount = 1;
 	renderPassInfo.pSubpasses = &subpass;
 	renderPassInfo.dependencyCount = 1;
 	renderPassInfo.pDependencies = &subpassDependency;
+	renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+	renderPassInfo.pAttachments = attachments.data();
 
 	VkResult result = vkCreateRenderPass(m_logicalDevice, &renderPassInfo, nullptr, &m_renderPass);
 
@@ -677,12 +705,11 @@ bool vkRenderingContext::initGraphicsPipeline()
 #pragma endregion
 
 #pragma region Multisampling info
-	// Disabled for now.
 	VkPipelineMultisampleStateCreateInfo multisamplingInfo = {};
 	multisamplingInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-	multisamplingInfo.sampleShadingEnable = VK_FALSE;
-	multisamplingInfo.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
-	multisamplingInfo.minSampleShading = 1.0f;
+	multisamplingInfo.rasterizationSamples = m_msaaSamples;
+	multisamplingInfo.sampleShadingEnable = VK_TRUE;
+	multisamplingInfo.minSampleShading = 0.2f;
 	multisamplingInfo.pSampleMask = nullptr;
 	multisamplingInfo.alphaToCoverageEnable = VK_FALSE;
 	multisamplingInfo.alphaToOneEnable = VK_FALSE;
@@ -847,6 +874,48 @@ bool vkRenderingContext::initCommandPool()
 	return true;
 }
 
+bool vkRenderingContext::initColorResources()
+{
+	VkFormat colorFormat = m_swapchainImageFormat;
+
+	if (!vkUtils::createImage
+	(
+		m_logicalDevice,
+		m_physicalDevice,
+		m_swapchainExtent.width,
+		m_swapchainExtent.height,
+		1,
+		m_msaaSamples,
+		colorFormat,
+		VK_IMAGE_TILING_OPTIMAL,
+		VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+		m_colorImage,
+		m_colorImageMemory
+	))
+	{
+		vkUtils::printVkError("vkRenderingContext::initColorResources()", "Couldn't create the color image.");
+		return false;
+	}
+
+	m_colorImageView = vkUtils::createImageView
+	(
+		m_logicalDevice,
+		m_colorImage,
+		1,
+		colorFormat,
+		VK_IMAGE_ASPECT_COLOR_BIT
+	);
+
+	if (m_colorImageView == nullptr)
+	{
+		vkUtils::printVkError("vkRenderingContext::initColorResources()", "Couldn't create the color image view.");
+		return false;
+	}
+
+	return true;
+}
+
 bool vkRenderingContext::initDepthResources()
 {
 	VkFormat depthFormat = vkUtils::findDepthFormat(m_physicalDevice);
@@ -860,13 +929,18 @@ bool vkRenderingContext::initDepthResources()
 
 	if (!vkUtils::createImage
 	(
-		m_logicalDevice, m_physicalDevice,
-		m_swapchainExtent.width, m_swapchainExtent.height, 1,
+		m_logicalDevice,
+		m_physicalDevice,
+		m_swapchainExtent.width,
+		m_swapchainExtent.height,
+		1,
+		m_msaaSamples,
 		depthFormat,
 		VK_IMAGE_TILING_OPTIMAL,
 		VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
 		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-		m_depthImage, m_depthImageMemory
+		m_depthImage,
+		m_depthImageMemory
 	))
 	{
 		vkUtils::printVkError("vkRenderingContext::initDepthResources()", "Couldn't create the depth image.");
@@ -906,19 +980,18 @@ bool vkRenderingContext::initFramebuffers()
 
 	for (size_t i = 0; i < m_swapchainImageViews.size(); i++)
 	{
-		VkImageView attachments[] = 
-		{ 
-			m_swapchainImageViews[i],
-			m_depthImageView
+		std::array<VkImageView, 3> attachments =
+		{
+			m_colorImageView,
+			m_depthImageView,
+			m_swapchainImageViews[i]
 		};
-
-		uint32_t numAttachments = static_cast<uint32_t>(sizeof(attachments) / sizeof(attachments[0]));
-
+		
 		VkFramebufferCreateInfo framebufferInfo = {};
 		framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 		framebufferInfo.renderPass = m_renderPass;
-		framebufferInfo.attachmentCount = numAttachments;
-		framebufferInfo.pAttachments = attachments;
+		framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+		framebufferInfo.pAttachments = attachments.data();
 		framebufferInfo.width = m_swapchainExtent.width;
 		framebufferInfo.height = m_swapchainExtent.height;
 		framebufferInfo.layers = 1;
@@ -1079,24 +1152,50 @@ bool vkRenderingContext::recordCommandBuffer(VkCommandBuffer buffer, uint32_t im
 	return true;
 }
 
-void vkRenderingContext::recreateSwapchain()
+bool vkRenderingContext::recreateSwapchain()
 {
 	int wndWidth = 0;
 	int wndHeight = 0;
-	win32Utils::getWindowDimensions(static_cast<HWND>(m_wndMemory), wndWidth, wndHeight);
+	
+	if (!win32Utils::getWindowDimensions(static_cast<HWND>(m_wndMemory), wndWidth, wndHeight))
+	{
+		return false;
+	}
 
-	if (wndWidth == 0 || wndHeight == 0) 
+	if (wndWidth == 0 || wndHeight == 0)
 	{
 		// Window is minimized
-		return;
+		return true;
 	}
 
 	vkDeviceWaitIdle(m_logicalDevice);
 	cleanupSwapchain(m_logicalDevice);
 
-	initSwapchain(wndWidth, wndHeight);
-	initDepthResources();
-	initFramebuffers();
+	if (!initSwapchain(wndWidth, wndHeight))
+	{
+		vkUtils::printVkError("vkRenderingContext::recreateSwapchain()", "Couldn't recreate the swapchain.");
+		return false;
+	}
+	
+	if (!initColorResources())
+	{
+		vkUtils::printVkError("vkRenderingContext::recreateSwapchain()", "Couldn't recreate the color buffer resources.");
+		return false;
+	}
+
+	if (!initDepthResources())
+	{
+		vkUtils::printVkError("vkRenderingContext::recreateSwapchain()", "Couldn't recreate the depth buffer resources.");
+		return false;
+	}
+
+	if (!initFramebuffers())
+	{
+		vkUtils::printVkError("vkRenderingContext::recreateSwapchain()", "Couldn't recreate the framebuffers.");
+		return false;
+	}
+
+	return true;
 }
 
 void vkRenderingContext::cleanupSwapchain(VkDevice device)
@@ -1118,6 +1217,28 @@ void vkRenderingContext::cleanupSwapchain(VkDevice device)
 		vkFreeMemory(m_logicalDevice, m_depthImageMemory, nullptr);
 		m_depthImageMemory = nullptr;
 	}
+
+	// ----------------------------------------------------------------------------------------------------
+
+	if (m_colorImageView != nullptr)
+	{
+		vkDestroyImageView(m_logicalDevice, m_colorImageView, nullptr);
+		m_colorImageView = nullptr;
+	}
+
+	if (m_colorImage != nullptr)
+	{
+		vkDestroyImage(m_logicalDevice, m_colorImage, nullptr);
+		m_colorImage = nullptr;
+	}
+
+	if (m_colorImageMemory != nullptr)
+	{
+		vkFreeMemory(m_logicalDevice, m_colorImageMemory, nullptr);
+		m_colorImageMemory = nullptr;
+	}
+
+	// ----------------------------------------------------------------------------------------------------
 
 	for (auto framebuffer : m_swapchainFramebuffers)
 	{

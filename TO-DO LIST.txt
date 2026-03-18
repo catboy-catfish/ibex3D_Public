@@ -7,6 +7,6 @@ TO-DO LIST:
 - Find a way to consolidate the vertex, index and uniform buffers into one buffer using offsets
 - Investigate push constants as a replacement for uniform buffers
 
-- Investigate GLFW as a more stable, cross platform replacement for the Win32 windowing code
+- Investigate GLFW as a more stable, cross-platform replacement for the Win32 windowing code
 - Investigate and implement custom memory allocation functions instead of overriding the new and delete operators
-- Make the engine code prettier
+- Make the engine code prettier and more maintainable
