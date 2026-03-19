@@ -65,6 +65,57 @@ void vkUtils::printVkResultError(VkResult result, const char* functionName, cons
 }
 
 // ----------------------------------------------------------------------------------------------------
+// - Validation layers --------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------
+
+#ifdef IBEX3D_VULKAN_USE_VALIDATION_LAYERS
+void vkUtils::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& info)
+{
+	info = {};
+	info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+
+	info.messageSeverity =
+		VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+		VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
+		VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+		VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+
+	info.messageType =
+		VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+		VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+		VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+
+	info.pfnUserCallback = vkUtils::debugMessengerCallback;
+	info.pUserData = nullptr;
+}
+
+VKAPI_ATTR VkBool32 VKAPI_CALL vkUtils::debugMessengerCallback
+(
+	VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+	VkDebugUtilsMessageTypeFlagsEXT messageType,
+	const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+	void* pUserData
+)
+{
+	switch (messageSeverity)
+	{
+		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
+		{
+			printf("VULKAN WARNING (Validation layer) - %s\n\n", pCallbackData->pMessage);
+			break;
+		}
+		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
+		{
+			printf("VULKAN ERROR (Validation layer) - %s\n\n", pCallbackData->pMessage);
+			break;
+		}
+	}
+
+	return VK_FALSE;
+}
+#endif
+
+// ----------------------------------------------------------------------------------------------------
 // - Physical device and swapchain --------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------
 
@@ -146,37 +197,62 @@ VkSampleCountFlagBits vkUtils::getMaxUsableSampleCount(VkPhysicalDevice physDevi
 	return VK_SAMPLE_COUNT_1_BIT;
 }
 
-bool vkUtils::checkPhysicalDeviceSuitability(VkPhysicalDevice physDevice, VkSurfaceKHR surface, bool extSupport)
+int vkUtils::ratePhysicalDeviceSuitability(VkPhysicalDevice physDevice, VkSurfaceKHR surface, bool extSupport)
 {
+	int score = 0;
+
 	VkPhysicalDeviceProperties deviceProperties = {};
 	vkGetPhysicalDeviceProperties(physDevice, &deviceProperties);
 
-	if (deviceProperties.deviceType != VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+	if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
 	{
-		printVkError("vkUtils::checkPhysicalDeviceSuitability()", "This physical device is unsuitable because it's not a dedicated GPU.");
-		return false;
+		score += 1000;
 	}
+	else
+	{
+		printVkError("vkUtils::ratePhysicalDeviceSuitability()", "It looks like you're using integrated graphics instead of a dedicated graphics card. I highly recommend you run this using a dedicated graphics card because they have a significant performance advantage over integrated graphics.");
+	}
+
+	score += deviceProperties.limits.maxImageDimension2D;
 
 	VkPhysicalDeviceFeatures deviceFeatures = {};
 	vkGetPhysicalDeviceFeatures(physDevice, &deviceFeatures);
 
 	if (!deviceFeatures.geometryShader)
 	{
-		printVkError("vkUtils::checkPhysicalDeviceSuitability()", "This physical device is unsuitable because it doesn't support geometry shaders.");
-		return false;
+		printVkError("vkUtils::ratePhysicalDeviceSuitability()", "This physical device is unsuitable because it doesn't support geometry shaders.");
+		return 0;
+	}
+
+	if (!deviceFeatures.samplerAnisotropy)
+	{
+		printVkError("vkUtils::ratePhysicalDeviceSuitability()", "This physical device is unsuitable because it doesn't support anisotropic texture filtering.");
+		return 0;
 	}
 
 	if (!extSupport)
 	{
-		printVkError("vkUtils::checkPhysicalDeviceSuitability()", "This physical device is unsuitable because it doesn't support the required extensions.");
-		return false;
+		printVkError("vkUtils::ratePhysicalDeviceSuitability()", "This physical device is unsuitable because it doesn't support the required extensions.");
+		return 0;
 	}
 
 	vkSwapchainSupportInfo info = querySwapchainSupport(physDevice, surface);
-	bool swapChainSupportAdequate = !(info.formats.empty() || info.presentModes.empty());
+
+	if ((info.formats.empty() || info.presentModes.empty()))
+	{
+		printVkError("vkUtils::ratePhysicalDeviceSuitability()", "This physical device is unsuitable because it doesn't have adequate swapchain support.");
+		return 0;
+	}
 
 	vkQueueFamilyIndices indices = findQueueFamilies(physDevice, surface);
-	return indices.isComplete() && swapChainSupportAdequate && deviceFeatures.samplerAnisotropy;
+
+	if (!indices.isComplete())
+	{
+		printVkError("vkUtils::ratePhysicalDeviceSuitability()", "This physical device is unsuitable because one or more of the required queue families are missing.");
+		return 0;
+	}
+
+	return score;
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -366,6 +442,7 @@ bool vkUtils::createBuffer(VkDevice device, VkPhysicalDevice physDevice, VkDevic
 		memoryType
 	))
 	{
+		printVkResultError(result, "vkUtils::createBuffer()", "Couldn't find a suitable type for the buffer memory.");
 		return false;
 	}
 

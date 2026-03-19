@@ -4,9 +4,6 @@
     <ClInclude Include="include\ibex3D\core\appRuntime.h">
       <Filter>ibex3D\core\appRuntime</Filter>
     </ClInclude>
-    <ClInclude Include="include\ibex3D\core\timerClass.h">
-      <Filter>ibex3D\core\timerClass</Filter>
-    </ClInclude>
     <ClInclude Include="include\ibexVulkan\vkUtils.h">
       <Filter>ibexVulkan\vkUtils</Filter>
     </ClInclude>
@@ -35,9 +32,6 @@
   <ItemGroup>
     <ClCompile Include="source\ibex3D\core\appRuntime_win32.cpp">
       <Filter>ibex3D\core\appRuntime</Filter>
-    </ClCompile>
-    <ClCompile Include="source\ibex3D\core\timerClass.cpp">
-      <Filter>ibex3D\core\timerClass</Filter>
     </ClCompile>
     <ClCompile Include="source\ibexVulkan\vkUtils.cpp">
       <Filter>ibexVulkan\vkUtils</Filter>
@@ -82,9 +76,6 @@
     </Filter>
     <Filter Include="ibex3D\core\appRuntime">
       <UniqueIdentifier>{2d5e1e2e-dd8e-43ed-be04-8ac436237f74}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ibex3D\core\timerClass">
-      <UniqueIdentifier>{3f9e7674-9e77-4b9c-b8f5-688e878d07a5}</UniqueIdentifier>
     </Filter>
     <Filter Include="ibexVulkan\vkUtils">
       <UniqueIdentifier>{17eef45c-99e1-4079-9294-b6ef4af655e9}</UniqueIdentifier>

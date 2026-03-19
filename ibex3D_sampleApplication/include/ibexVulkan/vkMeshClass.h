@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ibexVulkan/vkTextureClass.h>
+#include <vulkan/vulkan.h>
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -17,7 +17,10 @@ struct vkVertex
 
 	// ----------------------------------------------------------------------------------------------------
 	
-	bool operator == (const vkVertex& other) const;
+	bool operator == (const vkVertex& other) const
+	{
+		return (position == other.position) && (color == other.color) && (texCoord == other.texCoord);
+	}
 	
 	// ----------------------------------------------------------------------------------------------------
 
@@ -32,46 +35,40 @@ struct vkUniformBufferData
 	glm::mat4 projMatrix;
 };
 
+struct vkTextureClass;
 struct vkMeshClass
 {
 	// ----------------------------------------------------------------------------------------------------
 	
-	vkTextureClass textureClass;
+	VkBuffer vtxBuffer = nullptr;
+	VkBuffer idxBuffer = nullptr;
+	VkDeviceMemory vtxBufferMemory = nullptr;
+	VkDeviceMemory idxBufferMemory = nullptr;
+	VkDescriptorSetLayout descriptorSetLayout = nullptr;
+	VkDescriptorPool descriptorPool = nullptr;
 
 	std::vector<vkVertex> vertices;
 	std::vector<uint32_t> indices;
-
-	VkBuffer vtxBuffer = nullptr;
-	VkBuffer idxBuffer = nullptr;
-	std::vector<VkBuffer> uniBuffers;
-
-	VkDeviceMemory vtxBufferMemory = nullptr;
-	VkDeviceMemory idxBufferMemory = nullptr;
-	std::vector<VkDeviceMemory> uniBuffersMemory;
-	std::vector<void*> uniBuffersMapped;
-
-	VkDescriptorSetLayout descriptorSetLayout = nullptr;
-	VkDescriptorPool descriptorPool = nullptr;
+	std::vector<VkBuffer> uniformBuffers;
+	std::vector<VkDeviceMemory> uniformBuffersMemory;
+	std::vector<void*> uniformBuffersMapped;
 	std::vector<VkDescriptorSet> descriptorSets;
-
-	// ----------------------------------------------------------------------------------------------------
 	
 	float currentRotation = 0.0f;
 
 	// ----------------------------------------------------------------------------------------------------
 
-	bool initTexture(VkDevice device, VkPhysicalDevice physDevice, const char* textureFilePath, VkCommandPool cmdPool, VkQueue gfxQueue);
 	bool initModel(const char* meshFilePath);
-	bool initVertexBuffer(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue);
-	bool initIndexBuffer(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue);
-	bool initUniformBuffers(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, size_t maxFramesInFlight);
-	bool initDescriptorSetLayout(VkDevice logicalDevice);
-	bool initDescriptorPoolAndSets(VkDevice logicalDevice, VkImageView textureImageView, VkSampler textureSampler, size_t maxFramesInFlight);
+	bool initVertexBuffer(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue);
+	bool initIndexBuffer(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue);
+	bool initUniformBuffers(VkDevice device, VkPhysicalDevice physDevice, size_t maxFramesInFlight);
+	bool initDescriptorSetLayout(VkDevice device);
+	bool initDescriptorPoolAndSets(VkDevice device, vkTextureClass* texture, size_t maxFramesInFlight);
 
-	void updateUniformBuffer(uint32_t currentImage, const VkExtent2D& swapchainExtent);
+	void updateUniformBuffer(uint32_t currentImg, const VkExtent2D& scExtent);
 
-	bool initialize(VkDevice logicalDevice, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, size_t maxFramesInFlight);
+	bool initialize(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue, size_t maxFramesInFlight, const char* meshFilePath, vkTextureClass* texture);
 	void setMeshRotation(float rotation);
 	void draw(VkCommandBuffer buffer, VkPipelineLayout pipelineLayout, uint32_t currentFrame);
-	void cleanup(VkDevice logicalDevice);
+	void cleanup(VkDevice device);
 };

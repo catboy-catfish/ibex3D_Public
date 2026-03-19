@@ -3,7 +3,7 @@
 #include <ibex3D/core/appRuntime.h>
 #include <ibexVulkan/vkRenderingContext.h>
 
-#define MAX_MESH_ROTATION 6.28f
+#define MAX_MESH_ROTATION 6.283f
 
 // ----------------------------------------------------------------------------------------------------
 // - Main events --------------------------------------------------------------------------------------
@@ -24,13 +24,22 @@ bool appInterface::initialize(appRuntime* runtimePtr, void* pWindow)
 
 void appInterface::update(float deltaTime)
 {
-	m_meshRotation += deltaTime;
+	// Measure frames per second
+	m_frameCounter++;
+	m_timer += deltaTime;
+
+	if (m_timer >= 1.0f)
+	{
+		printf("%zu frames have passed this second.\n", m_frameCounter);
+		m_frameCounter = 0;
+		m_timer -= 1.0f;
+	}
+
+	// Update mesh rotation
+	m_meshRotation += m_meshRotationSpeed * deltaTime;
 
 	if (m_meshRotation >= MAX_MESH_ROTATION)
-	{
-		// printf("Mesh rotation has exceeded 2*PI, wrapping...\n");
 		m_meshRotation -= MAX_MESH_ROTATION;
-	}
 }
 
 void appInterface::render(float deltaTime)

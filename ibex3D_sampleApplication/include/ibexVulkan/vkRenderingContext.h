@@ -1,5 +1,6 @@
 #pragma once
 #include <ibexVulkan/vkMeshClass.h>
+#include <ibexVulkan/vkTextureClass.h>
 
 class vkRenderingContext
 {
@@ -23,7 +24,7 @@ private:
 	bool initColorResources();
 	bool initDepthResources();
 	bool initFramebuffers();
-	bool initMeshClass();
+	bool initModel();
 	bool initCommandBuffers();
 	bool initSyncObjects();
 
@@ -40,12 +41,7 @@ private:
 	void printAvailableInstanceLayers();
 
 private:
-	// TODO: Optimize alignment by moving variables around
-
 	void* m_wndMemory = nullptr;
-
-	bool m_wasJustResized = false;
-
 	VkInstance m_instance = nullptr;
 	VkDebugUtilsMessengerEXT m_debugMessenger = nullptr;
 	VkSurfaceKHR m_surface = nullptr;
@@ -53,33 +49,33 @@ private:
 	VkDevice m_logicalDevice = nullptr;
 	VkQueue m_graphicsQueue = nullptr;
 	VkQueue m_presentQueue = nullptr;
-
-	VkSampleCountFlagBits m_msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 	VkSwapchainKHR m_swapchain = nullptr;
-	VkFormat m_swapchainImageFormat = VK_FORMAT_UNDEFINED;
-	VkExtent2D m_swapchainExtent = {};
-	uint32_t m_swapchainImageCount = 0;
-	std::vector<VkImage> m_swapchainImages;
-	std::vector<VkImageView> m_swapchainImageViews;
-	std::vector<VkFramebuffer> m_swapchainFramebuffers;
 	VkRenderPass m_renderPass = nullptr;
 	VkPipelineLayout m_pipelineLayout = nullptr;
 	VkPipeline m_graphicsPipeline = nullptr;
-
-	uint32_t m_currentFrame = 0;
 	VkCommandPool m_commandPool = nullptr;
+	VkImage m_colorImage = nullptr;
+	VkDeviceMemory m_colorImageMemory = nullptr;
+	VkImageView m_colorImageView = nullptr;
+	VkImage m_depthImage = nullptr;
+	VkDeviceMemory m_depthImageMemory = nullptr;
+	VkImageView m_depthImageView = nullptr;
+
+	VkSampleCountFlagBits m_msaaSamples = VK_SAMPLE_COUNT_1_BIT;
+	VkFormat m_swapchainImageFormat = VK_FORMAT_UNDEFINED;
+	VkExtent2D m_swapchainExtent = {};
+	uint32_t m_swapchainImageCount = 0;
+	uint32_t m_currentFrame = 0;
+
+	std::vector<VkImage> m_swapchainImages;
+	std::vector<VkImageView> m_swapchainImageViews;
+	std::vector<VkFramebuffer> m_swapchainFramebuffers;
 	std::vector<VkCommandBuffer> m_commandBuffers;
 	std::vector<VkSemaphore> m_swapchainSemaphores;
 	std::vector<VkSemaphore> m_frameSemaphores;
 	std::vector<VkFence> m_frameFences;
 
+	vkTextureClass m_textureClass;
 	vkMeshClass m_meshClass;
-
-	VkImage m_colorImage = nullptr;
-	VkDeviceMemory m_colorImageMemory = nullptr;
-	VkImageView m_colorImageView = nullptr;
-
-	VkImage m_depthImage = nullptr;
-	VkDeviceMemory m_depthImageMemory = nullptr;
-	VkImageView m_depthImageView = nullptr;
+	bool m_wasJustResized = false;
 };

@@ -1,4 +1,5 @@
 #include <ibexVulkan/vkMeshClass.h>
+#include <ibexVulkan/vkTextureClass.h>
 #include <ibexVulkan/vkUtils.h>
 
 #define GLM_ENABLE_EXPERIMENTAL
@@ -24,11 +25,6 @@ namespace std
 				(hash<glm::vec2>()(vertex.texCoord) << 1);
 		}
 	};
-}
-
-bool vkVertex::operator ==(const vkVertex& other) const
-{
-	return (position == other.position) && (color == other.color) && (texCoord == other.texCoord);
 }
 
 VkVertexInputBindingDescription vkVertex::getBindingDesc()
@@ -69,16 +65,6 @@ std::array<VkVertexInputAttributeDescription, 3> vkVertex::getAttributeDescs()
 
 // ----------------------------------------------------------------------------------------------------
 
-bool vkMeshClass::initTexture(VkDevice device, VkPhysicalDevice physDevice, const char* textureFilePath, VkCommandPool cmdPool, VkQueue gfxQueue)
-{
-	if (!textureClass.initialize(device, physDevice, textureFilePath, cmdPool, gfxQueue))
-	{
-		return false;
-	}
-	
-	return true;
-}
-
 bool vkMeshClass::initModel(const char* meshFilePath)
 {
 	tinyobj::attrib_t attrib;
@@ -88,7 +74,7 @@ bool vkMeshClass::initModel(const char* meshFilePath)
 
 	if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, meshFilePath))
 	{
-		vkUtils::printVkError("vkMeshClass::initModel()", "Couldn't load the model file.\n");
+		vkUtils::printVkError("vkMeshClass::initModel()", "Couldn't load the model file.");
 		return false;
 	}
 	
@@ -134,7 +120,7 @@ bool vkMeshClass::initModel(const char* meshFilePath)
 	return true;
 }
 
-bool vkMeshClass::initVertexBuffer(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue)
+bool vkMeshClass::initVertexBuffer(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue)
 {
 	VkDeviceSize bufferSize = vertices.size() * sizeof(vertices[0]);
 
@@ -143,8 +129,8 @@ bool vkMeshClass::initVertexBuffer(VkPhysicalDevice physicalDevice, VkDevice log
 
 	bool result = vkUtils::createBuffer
 	(
-		logicalDevice,
-		physicalDevice,
+		device,
+		physDevice,
 		bufferSize,
 		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
@@ -154,19 +140,19 @@ bool vkMeshClass::initVertexBuffer(VkPhysicalDevice physicalDevice, VkDevice log
 
 	if (!result)
 	{
-		vkUtils::printVkError("vkMeshClass::initVertexBuffer()", "Couldn't create the staging buffer.\n");
+		vkUtils::printVkError("vkMeshClass::initVertexBuffer()", "Couldn't create the staging buffer.");
 		return false;
 	}
 
 	void* data;
-	vkMapMemory(logicalDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
+	vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
 	memcpy(data, vertices.data(), static_cast<size_t>(bufferSize));
-	vkUnmapMemory(logicalDevice, stagingBufferMemory);
+	vkUnmapMemory(device, stagingBufferMemory);
 
 	result = vkUtils::createBuffer
 	(
-		logicalDevice,
-		physicalDevice,
+		device,
+		physDevice,
 		bufferSize,
 		VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
 		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
@@ -176,16 +162,16 @@ bool vkMeshClass::initVertexBuffer(VkPhysicalDevice physicalDevice, VkDevice log
 
 	if (!result)
 	{
-		vkUtils::printVkError("vkMeshClass::initVertexBuffer()", "Couldn't create the vertex buffer.\n");
-		vkUtils::destroyBuffer(logicalDevice, stagingBuffer, stagingBufferMemory);
+		vkUtils::printVkError("vkMeshClass::initVertexBuffer()", "Couldn't create the vertex buffer.");
+		vkUtils::destroyBuffer(device, stagingBuffer, stagingBufferMemory);
 		return false;
 	}
 
 	result = vkUtils::copyBuffer
 	(
-		logicalDevice,
-		commandPool,
-		graphicsQueue,
+		device,
+		cmdPool,
+		gfxQueue,
 		stagingBuffer,
 		vtxBuffer,
 		bufferSize
@@ -193,16 +179,16 @@ bool vkMeshClass::initVertexBuffer(VkPhysicalDevice physicalDevice, VkDevice log
 
 	if (!result)
 	{
-		vkUtils::printVkError("vkMeshClass::initVertexBuffer()", "Couldn't copy the staging buffer memory to the vertex buffer.\n");
-		vkUtils::destroyBuffer(logicalDevice, stagingBuffer, stagingBufferMemory);
+		vkUtils::printVkError("vkMeshClass::initVertexBuffer()", "Couldn't copy the staging buffer memory to the vertex buffer.");
+		vkUtils::destroyBuffer(device, stagingBuffer, stagingBufferMemory);
 		return false;
 	}
 
-	vkUtils::destroyBuffer(logicalDevice, stagingBuffer, stagingBufferMemory);
+	vkUtils::destroyBuffer(device, stagingBuffer, stagingBufferMemory);
 	return true;
 }
 
-bool vkMeshClass::initIndexBuffer(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue)
+bool vkMeshClass::initIndexBuffer(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue)
 {
 	VkDeviceSize bufferSize = indices.size() * sizeof(indices[0]);
 
@@ -211,8 +197,8 @@ bool vkMeshClass::initIndexBuffer(VkPhysicalDevice physicalDevice, VkDevice logi
 
 	bool result = vkUtils::createBuffer
 	(
-		logicalDevice,
-		physicalDevice,
+		device,
+		physDevice,
 		bufferSize,
 		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
@@ -222,19 +208,19 @@ bool vkMeshClass::initIndexBuffer(VkPhysicalDevice physicalDevice, VkDevice logi
 
 	if (!result)
 	{
-		vkUtils::printVkError("vkMeshClass::initIndexBuffer()", "Couldn't create the staging buffer.\n");
+		vkUtils::printVkError("vkMeshClass::initIndexBuffer()", "Couldn't create the staging buffer.");
 		return false;
 	}
 
 	void* data;
-	vkMapMemory(logicalDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
+	vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
 	memcpy(data, indices.data(), static_cast<size_t>(bufferSize));
-	vkUnmapMemory(logicalDevice, stagingBufferMemory);
+	vkUnmapMemory(device, stagingBufferMemory);
 
 	result = vkUtils::createBuffer
 	(
-		logicalDevice,
-		physicalDevice,
+		device,
+		physDevice,
 		bufferSize,
 		VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
 		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
@@ -244,16 +230,16 @@ bool vkMeshClass::initIndexBuffer(VkPhysicalDevice physicalDevice, VkDevice logi
 
 	if (!result)
 	{
-		vkUtils::printVkError("vkMeshClass::initIndexBuffer()", "Couldn't create the index buffer.\n");
-		vkUtils::destroyBuffer(logicalDevice, stagingBuffer, stagingBufferMemory);
+		vkUtils::printVkError("vkMeshClass::initIndexBuffer()", "Couldn't create the index buffer.");
+		vkUtils::destroyBuffer(device, stagingBuffer, stagingBufferMemory);
 		return false;
 	}
 
 	result = vkUtils::copyBuffer
 	(
-		logicalDevice,
-		commandPool,
-		graphicsQueue,
+		device,
+		cmdPool,
+		gfxQueue,
 		stagingBuffer,
 		idxBuffer,
 		bufferSize
@@ -261,47 +247,47 @@ bool vkMeshClass::initIndexBuffer(VkPhysicalDevice physicalDevice, VkDevice logi
 
 	if (!result)
 	{
-		vkUtils::printVkError("vkMeshClass::initVertexBuffer()", "Couldn't copy the staging buffer memory to the index buffer.\n");
-		vkUtils::destroyBuffer(logicalDevice, stagingBuffer, stagingBufferMemory);
+		vkUtils::printVkError("vkMeshClass::initVertexBuffer()", "Couldn't copy the staging buffer memory to the index buffer.");
+		vkUtils::destroyBuffer(device, stagingBuffer, stagingBufferMemory);
 		return false;
 	}
 
-	vkUtils::destroyBuffer(logicalDevice, stagingBuffer, stagingBufferMemory);
+	vkUtils::destroyBuffer(device, stagingBuffer, stagingBufferMemory);
 	return true;
 }
 
-bool vkMeshClass::initUniformBuffers(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, size_t maxFramesInFlight)
+bool vkMeshClass::initUniformBuffers(VkDevice device, VkPhysicalDevice physDevice, size_t maxFramesInFlight)
 {
 	VkDeviceSize bufferSize = sizeof(vkUniformBufferData);
 
-	uniBuffers.resize(maxFramesInFlight);
-	uniBuffersMemory.resize(maxFramesInFlight);
-	uniBuffersMapped.resize(maxFramesInFlight);
+	uniformBuffers.resize(maxFramesInFlight);
+	uniformBuffersMemory.resize(maxFramesInFlight);
+	uniformBuffersMapped.resize(maxFramesInFlight);
 
 	for (size_t i = 0; i < maxFramesInFlight; i++)
 	{
 		if (!vkUtils::createBuffer
 		(
-			logicalDevice,
-			physicalDevice,
+			device,
+			physDevice,
 			bufferSize,
 			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-			uniBuffers[i],
-			uniBuffersMemory[i]
+			uniformBuffers[i],
+			uniformBuffersMemory[i]
 		))
 		{
 			return false;
 		}
 
-		vkMapMemory(logicalDevice, uniBuffersMemory[i], 0, bufferSize, 0, &uniBuffersMapped[i]);
+		vkMapMemory(device, uniformBuffersMemory[i], 0, bufferSize, 0, &uniformBuffersMapped[i]);
 		// TODO: Add error checking?
 	}
 	
 	return true;
 }
 
-bool vkMeshClass::initDescriptorSetLayout(VkDevice logicalDevice)
+bool vkMeshClass::initDescriptorSetLayout(VkDevice device)
 {
 	VkDescriptorSetLayoutBinding uboLayoutBinding = {};
 	uboLayoutBinding.binding = 0;
@@ -327,7 +313,7 @@ bool vkMeshClass::initDescriptorSetLayout(VkDevice logicalDevice)
 	layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
 	layoutInfo.pBindings = bindings.data();
 
-	VkResult result = vkCreateDescriptorSetLayout(logicalDevice, &layoutInfo, nullptr, &descriptorSetLayout);
+	VkResult result = vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &descriptorSetLayout);
 
 	if (result != VK_SUCCESS)
 	{
@@ -338,7 +324,7 @@ bool vkMeshClass::initDescriptorSetLayout(VkDevice logicalDevice)
 	return true;
 }
 
-bool vkMeshClass::initDescriptorPoolAndSets(VkDevice logicalDevice, VkImageView textureImageView, VkSampler textureSampler, size_t maxFramesInFlight)
+bool vkMeshClass::initDescriptorPoolAndSets(VkDevice device, vkTextureClass* texture, size_t maxFramesInFlight)
 {	
 	std::array<VkDescriptorPoolSize, 2> poolSizes = {};
 	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -352,7 +338,7 @@ bool vkMeshClass::initDescriptorPoolAndSets(VkDevice logicalDevice, VkImageView 
 	poolInfo.pPoolSizes = poolSizes.data();
 	poolInfo.maxSets = static_cast<uint32_t>(maxFramesInFlight);
 
-	VkResult result = vkCreateDescriptorPool(logicalDevice, &poolInfo, nullptr, &descriptorPool);
+	VkResult result = vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool);
 
 	if (result != VK_SUCCESS)
 	{
@@ -372,7 +358,7 @@ bool vkMeshClass::initDescriptorPoolAndSets(VkDevice logicalDevice, VkImageView 
 
 	descriptorSets.resize(maxFramesInFlight);
 
-	result = vkAllocateDescriptorSets(logicalDevice, &allocInfo, descriptorSets.data());
+	result = vkAllocateDescriptorSets(device, &allocInfo, descriptorSets.data());
 
 	if (result != VK_SUCCESS)
 	{
@@ -383,14 +369,14 @@ bool vkMeshClass::initDescriptorPoolAndSets(VkDevice logicalDevice, VkImageView 
 	for (size_t i = 0; i < maxFramesInFlight; i++)
 	{
 		VkDescriptorBufferInfo bufferInfo = {};
-		bufferInfo.buffer = uniBuffers[i];
+		bufferInfo.buffer = uniformBuffers[i];
 		bufferInfo.offset = 0;
 		bufferInfo.range = sizeof(vkUniformBufferData);
 		
 		VkDescriptorImageInfo imageInfo = {};
 		imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		imageInfo.imageView = textureImageView;
-		imageInfo.sampler = textureSampler;
+		imageInfo.imageView = texture->imageView;
+		imageInfo.sampler = texture->sampler;
 
 		std::array<VkWriteDescriptorSet, 2> descriptorWrites = {};
 
@@ -410,7 +396,7 @@ bool vkMeshClass::initDescriptorPoolAndSets(VkDevice logicalDevice, VkImageView 
 		descriptorWrites[1].descriptorCount = 1;
 		descriptorWrites[1].pImageInfo = &imageInfo;
 
-		vkUpdateDescriptorSets(logicalDevice, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+		vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 	}
 
 	return true;
@@ -424,40 +410,32 @@ void vkMeshClass::updateUniformBuffer(uint32_t currentImage, const VkExtent2D& s
 	data.projMatrix = glm::perspective(glm::radians(45.0f), swapchainExtent.width / (float)swapchainExtent.height, 0.1f, 10.0f);
 	data.projMatrix[1][1] *= -1.0f;
 
-	memcpy(uniBuffersMapped[currentImage], &data, sizeof(data));
+	memcpy(uniformBuffersMapped[currentImage], &data, sizeof(data));
 }
 
-bool vkMeshClass::initialize(VkDevice logicalDevice, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, size_t maxFramesInFlight)
+bool vkMeshClass::initialize(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue, size_t maxFramesInFlight, const char* meshFilePath, vkTextureClass* texture)
 {
-	const char* meshFilePath = "assets/models/viking_room.obj";
-	const char* textureFilePath = "assets/images/viking_room.png";
-	
-	if (!initTexture(logicalDevice, physicalDevice, textureFilePath, commandPool, graphicsQueue))
-	{
-		return false;
-	}
-	
 	if (!initModel(meshFilePath))
 	{
 		return false;
 	}
 	
-	if (!initVertexBuffer(physicalDevice, logicalDevice, commandPool, graphicsQueue))
+	if (!initVertexBuffer(device, physDevice, cmdPool, gfxQueue))
 	{
 		return false;
 	}
 
-	if (!initIndexBuffer(physicalDevice, logicalDevice, commandPool, graphicsQueue))
+	if (!initIndexBuffer(device, physDevice, cmdPool, gfxQueue))
 	{
 		return false;
 	}
 
-	if (!initUniformBuffers(physicalDevice, logicalDevice, maxFramesInFlight))
+	if (!initUniformBuffers(device, physDevice, maxFramesInFlight))
 	{
 		return false;
 	}
 
-	if (!initDescriptorPoolAndSets(logicalDevice, textureClass.imageView, textureClass.sampler, maxFramesInFlight))
+	if (!initDescriptorPoolAndSets(device, texture, maxFramesInFlight))
 	{
 		return false;
 	}
@@ -482,39 +460,37 @@ void vkMeshClass::draw(VkCommandBuffer buffer, VkPipelineLayout pipelineLayout, 
 	vkCmdDrawIndexed(buffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 }
 
-void vkMeshClass::cleanup(VkDevice logicalDevice)
+void vkMeshClass::cleanup(VkDevice device)
 {	
-	for (auto& buffer : uniBuffers)
+	for (auto& buffer : uniformBuffers)
 	{
-		vkDestroyBuffer(logicalDevice, buffer, nullptr);
+		vkDestroyBuffer(device, buffer, nullptr);
 		buffer = nullptr;
 	}
 
-	uniBuffers.clear();
+	uniformBuffers.clear();
 
-	for (auto& memory : uniBuffersMemory)
+	for (auto& memory : uniformBuffersMemory)
 	{
-		vkUnmapMemory(logicalDevice, memory);
-		vkFreeMemory(logicalDevice, memory, nullptr);
+		vkUnmapMemory(device, memory);
+		vkFreeMemory(device, memory, nullptr);
 		memory = nullptr;
 	}
 
-	uniBuffersMemory.clear();
+	uniformBuffersMemory.clear();
 	
 	if (descriptorPool != nullptr)
 	{
-		vkDestroyDescriptorPool(logicalDevice, descriptorPool, nullptr);
+		vkDestroyDescriptorPool(device, descriptorPool, nullptr);
 		descriptorPool = nullptr;
 	}
 
 	if (descriptorSetLayout != nullptr)
 	{
-		vkDestroyDescriptorSetLayout(logicalDevice, descriptorSetLayout, nullptr);
+		vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
 		descriptorSetLayout = nullptr;
 	}
 
-	vkUtils::destroyBuffer(logicalDevice, idxBuffer, idxBufferMemory);
-	vkUtils::destroyBuffer(logicalDevice, vtxBuffer, vtxBufferMemory);
-
-	textureClass.cleanup(logicalDevice);
+	vkUtils::destroyBuffer(device, idxBuffer, idxBufferMemory);
+	vkUtils::destroyBuffer(device, vtxBuffer, vtxBufferMemory);
 }

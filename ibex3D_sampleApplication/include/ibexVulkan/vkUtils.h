@@ -49,11 +49,24 @@ public:
 	static void printVkError(const char* functionName, const char* message);
 	static void printVkResultError(VkResult result, const char* functionName, const char* message);
 
+	// Validation layers
+#ifdef IBEX3D_VULKAN_USE_VALIDATION_LAYERS
+	static void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& info);
+
+	static VKAPI_ATTR VkBool32 VKAPI_CALL debugMessengerCallback
+	(
+		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+		VkDebugUtilsMessageTypeFlagsEXT messageType,
+		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+		void* pUserData
+	);
+#endif
+
 	// Physical device and swapchain
 	static vkQueueFamilyIndices findQueueFamilies(VkPhysicalDevice physDevice, VkSurfaceKHR surface);
 	static vkSwapchainSupportInfo querySwapchainSupport(VkPhysicalDevice physDevice, VkSurfaceKHR surface);
 	static VkSampleCountFlagBits getMaxUsableSampleCount(VkPhysicalDevice physDevice);
-	static bool checkPhysicalDeviceSuitability(VkPhysicalDevice physDevice, VkSurfaceKHR surface, bool extSupport);
+	static int ratePhysicalDeviceSuitability(VkPhysicalDevice physDevice, VkSurfaceKHR surface, bool extSupport);
 
 	// Swapchain
 	static VkSurfaceFormatKHR chooseSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);

@@ -6,84 +6,15 @@
 
 #include <vulkan/vulkan_win32.h>
 
-#include <stdio.h>
+#include <map>
 #include <set>
+#include <stdio.h>
 
-// Set back to 2 later
 static const int MAX_FRAMES_IN_FLIGHT = 2;
 
 static std::vector<const char*> requiredExtensions;
 static std::vector<const char*> requiredDeviceExtensions;
 static std::vector<const char*> requiredLayers;
-
-#ifdef IBEX3D_VULKAN_USE_VALIDATION_LAYERS
-static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback
-(
-	VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-	VkDebugUtilsMessageTypeFlagsEXT messageType,
-	const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-	void* pUserData
-)
-{
-	switch (messageSeverity)
-	{
-		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
-		{
-			printf("VULKAN MESSAGE (Validation layer) - %s\n\n", pCallbackData->pMessage);
-			break;
-		}
-		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
-		{
-			printf("VULKAN WARNING (Validation layer) - %s\n\n", pCallbackData->pMessage);
-			break;
-		}
-		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
-		{
-			printf("VULKAN ERROR (Validation layer) - %s\n\n", pCallbackData->pMessage);
-			break;
-		}
-	}
-	
-	return VK_FALSE;
-}
-
-static void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& info)
-{
-	info = {};
-	info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-
-	info.messageSeverity =
-		VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
-		VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
-		VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-
-	info.messageType =
-		VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
-		VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
-		VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-
-	info.pfnUserCallback = debugCallback;
-	info.pUserData = nullptr;
-}
-#endif
-
-// - Utility functions --------------------------------------------------------------------------------
-
-static void configureRequiredExtensionsAndLayers()
-{
-	requiredExtensions.clear();
-	requiredExtensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
-	requiredExtensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
-#ifdef IBEX3D_VULKAN_USE_VALIDATION_LAYERS
-	requiredExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-
-	requiredLayers.clear();
-	requiredLayers.push_back("VK_LAYER_KHRONOS_validation");
-#endif
-
-	requiredDeviceExtensions.clear();
-	requiredDeviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
-}
 
 // - Public functions ---------------------------------------------------------------------------------
 
@@ -91,7 +22,7 @@ bool vkRenderingContext::initialize(const char* appName, void* wndMemory)
 {		
 	int wndWidth, wndHeight;
 	IBEX3D_BASSERT(win32Utils::getWindowDimensions(static_cast<HWND>(wndMemory), wndWidth, wndHeight));
-	
+
 	IBEX3D_BASSERT(initInstance(appName));
 	IBEX3D_BASSERT(initSurface(wndMemory));
 	IBEX3D_BASSERT(initPhysicalDevice(VK_SAMPLE_COUNT_4_BIT));
@@ -104,7 +35,7 @@ bool vkRenderingContext::initialize(const char* appName, void* wndMemory)
 	IBEX3D_BASSERT(initColorResources());
 	IBEX3D_BASSERT(initDepthResources());
 	IBEX3D_BASSERT(initFramebuffers());
-	IBEX3D_BASSERT(initMeshClass());
+	IBEX3D_BASSERT(initModel());
 	IBEX3D_BASSERT(initCommandBuffers());
 	IBEX3D_BASSERT(initSyncObjects());
 
@@ -207,7 +138,18 @@ void vkRenderingContext::cleanup()
 
 bool vkRenderingContext::initInstance(const char* appName)
 {
-	configureRequiredExtensionsAndLayers();
+	requiredExtensions.clear();
+	requiredExtensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+	requiredExtensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
+#ifdef IBEX3D_VULKAN_USE_VALIDATION_LAYERS
+	requiredExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+
+	requiredLayers.clear();
+	requiredLayers.push_back("VK_LAYER_KHRONOS_validation");
+#endif
+
+	requiredDeviceExtensions.clear();
+	requiredDeviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 
 #ifdef IBEX3D_VULKAN_USE_VALIDATION_LAYERS
 	if (!checkInstanceLayerSupport())
@@ -232,7 +174,7 @@ bool vkRenderingContext::initInstance(const char* appName)
 
 #ifdef IBEX3D_VULKAN_USE_VALIDATION_LAYERS
 	VkDebugUtilsMessengerCreateInfoEXT messengerInfo = {};
-	populateDebugMessengerCreateInfo(messengerInfo);
+	vkUtils::populateDebugMessengerCreateInfo(messengerInfo);
 
 	instanceInfo.ppEnabledLayerNames = requiredLayers.data();
 	instanceInfo.enabledLayerCount = static_cast<uint32_t>(requiredLayers.size());
@@ -303,22 +245,24 @@ bool vkRenderingContext::initPhysicalDevice(VkSampleCountFlagBits msaaSamplesUse
 	std::vector<VkPhysicalDevice> devices(numDevices);
 	vkEnumeratePhysicalDevices(m_instance, &numDevices, devices.data());
 
+	std::multimap<int, VkPhysicalDevice> candidates;
+
 	for (const auto& device : devices)
 	{
 		bool extensionsSupported = checkPhysicalDeviceExtensionSupport(device);
 		
-		if (vkUtils::checkPhysicalDeviceSuitability(device, m_surface, extensionsSupported))
-		{
-			m_physicalDevice = device;
-
-			auto maxMsaaSamples = vkUtils::getMaxUsableSampleCount(device);
-			m_msaaSamples = (msaaSamplesUsed > maxMsaaSamples) ? maxMsaaSamples : msaaSamplesUsed;
-
-			break;
-		}
+		int score = vkUtils::ratePhysicalDeviceSuitability(device, m_surface, extensionsSupported);
+		candidates.insert(std::make_pair(score, device));
 	}
 
-	if (m_physicalDevice == nullptr)
+	if (candidates.rbegin()->first > 0)
+	{
+		m_physicalDevice = candidates.rbegin()->second;
+
+		auto maxMsaaSamples = vkUtils::getMaxUsableSampleCount(m_physicalDevice);
+		m_msaaSamples = (msaaSamplesUsed > maxMsaaSamples) ? maxMsaaSamples : msaaSamplesUsed;
+	}
+	else
 	{
 		vkUtils::printVkError("vkRenderingContext::initPhysicalDevice()", "Couldn't find any suitable GPU.");
 		return false;
@@ -875,7 +819,7 @@ bool vkRenderingContext::initCommandPool()
 }
 
 bool vkRenderingContext::initColorResources()
-{
+{	
 	VkFormat colorFormat = m_swapchainImageFormat;
 
 	if (!vkUtils::createImage
@@ -1008,15 +952,22 @@ bool vkRenderingContext::initFramebuffers()
 	return true;
 }
 
-bool vkRenderingContext::initMeshClass()
+bool vkRenderingContext::initModel()
 {	
+	if (!m_textureClass.initialize(m_logicalDevice, m_physicalDevice, "assets/images/viking_room.png", m_commandPool, m_graphicsQueue))
+	{
+		return false;
+	}
+	
 	if (!m_meshClass.initialize
 	(
 		m_logicalDevice,
 		m_physicalDevice, 
 		m_commandPool,
 		m_graphicsQueue,
-		MAX_FRAMES_IN_FLIGHT
+		MAX_FRAMES_IN_FLIGHT,
+		"assets/models/viking_room.obj",
+		&m_textureClass
 	))
 	{
 		return false;
@@ -1276,6 +1227,7 @@ void vkRenderingContext::cleanupLogicalDevice()
 		cleanupSwapchain(m_logicalDevice);
 
 		m_meshClass.cleanup(m_logicalDevice);
+		m_textureClass.cleanup(m_logicalDevice);
 
 		if (m_graphicsPipeline != nullptr)
 		{

@@ -11,9 +11,9 @@
 
 struct windowData_t
 {
-	const char* className = "";
 	HINSTANCE hInstance = nullptr;
 	HWND hWnd = nullptr;
+	const char* className = "";
 };
 
 static LRESULT CALLBACK windowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -89,8 +89,10 @@ void appRuntime::startRunning()
 
 void appRuntime::update()
 {
-	float deltaTime = m_timer.getTimeSinceCheckpoint();
-	m_timer.updateCheckpoint();
+	endTime = std::chrono::high_resolution_clock::now();
+
+	float deltaTime = std::chrono::duration<float>(endTime - startTime).count();
+	startTime = endTime;
 
 	if (pAppInterface != nullptr)
 	{
@@ -242,25 +244,24 @@ void appRuntime::updateWindow()
 
 void appRuntime::cleanupWindow()
 {
-	if (pWindowData != nullptr)
+	if (pWindowData == nullptr) return;
+
+	auto wndData = static_cast<windowData_t*>(pWindowData);
+
+	if (wndData->hWnd != nullptr)
 	{
-		auto wndData = static_cast<windowData_t*>(pWindowData);
-
-		if (wndData->hWnd != nullptr)
-		{
-			DestroyWindow(wndData->hWnd);
-			wndData->hWnd = nullptr;
-		}
-
-		if (wndData->hInstance != nullptr)
-		{
-			UnregisterClassA(wndData->className, wndData->hInstance);
-			wndData->hInstance = nullptr;
-		}
-
-		delete wndData;
-		pWindowData = nullptr;
+		DestroyWindow(wndData->hWnd);
+		wndData->hWnd = nullptr;
 	}
+
+	if (wndData->hInstance != nullptr)
+	{
+		UnregisterClassA(wndData->className, wndData->hInstance);
+		wndData->hInstance = nullptr;
+	}
+
+	delete wndData;
+	pWindowData = nullptr;
 }
 
 // ----------------------------------------------------------------------------------------------------
