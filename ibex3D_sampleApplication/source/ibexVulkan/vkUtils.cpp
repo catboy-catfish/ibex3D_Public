@@ -131,9 +131,9 @@ vkQueueFamilyIndices vkUtils::findQueueFamilies(VkPhysicalDevice physDevice, VkS
 
 	for (int i = 0; i < queueFamilies.size(); i++)
 	{
-		if (queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
+		if ((queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) && (queueFamilies[i].queueFlags & VK_QUEUE_COMPUTE_BIT))
 		{
-			indices.graphicsFamily = i;
+			indices.graphicsComputeFamily = i;
 		}
 
 		VkBool32 presentSupport = VK_FALSE;
@@ -207,10 +207,6 @@ int vkUtils::ratePhysicalDeviceSuitability(VkPhysicalDevice physDevice, VkSurfac
 	if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
 	{
 		score += 1000;
-	}
-	else
-	{
-		printVkError("vkUtils::ratePhysicalDeviceSuitability()", "It looks like you're using integrated graphics instead of a dedicated graphics card. I highly recommend you run this using a dedicated graphics card because they have a significant performance advantage over integrated graphics.");
 	}
 
 	score += deviceProperties.limits.maxImageDimension2D;

@@ -4,12 +4,12 @@
 
 struct vkQueueFamilyIndices
 {
-	int graphicsFamily = -1;
+	int graphicsComputeFamily = -1;
 	int presentFamily = -1;
 
 	bool isComplete() const
 	{
-		return (graphicsFamily > -1) && (presentFamily > -1);
+		return (graphicsComputeFamily > -1) && (presentFamily > -1);
 	}
 };
 

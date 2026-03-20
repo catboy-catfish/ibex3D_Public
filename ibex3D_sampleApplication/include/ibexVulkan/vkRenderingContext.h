@@ -19,12 +19,13 @@ private:
 	bool initSwapchain(int wndWidth, int wndHeight);
 	bool initRenderPass();
 	bool initDescriptorSetLayout();
+	bool initComputePipeline();
 	bool initGraphicsPipeline();
 	bool initCommandPool();
 	bool initColorResources();
 	bool initDepthResources();
 	bool initFramebuffers();
-	bool initModel();
+	bool initModel(int wndWidth, int wndHeight);
 	bool initCommandBuffers();
 	bool initSyncObjects();
 
@@ -47,11 +48,14 @@ private:
 	VkSurfaceKHR m_surface = nullptr;
 	VkPhysicalDevice m_physicalDevice = nullptr;
 	VkDevice m_logicalDevice = nullptr;
+	VkQueue m_computeQueue = nullptr;
 	VkQueue m_graphicsQueue = nullptr;
 	VkQueue m_presentQueue = nullptr;
 	VkSwapchainKHR m_swapchain = nullptr;
 	VkRenderPass m_renderPass = nullptr;
-	VkPipelineLayout m_pipelineLayout = nullptr;
+	VkPipelineLayout m_computePipelineLayout = nullptr;
+	VkPipeline m_computePipeline = nullptr;
+	VkPipelineLayout m_graphicsPipelineLayout = nullptr;
 	VkPipeline m_graphicsPipeline = nullptr;
 	VkCommandPool m_commandPool = nullptr;
 	VkImage m_colorImage = nullptr;
@@ -70,6 +74,7 @@ private:
 	std::vector<VkImage> m_swapchainImages;
 	std::vector<VkImageView> m_swapchainImageViews;
 	std::vector<VkFramebuffer> m_swapchainFramebuffers;
+	std::vector<VkCommandBuffer> m_computeCommandBuffers;
 	std::vector<VkCommandBuffer> m_commandBuffers;
 	std::vector<VkSemaphore> m_swapchainSemaphores;
 	std::vector<VkSemaphore> m_frameSemaphores;

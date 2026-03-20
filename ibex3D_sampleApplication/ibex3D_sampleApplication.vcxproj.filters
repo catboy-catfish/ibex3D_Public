@@ -130,6 +130,9 @@
     <None Include="assets\models\viking_room.obj">
       <Filter>assets\models</Filter>
     </None>
+    <None Include="assets\shaders\shader.comp">
+      <Filter>assets\shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="assets\images\viking_room.png">

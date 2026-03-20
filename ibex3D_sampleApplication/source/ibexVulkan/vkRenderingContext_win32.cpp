@@ -35,7 +35,7 @@ bool vkRenderingContext::initialize(const char* appName, void* wndMemory)
 	IBEX3D_BASSERT(initColorResources());
 	IBEX3D_BASSERT(initDepthResources());
 	IBEX3D_BASSERT(initFramebuffers());
-	IBEX3D_BASSERT(initModel());
+	IBEX3D_BASSERT(initModel(wndWidth, wndHeight));
 	IBEX3D_BASSERT(initCommandBuffers());
 	IBEX3D_BASSERT(initSyncObjects());
 
@@ -84,6 +84,14 @@ bool vkRenderingContext::drawFrame()
 	submitInfo.pSignalSemaphores = &m_swapchainSemaphores[imageIndex];
 	submitInfo.pCommandBuffers = &m_commandBuffers[m_currentFrame];
 	submitInfo.pWaitDstStageMask = &waitStage;
+
+	result = vkQueueSubmit(m_computeQueue, 1, &submitInfo, nullptr);
+
+	if (result != VK_SUCCESS)
+	{
+		vkUtils::printVkResultError(result, "vkRenderingContext::drawFrame()", "Couldn't submit the compute command to the command buffer.");
+		return false;
+	}
 
 	result = vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, m_frameFences[m_currentFrame]);
 
@@ -285,7 +293,7 @@ bool vkRenderingContext::initLogicalDevice()
 
 	std::set<int> uniqueQueueFamilies =
 	{
-		indices.graphicsFamily,
+		indices.graphicsComputeFamily,
 		indices.presentFamily
 	};
 
@@ -329,7 +337,8 @@ bool vkRenderingContext::initLogicalDevice()
 		return false;
 	}
 
-	vkGetDeviceQueue(m_logicalDevice, indices.graphicsFamily, 0, &m_graphicsQueue);
+	vkGetDeviceQueue(m_logicalDevice, indices.graphicsComputeFamily, 0, &m_computeQueue);
+	vkGetDeviceQueue(m_logicalDevice, indices.graphicsComputeFamily, 0, &m_graphicsQueue);
 	vkGetDeviceQueue(m_logicalDevice, indices.presentFamily, 0, &m_presentQueue);
 
 	return true;
@@ -370,11 +379,11 @@ bool vkRenderingContext::initSwapchain(int wndWidth, int wndHeight)
 
 	uint32_t queueFamilyIndices[] =
 	{
-		static_cast<uint32_t>(indices.graphicsFamily),
+		static_cast<uint32_t>(indices.graphicsComputeFamily),
 		static_cast<uint32_t>(indices.presentFamily),
 	};
 
-	if (indices.graphicsFamily != indices.presentFamily)
+	if (indices.graphicsComputeFamily != indices.presentFamily)
 	{
 		swapchainInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
 		swapchainInfo.queueFamilyIndexCount = 2;
@@ -531,6 +540,11 @@ bool vkRenderingContext::initRenderPass()
 
 bool vkRenderingContext::initDescriptorSetLayout()
 {
+	if (!m_meshClass.initComputeDescriptorSetLayout(m_logicalDevice))
+	{
+		return false;
+	}
+	
 	if (!m_meshClass.initDescriptorSetLayout(m_logicalDevice))
 	{
 		return false;
@@ -539,10 +553,66 @@ bool vkRenderingContext::initDescriptorSetLayout()
 	return true;
 }
 
+bool vkRenderingContext::initComputePipeline()
+{
+	// TODO: Figure out how to compile the GLSL shaders into SPIR-V at runtime using libshaderc
+
+	auto cmpShaderBytecode = ibex3D_utilFunctions::readFile("assets/shaders/shader.comp.spv");
+	if (cmpShaderBytecode.empty()) return false;
+	
+	VkShaderModule cmpShaderModule = vkUtils::createShaderModule(m_logicalDevice, cmpShaderBytecode);
+
+	if (cmpShaderModule == nullptr)
+	{
+		return false;
+	}
+
+	VkPipelineShaderStageCreateInfo cmpShaderStageInfo = {};
+	cmpShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	cmpShaderStageInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
+	cmpShaderStageInfo.module = cmpShaderModule;
+	cmpShaderStageInfo.pName = "main";
+
+	VkPipelineLayoutCreateInfo layoutInfo = {};
+	layoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+	layoutInfo.setLayoutCount = 1;
+	layoutInfo.pSetLayouts = &m_meshClass.computeDescriptorSetLayout;
+
+	VkResult result = vkCreatePipelineLayout(m_logicalDevice, &layoutInfo, nullptr, &m_computePipelineLayout);
+
+	if (result != VK_SUCCESS)
+	{
+		vkUtils::printVkResultError(result, "vkRenderingContext::initComputePipeline()", "Couldn't create the pipeline layout.");
+		return false;
+	}
+
+	VkComputePipelineCreateInfo pipelineInfo = {};
+	pipelineInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
+	pipelineInfo.layout = m_computePipelineLayout;
+	pipelineInfo.stage = cmpShaderStageInfo;
+
+	result = vkCreateComputePipelines(m_logicalDevice, nullptr, 1, &pipelineInfo, nullptr, &m_computePipeline);
+
+	if (result != VK_SUCCESS)
+	{
+		vkUtils::printVkResultError(result, "vkRenderingContext::initComputePipeline()", "Couldn't create the pipeline.");
+		return false;
+	}
+
+	if (cmpShaderModule != nullptr)
+	{
+		vkDestroyShaderModule(m_logicalDevice, cmpShaderModule, nullptr);
+		cmpShaderModule = nullptr;
+	}
+
+	return true;
+}
+
 bool vkRenderingContext::initGraphicsPipeline()
 {
 #pragma region Shader modules and stages info
 	// TODO: Figure out how to compile the GLSL shaders into SPIR-V at runtime using libshaderc
+	
 	auto vtxShaderBytecode = ibex3D_utilFunctions::readFile("assets/shaders/shader.vert.spv");
 	if (vtxShaderBytecode.empty()) return false;
 
@@ -707,7 +777,7 @@ bool vkRenderingContext::initGraphicsPipeline()
 	pipelineLayoutInfo.pushConstantRangeCount = 0;
 	pipelineLayoutInfo.pPushConstantRanges = nullptr;
 
-	VkResult result = vkCreatePipelineLayout(m_logicalDevice, &pipelineLayoutInfo, nullptr, &m_pipelineLayout);
+	VkResult result = vkCreatePipelineLayout(m_logicalDevice, &pipelineLayoutInfo, nullptr, &m_graphicsPipelineLayout);
 
 	if (result != VK_SUCCESS)
 	{
@@ -748,7 +818,7 @@ bool vkRenderingContext::initGraphicsPipeline()
 	pipelineInfo.pDepthStencilState = &depthStencilInfo;
 	pipelineInfo.pColorBlendState = &colorBlendInfo;
 	pipelineInfo.pDynamicState = &dynamicStateInfo;
-	pipelineInfo.layout = m_pipelineLayout;
+	pipelineInfo.layout = m_graphicsPipelineLayout;
 	pipelineInfo.renderPass = m_renderPass;
 	pipelineInfo.subpass = 0;
 	pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
@@ -788,6 +858,7 @@ bool vkRenderingContext::initGraphicsPipeline()
 		vkDestroyShaderModule(m_logicalDevice, vtxShaderModule, nullptr);
 		vtxShaderModule = nullptr;
 	}
+
 #pragma endregion
 	return true;
 }
@@ -805,7 +876,7 @@ bool vkRenderingContext::initCommandPool()
 	VkCommandPoolCreateInfo commandPoolInfo = {};
 	commandPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 	commandPoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-	commandPoolInfo.queueFamilyIndex = indices.graphicsFamily;
+	commandPoolInfo.queueFamilyIndex = indices.graphicsComputeFamily;
 
 	VkResult result = vkCreateCommandPool(m_logicalDevice, &commandPoolInfo, nullptr, &m_commandPool);;
 
@@ -952,7 +1023,7 @@ bool vkRenderingContext::initFramebuffers()
 	return true;
 }
 
-bool vkRenderingContext::initModel()
+bool vkRenderingContext::initModel(int wndWidth, int wndHeight)
 {	
 	if (!m_textureClass.initialize(m_logicalDevice, m_physicalDevice, "assets/images/viking_room.png", m_commandPool, m_graphicsQueue))
 	{
@@ -966,6 +1037,8 @@ bool vkRenderingContext::initModel()
 		m_commandPool,
 		m_graphicsQueue,
 		MAX_FRAMES_IN_FLIGHT,
+		wndWidth,
+		wndHeight,
 		"assets/models/viking_room.obj",
 		&m_textureClass
 	))
@@ -1088,7 +1161,8 @@ bool vkRenderingContext::recordCommandBuffer(VkCommandBuffer buffer, uint32_t im
 	scissor.extent = m_swapchainExtent;
 	vkCmdSetScissor(buffer, 0, 1, &scissor);
 
-	m_meshClass.draw(buffer, m_pipelineLayout, m_currentFrame);
+	m_meshClass.dispatch(buffer, computeBuffer, m_computePipeline, m_computePipelineLayout, m_currentFrame);
+	m_meshClass.draw(buffer, m_graphicsPipelineLayout, m_currentFrame);
 
 	vkCmdEndRenderPass(buffer);
 
@@ -1235,10 +1309,10 @@ void vkRenderingContext::cleanupLogicalDevice()
 			m_graphicsPipeline = nullptr;
 		}
 
-		if (m_pipelineLayout != nullptr)
+		if (m_graphicsPipelineLayout != nullptr)
 		{
-			vkDestroyPipelineLayout(m_logicalDevice, m_pipelineLayout, nullptr);
-			m_pipelineLayout = nullptr;
+			vkDestroyPipelineLayout(m_logicalDevice, m_graphicsPipelineLayout, nullptr);
+			m_graphicsPipelineLayout = nullptr;
 		}
 
 		if (m_renderPass != nullptr)

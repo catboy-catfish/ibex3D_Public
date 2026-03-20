@@ -2,6 +2,8 @@
 #include <ibexVulkan/vkTextureClass.h>
 #include <ibexVulkan/vkUtils.h>
 
+#define PARTICLE_COUNT 256
+
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/hash.hpp>
@@ -9,6 +11,7 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tinyobjloader/tiny_obj_loader.h>
 
+#include <random>
 #include <string>
 #include <unordered_map>
 
@@ -280,10 +283,134 @@ bool vkMeshClass::initUniformBuffers(VkDevice device, VkPhysicalDevice physDevic
 			return false;
 		}
 
-		vkMapMemory(device, uniformBuffersMemory[i], 0, bufferSize, 0, &uniformBuffersMapped[i]);
-		// TODO: Add error checking?
+		VkResult result = vkMapMemory(device, uniformBuffersMemory[i], 0, bufferSize, 0, &uniformBuffersMapped[i]);
+		
+		if (result != VK_SUCCESS)
+		{
+			vkUtils::printVkResultError(result, "vkMeshClass::initUniformBuffers()", "Couldn't map the uniform buffer memory.");
+			return false;
+		}
 	}
 	
+	return true;
+}
+
+bool vkMeshClass::initShaderStorageBuffers(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue, size_t maxFramesInFlight, int windowWidth, int windowHeight)
+{	
+	shaderStorageBuffers.resize(maxFramesInFlight);
+	shaderStorageBuffersMemory.resize(maxFramesInFlight);
+
+	// Initialize particles
+	std::default_random_engine rndEngine((unsigned)time(nullptr));
+	std::uniform_real_distribution<float> rndDist(0.0f, 1.0f);
+
+	// Initial particle positions on a circle
+	std::vector<vkParticle> particles(PARTICLE_COUNT);
+
+	for (auto& particle : particles)
+	{
+		float r = 0.25 * sqrtf(rndDist(rndEngine));
+		float theta = rndDist(rndEngine) * 6.28318530718f;
+		float x = r * cosf(theta) * windowHeight / windowWidth;
+		float y = r * sinf(theta);
+		
+		particle.position = glm::vec2(x, y);
+		particle.velocity = glm::normalize(particle.position) * 0.00025f;
+		particle.color = glm::vec4(rndDist(rndEngine), rndDist(rndEngine), rndDist(rndEngine), 1.0f);
+	}
+
+	VkDeviceSize bufferSize = sizeof(vkParticle) * PARTICLE_COUNT;
+
+	VkBuffer stagingBuffer = nullptr;
+	VkDeviceMemory stagingBufferMemory = nullptr;
+
+	if (!vkUtils::createBuffer
+	(
+		device,
+		physDevice,
+		bufferSize,
+		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+		stagingBuffer,
+		stagingBufferMemory
+	))
+	{
+		return false;
+	}
+
+	void* data;
+	vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
+		memcpy(data, particles.data(), static_cast<size_t>(bufferSize));
+	vkUnmapMemory(device, stagingBufferMemory);
+
+	for (size_t i = 0; i < maxFramesInFlight; i++)
+	{
+		if (!vkUtils::createBuffer
+		(
+			device,
+			physDevice,
+			bufferSize,
+			VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+			shaderStorageBuffers[i],
+			shaderStorageBuffersMemory[i]
+		))
+		{
+			return false;
+		}
+
+		vkUtils::copyBuffer
+		(
+			device,
+			cmdPool,
+			gfxQueue,
+			stagingBuffer,
+			shaderStorageBuffers[i],
+			bufferSize
+		);
+	}
+
+	return true;
+}
+
+bool vkMeshClass::initComputeDescriptorSetLayout(VkDevice device)
+{
+	std::array<VkDescriptorSetLayoutBinding, 3> layoutBindings = {};
+
+	// ubo
+	layoutBindings[0].binding = 0;
+	layoutBindings[0].descriptorCount = 1;
+	layoutBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	layoutBindings[0].pImmutableSamplers = nullptr;
+	layoutBindings[0].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+
+	// ParticleSSBOIn
+	layoutBindings[1].binding = 1;
+	layoutBindings[1].descriptorCount = 1;
+	layoutBindings[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+	layoutBindings[1].pImmutableSamplers = nullptr;
+	layoutBindings[1].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+
+	// ParticleSSBOOut
+	layoutBindings[2].binding = 2;
+	layoutBindings[2].descriptorCount = 1;
+	layoutBindings[2].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+	layoutBindings[2].pImmutableSamplers = nullptr;
+	layoutBindings[2].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+
+	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
+	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+	layoutInfo.bindingCount = 3;
+	layoutInfo.pBindings = layoutBindings.data();
+
+	VkResult result = vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &computeDescriptorSetLayout);
+
+	if (result != VK_SUCCESS)
+	{
+		vkUtils::printVkResultError(result, "vkMeshClass::initComputeDescriptorSetLayout()", "Couldn't create the descriptor set layout for the compute shader.");
+		return false;
+	}
+
 	return true;
 }
 
@@ -329,8 +456,8 @@ bool vkMeshClass::initDescriptorPoolAndSets(VkDevice device, vkTextureClass* tex
 	std::array<VkDescriptorPoolSize, 2> poolSizes = {};
 	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	poolSizes[0].descriptorCount = static_cast<uint32_t>(maxFramesInFlight);
-	poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	poolSizes[1].descriptorCount = poolSizes[0].descriptorCount;
+	poolSizes[1].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+	poolSizes[1].descriptorCount = poolSizes[0].descriptorCount * 2;
 
 	VkDescriptorPoolCreateInfo poolInfo = {};
 	poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -368,17 +495,12 @@ bool vkMeshClass::initDescriptorPoolAndSets(VkDevice device, vkTextureClass* tex
 
 	for (size_t i = 0; i < maxFramesInFlight; i++)
 	{
-		VkDescriptorBufferInfo bufferInfo = {};
-		bufferInfo.buffer = uniformBuffers[i];
-		bufferInfo.offset = 0;
-		bufferInfo.range = sizeof(vkUniformBufferData);
-		
-		VkDescriptorImageInfo imageInfo = {};
-		imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		imageInfo.imageView = texture->imageView;
-		imageInfo.sampler = texture->sampler;
+		VkDescriptorBufferInfo uniformBufferInfo = {};
+		uniformBufferInfo.buffer = uniformBuffers[i];
+		uniformBufferInfo.offset = 0;
+		uniformBufferInfo.range = sizeof(vkUniformBufferData);
 
-		std::array<VkWriteDescriptorSet, 2> descriptorWrites = {};
+		std::array<VkWriteDescriptorSet, 3> descriptorWrites = {};
 
 		descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		descriptorWrites[0].dstSet = descriptorSets[i];
@@ -386,15 +508,33 @@ bool vkMeshClass::initDescriptorPoolAndSets(VkDevice device, vkTextureClass* tex
 		descriptorWrites[0].dstArrayElement = 0;
 		descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 		descriptorWrites[0].descriptorCount = 1;
-		descriptorWrites[0].pBufferInfo = &bufferInfo;
+		descriptorWrites[0].pBufferInfo = &uniformBufferInfo;
+
+		VkDescriptorBufferInfo storageBufferInfoLastFrame = {};
+		storageBufferInfoLastFrame.buffer = shaderStorageBuffers[(i - 1) % maxFramesInFlight];
+		storageBufferInfoLastFrame.offset = 0;
+		storageBufferInfoLastFrame.range = sizeof(vkParticle) * PARTICLE_COUNT;
 
 		descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		descriptorWrites[1].dstSet = descriptorSets[i];
+		descriptorWrites[1].dstSet = computeDescriptorSets[i];
 		descriptorWrites[1].dstBinding = 1;
 		descriptorWrites[1].dstArrayElement = 0;
-		descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 		descriptorWrites[1].descriptorCount = 1;
-		descriptorWrites[1].pImageInfo = &imageInfo;
+		descriptorWrites[1].pBufferInfo = &storageBufferInfoLastFrame;
+
+		VkDescriptorBufferInfo storageBufferInfoThisFrame = {};
+		storageBufferInfoThisFrame.buffer = shaderStorageBuffers[i];
+		storageBufferInfoThisFrame.offset = 0;
+		storageBufferInfoThisFrame.range = storageBufferInfoLastFrame.range;
+
+		descriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWrites[2].dstSet = computeDescriptorSets[i];
+		descriptorWrites[2].dstBinding = 2;
+		descriptorWrites[2].dstArrayElement = 0;
+		descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+		descriptorWrites[2].descriptorCount = 1;
+		descriptorWrites[2].pBufferInfo = &storageBufferInfoThisFrame;
 
 		vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 	}
@@ -413,7 +553,7 @@ void vkMeshClass::updateUniformBuffer(uint32_t currentImage, const VkExtent2D& s
 	memcpy(uniformBuffersMapped[currentImage], &data, sizeof(data));
 }
 
-bool vkMeshClass::initialize(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue, size_t maxFramesInFlight, const char* meshFilePath, vkTextureClass* texture)
+bool vkMeshClass::initialize(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue, size_t maxFramesInFlight, int windowWidth, int windowHeight, const char* meshFilePath, vkTextureClass* texture)
 {
 	if (!initModel(meshFilePath))
 	{
@@ -431,6 +571,11 @@ bool vkMeshClass::initialize(VkDevice device, VkPhysicalDevice physDevice, VkCom
 	}
 
 	if (!initUniformBuffers(device, physDevice, maxFramesInFlight))
+	{
+		return false;
+	}
+
+	if (!initShaderStorageBuffers(device, physDevice, cmdPool, gfxQueue, maxFramesInFlight, windowWidth, windowHeight))
 	{
 		return false;
 	}
@@ -458,6 +603,14 @@ void vkMeshClass::draw(VkCommandBuffer buffer, VkPipelineLayout pipelineLayout, 
 	vkCmdBindDescriptorSets(buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
 
 	vkCmdDrawIndexed(buffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+}
+
+void vkMeshClass::dispatch(VkCommandBuffer cmdBuffer, VkCommandBuffer computeCmdBuffer, VkPipeline computePipeline, VkPipelineLayout pipelineLayout, int frame)
+{
+	vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, computePipeline);
+	vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipelineLayout, 0, 1, &computeDescriptorSets[frame], 0, 0);
+	
+	vkCmdDispatch(computeCmdBuffer, PARTICLE_COUNT / 256, 1, 1);
 }
 
 void vkMeshClass::cleanup(VkDevice device)
