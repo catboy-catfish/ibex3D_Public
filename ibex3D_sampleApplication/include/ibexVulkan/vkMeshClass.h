@@ -2,6 +2,8 @@
 
 #include <vulkan/vulkan.h>
 
+#include <ibex3D/math/vec3.h>
+
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
@@ -11,8 +13,8 @@
 
 struct vkVertex
 {
-	glm::vec3 position;
-	glm::vec3 color;
+	vec3 position;
+	vec3 color;
 	glm::vec2 texCoord;
 
 	// ----------------------------------------------------------------------------------------------------

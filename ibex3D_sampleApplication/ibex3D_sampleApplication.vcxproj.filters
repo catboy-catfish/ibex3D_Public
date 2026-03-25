@@ -28,6 +28,9 @@
     <ClInclude Include="include\ibex3D\utility\windowsUtils.h">
       <Filter>ibex3D\utility\windowsUtilFunctions</Filter>
     </ClInclude>
+    <ClInclude Include="include\ibex3D\math\vec3.h">
+      <Filter>ibex3D\math\vec3</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\ibex3D\core\appRuntime_win32.cpp">
@@ -56,6 +59,9 @@
     </ClCompile>
     <ClCompile Include="source\ibex3D\utility\windowsUtilFunctions.cpp">
       <Filter>ibex3D\utility\windowsUtilFunctions</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ibex3D\math\vec3.cpp">
+      <Filter>ibex3D\math\vec3</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -112,6 +118,12 @@
     </Filter>
     <Filter Include="assets\models">
       <UniqueIdentifier>{a51a472c-ab7f-4138-ae9d-39ba12a1e3d5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\math">
+      <UniqueIdentifier>{54ede78e-50bb-47c9-afd3-00271ba91a76}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\math\vec3">
+      <UniqueIdentifier>{f42f7bea-7363-47d7-ace8-48923d0c3632}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

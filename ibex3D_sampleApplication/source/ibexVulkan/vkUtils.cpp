@@ -56,12 +56,12 @@ void vkExtFunctions::DestroyDebugUtilsMessengerEXT
 
 void vkUtils::printVkError(const char* functionName, const char* message)
 {
-	printf("VULKAN ERROR - %s: %s\n", functionName, message);
+	printf("VULKAN ERROR - %s: %s\n\n", functionName, message);
 }
 
 void vkUtils::printVkResultError(VkResult result, const char* functionName, const char* message)
 {
-	printf("VULKAN ERROR (VkResult: %d) - %s: %s\n", (int)result, functionName, message);
+	printf("VULKAN ERROR (VkResult: %d) - %s: %s\n\n", (int)result, functionName, message);
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -207,10 +207,6 @@ int vkUtils::ratePhysicalDeviceSuitability(VkPhysicalDevice physDevice, VkSurfac
 	if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
 	{
 		score += 1000;
-	}
-	else
-	{
-		printVkError("vkUtils::ratePhysicalDeviceSuitability()", "It looks like you're using integrated graphics instead of a dedicated graphics card. I highly recommend you run this using a dedicated graphics card because they have a significant performance advantage over integrated graphics.");
 	}
 
 	score += deviceProperties.limits.maxImageDimension2D;

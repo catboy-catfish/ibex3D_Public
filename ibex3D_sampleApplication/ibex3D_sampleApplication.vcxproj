@@ -12,6 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ibex3D\core\appRuntime.h" />
+    <ClInclude Include="include\ibex3D\math\vec3.h" />
     <ClInclude Include="include\ibex3D\utility\memoryUtils.h" />
     <ClInclude Include="include\ibex3D\utility\utilFunctions.h" />
     <ClInclude Include="include\ibex3D\utility\windowsUtils.h" />
@@ -23,6 +24,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\ibex3D\core\appRuntime_win32.cpp" />
+    <ClCompile Include="source\ibex3D\math\vec3.cpp" />
     <ClCompile Include="source\ibex3D\utility\utilFunctions.cpp" />
     <ClCompile Include="source\ibex3D\utility\windowsUtilFunctions.cpp" />
     <ClCompile Include="source\ibexVulkan\vkRenderingContext_win32.cpp" />
@@ -90,7 +92,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>IBEX3D_PLATFORM_WIN32;IBEX3D_VULKAN_USE_VALIDATION_LAYERS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>IBEX3D_USE_SIMD;IBEX3D_VULKAN_USE_VALIDATION_LAYERS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(VULKAN_SDK)/Include/;$(ProjectDir)include/;$(SolutionDir)libraries/include/</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -111,7 +113,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>IBEX3D_PLATFORM_WIN32;IBEX3D_VULKAN_USE_VALIDATION_LAYERS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>IBEX3D_USE_SIMD;IBEX3D_VULKAN_USE_VALIDATION_LAYERS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(VULKAN_SDK)/Include/;$(ProjectDir)include/;$(SolutionDir)libraries/include/</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>

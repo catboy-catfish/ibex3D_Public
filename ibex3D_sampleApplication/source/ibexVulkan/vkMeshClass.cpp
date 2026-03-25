@@ -18,11 +18,15 @@ namespace std
 	{
 		size_t operator()(vkVertex const& vertex) const
 		{
-			// TODO: Look into hashing to understand this bullshit
+			glm::vec3 pos = glm::vec3(vertex.position.x, vertex.position.y, vertex.position.z);
+			glm::vec3 col = glm::vec3(vertex.color.x, vertex.color.y, vertex.color.z);
+			
+			// TODO: Look into hashing to better understand this bullshit
 
-			return ((hash<glm::vec3>()(vertex.position) ^
-				(hash<glm::vec3>()(vertex.color) << 1)) >> 1) ^
-				(hash<glm::vec2>()(vertex.texCoord) << 1);
+			return 
+			(
+				(hash<glm::vec3>()(pos) ^ (hash<glm::vec3>()(col) << 1)) >> 1) ^ (hash<glm::vec2>()(vertex.texCoord) << 1
+			);
 		}
 	};
 }
