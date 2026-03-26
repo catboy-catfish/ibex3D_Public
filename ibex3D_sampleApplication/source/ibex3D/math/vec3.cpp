@@ -6,7 +6,7 @@
 
 vec3 vec3::operator + (const vec3& other) const
 {
-	// TODO: Implement SIMD later!
+	// TODO: Implement SIMD soon!
 	return vec3(x + other.x, y + other.y, z + other.z);
 }
 
@@ -17,7 +17,7 @@ vec3 vec3::operator - (const vec3& other) const
 
 vec3 vec3::operator * (const vec3& other) const
 {
-	return vec3(x * other.x, y - other.y, z - other.z);
+	return vec3(x * other.x, y * other.y, z * other.z);
 }
 
 vec3 vec3::operator / (const vec3& other) const
@@ -73,15 +73,33 @@ void vec3::operator /= (const vec3& other)
 
 bool vec3::operator == (const vec3& other) const
 {
-	return (x == other.x) && (y == other.y) && (z == other.z);
+	if (x != other.x) return false;
+	if (y != other.y) return false;
+	if (z != other.z) return false;
+	return true;
 }
 
 bool vec3::operator != (const vec3& other) const
 {
-	return (x != other.x) || (y != other.y) || (z != other.z);
+	if (x != other.x) return true;
+	if (y != other.y) return true;
+	if (z != other.z) return true;
+	return false;
 }
 
 // ----------------------------------------------------------------------------------------------------
+
+vec3 vec3::multipliedByFloat(float in) const
+{
+	return vec3(x * in, y * in, z * in);
+}
+
+void vec3::multiplyByFloat(float in)
+{
+	x *= in;
+	y *= in;
+	z *= in;
+}
 
 vec3 vec3::dividedByFloat(float in) const
 {
@@ -111,11 +129,6 @@ float vec3::getLength() const
 	return sqrtf((x*x) + (y*y) + (z*z));
 }
 
-float vec3::getDotProduct(const vec3& other) const
-{
-	return (x * other.x) + (y * other.y) + (z * other.z);
-}
-
 vec3 vec3::normalized() const
 {
 	float len = getLength();
@@ -132,16 +145,21 @@ void vec3::normalize()
 {
 	float len = getLength();
 
-	if (len != 0.0f)
+	if (len == 0.0f)
 	{
-		x /= len;
-		y /= len;
-		z /= len;
+		x = 0.0f;
+		y = 0.0f;
+		z = 0.0f;
 	}
 
-	x = 0.0f;
-	y = 0.0f;
-	z = 0.0f;
+	x /= len;
+	y /= len;
+	z /= len;
+}
+
+float vec3::getDotProduct(const vec3& other) const
+{
+	return (x * other.x) + (y * other.y) + (z * other.z);
 }
 
 // ----------------------------------------------------------------------------------------------------

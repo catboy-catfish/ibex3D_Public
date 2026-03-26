@@ -27,14 +27,18 @@ struct vec3
 
 	// ----------------------------------------------------------------------------------------------------
 
+	vec3 multipliedByFloat(float in) const;
+	void multiplyByFloat(float in);
+
 	vec3 dividedByFloat(float in) const;
 	void divideByFloat(float in);
 
 	float getLength() const;
-	float getDotProduct(const vec3& other) const;
 
 	vec3 normalized() const;
 	void normalize();
+
+	float getDotProduct(const vec3& other) const;
 
 	// ----------------------------------------------------------------------------------------------------
 
