@@ -28,8 +28,14 @@
     <ClInclude Include="include\ibex3D\utility\windowsUtils.h">
       <Filter>ibex3D\utility\windowsUtilFunctions</Filter>
     </ClInclude>
+	<ClInclude Include="include\ibex3D\math\vec4.h">
+      <Filter>ibex3D\math\vec4</Filter>
+    </ClInclude>
     <ClInclude Include="include\ibex3D\math\vec3.h">
       <Filter>ibex3D\math\vec3</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ibex3D\math\vec2.h">
+      <Filter>ibex3D\math\vec2</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -60,8 +66,14 @@
     <ClCompile Include="source\ibex3D\utility\windowsUtilFunctions.cpp">
       <Filter>ibex3D\utility\windowsUtilFunctions</Filter>
     </ClCompile>
+	<ClCompile Include="source\ibex3D\math\vec4.cpp">
+      <Filter>ibex3D\math\vec4</Filter>
+    </ClCompile>
     <ClCompile Include="source\ibex3D\math\vec3.cpp">
       <Filter>ibex3D\math\vec3</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ibex3D\math\vec2.cpp">
+      <Filter>ibex3D\math\vec2</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -122,8 +134,14 @@
     <Filter Include="ibex3D\math">
       <UniqueIdentifier>{54ede78e-50bb-47c9-afd3-00271ba91a76}</UniqueIdentifier>
     </Filter>
+	<Filter Include="ibex3D\math\vec4">
+      <UniqueIdentifier>{debf7157-9fa1-4904-b6e8-1c85d4f5b845}</UniqueIdentifier>
+    </Filter>
     <Filter Include="ibex3D\math\vec3">
       <UniqueIdentifier>{f42f7bea-7363-47d7-ace8-48923d0c3632}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\math\vec2">
+      <UniqueIdentifier>{62b294a1-7e0d-4b11-8eb1-16e6a274f5e4}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

@@ -12,7 +12,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ibex3D\core\appRuntime.h" />
+    <ClInclude Include="include\ibex3D\math\vec2.h" />
     <ClInclude Include="include\ibex3D\math\vec3.h" />
+    <ClInclude Include="include\ibex3D\math\vec4.h" />
     <ClInclude Include="include\ibex3D\utility\memoryUtils.h" />
     <ClInclude Include="include\ibex3D\utility\utilFunctions.h" />
     <ClInclude Include="include\ibex3D\utility\windowsUtils.h" />
@@ -24,7 +26,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\ibex3D\core\appRuntime_win32.cpp" />
+    <ClCompile Include="source\ibex3D\math\vec2.cpp" />
     <ClCompile Include="source\ibex3D\math\vec3.cpp" />
+    <ClCompile Include="source\ibex3D\math\vec4.cpp" />
     <ClCompile Include="source\ibex3D\utility\utilFunctions.cpp" />
     <ClCompile Include="source\ibex3D\utility\windowsUtilFunctions.cpp" />
     <ClCompile Include="source\ibexVulkan\vkRenderingContext_win32.cpp" />

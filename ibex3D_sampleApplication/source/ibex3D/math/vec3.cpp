@@ -151,10 +151,12 @@ void vec3::normalize()
 		y = 0.0f;
 		z = 0.0f;
 	}
-
-	x /= len;
-	y /= len;
-	z /= len;
+	else
+	{
+		x /= len;
+		y /= len;
+		z /= len;
+	}
 }
 
 float vec3::getDotProduct(const vec3& other) const
