@@ -1,6 +1,6 @@
-#include <ibexVulkan/vkMeshClass.h>
-#include <ibexVulkan/vkTextureClass.h>
-#include <ibexVulkan/vkUtils.h>
+#include <ibex3D/vulkan/vkMeshClass.h>
+#include <ibex3D/vulkan/vkTextureClass.h>
+#include <ibex3D/vulkan/vkUtils.h>
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtc/matrix_transform.hpp>
@@ -20,13 +20,14 @@ namespace std
 		{
 			glm::vec3 pos = glm::vec3(vertex.position.x, vertex.position.y, vertex.position.z);
 			glm::vec3 col = glm::vec3(vertex.color.x, vertex.color.y, vertex.color.z);
-			
-			// TODO: Look into hashing to better understand this bullshit
+			glm::vec2 txc = glm::vec2(vertex.texCoord.x, vertex.texCoord.y);
 
-			return 
-			(
-				(hash<glm::vec3>()(pos) ^ (hash<glm::vec3>()(col) << 1)) >> 1) ^ (hash<glm::vec2>()(vertex.texCoord) << 1
-			);
+			// TODO: Look into hashing to better understand this bullshit
+			// The ^ is the bitwise XOR operator
+
+			return	((hash<glm::vec3>()(pos) ^ 
+					(hash<glm::vec3>()(col) << 1)) >> 1) ^ 
+					(hash<glm::vec2>()(txc) << 1);
 		}
 	};
 }

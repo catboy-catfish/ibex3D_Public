@@ -1,5 +1,5 @@
-#include <ibexVulkan/vkTextureClass.h>
-#include <ibexVulkan/vkUtils.h>
+#include <ibex3D/vulkan/vkTextureClass.h>
+#include <ibex3D/vulkan/vkUtils.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/image.h>

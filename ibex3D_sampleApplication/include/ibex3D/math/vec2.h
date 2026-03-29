@@ -20,7 +20,7 @@ struct vec2
 	void operator -= (const vec2& other);
 	void operator *= (const vec2& other);
 	void operator /= (const vec2& other);
-
+	
 	bool operator == (const vec2& other) const;
 	bool operator != (const vec2& other) const;
 

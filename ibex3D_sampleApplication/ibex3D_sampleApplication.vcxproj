@@ -18,10 +18,10 @@
     <ClInclude Include="include\ibex3D\utility\memoryUtils.h" />
     <ClInclude Include="include\ibex3D\utility\utilFunctions.h" />
     <ClInclude Include="include\ibex3D\utility\windowsUtils.h" />
-    <ClInclude Include="include\ibexVulkan\vkRenderingContext.h" />
-    <ClInclude Include="include\ibexVulkan\vkTextureClass.h" />
-    <ClInclude Include="include\ibexVulkan\vkUtils.h" />
-    <ClInclude Include="include\ibexVulkan\vkMeshClass.h" />
+    <ClInclude Include="include\ibex3D\vulkan\vkRenderingContext.h" />
+    <ClInclude Include="include\ibex3D\vulkan\vkTextureClass.h" />
+    <ClInclude Include="include\ibex3D\vulkan\vkUtils.h" />
+    <ClInclude Include="include\ibex3D\vulkan\vkMeshClass.h" />
     <ClInclude Include="include\sampleApp\appInterface.h" />
   </ItemGroup>
   <ItemGroup>
@@ -31,10 +31,10 @@
     <ClCompile Include="source\ibex3D\math\vec4.cpp" />
     <ClCompile Include="source\ibex3D\utility\utilFunctions.cpp" />
     <ClCompile Include="source\ibex3D\utility\windowsUtilFunctions.cpp" />
-    <ClCompile Include="source\ibexVulkan\vkRenderingContext_win32.cpp" />
-    <ClCompile Include="source\ibexVulkan\vkTextureClass.cpp" />
-    <ClCompile Include="source\ibexVulkan\vkUtils.cpp" />
-    <ClCompile Include="source\ibexVulkan\vkMeshClass.cpp" />
+    <ClCompile Include="source\ibex3D\vulkan\vkRenderingContext_win32.cpp" />
+    <ClCompile Include="source\ibex3D\vulkan\vkTextureClass.cpp" />
+    <ClCompile Include="source\ibex3D\vulkan\vkUtils.cpp" />
+    <ClCompile Include="source\ibex3D\vulkan\vkMeshClass.cpp" />
     <ClCompile Include="source\sampleApp\appInterface.cpp" />
     <ClCompile Include="source\sampleApp\main.cpp" />
   </ItemGroup>
@@ -96,7 +96,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>IBEX3D_SIMD_AVX2;IBEX3D_VULKAN_USE_VALIDATION_LAYERS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>IBEX3D_SIMD_AVX2;IBEX3D_VULKAN_VALIDATION;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(VULKAN_SDK)/Include/;$(ProjectDir)include/;$(SolutionDir)libraries/include/</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -117,7 +117,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>IBEX3D_SIMD_AVX2;IBEX3D_VULKAN_USE_VALIDATION_LAYERS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>IBEX3D_SIMD_AVX2;IBEX3D_VULKAN_VALIDATION;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(VULKAN_SDK)/Include/;$(ProjectDir)include/;$(SolutionDir)libraries/include/</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>

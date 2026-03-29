@@ -1,5 +1,5 @@
-#include <ibexVulkan/vkRenderingContext.h>
-#include <ibexVulkan/vkUtils.h>
+#include <ibex3D/vulkan/vkRenderingContext.h>
+#include <ibex3D/vulkan/vkUtils.h>
 
 #include <ibex3D/utility/utilFunctions.h>
 #include <ibex3D/utility/windowsUtils.h>
@@ -141,7 +141,7 @@ bool vkRenderingContext::initInstance(const char* appName)
 	requiredExtensions.clear();
 	requiredExtensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
 	requiredExtensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
-#ifdef IBEX3D_VULKAN_USE_VALIDATION_LAYERS
+#ifdef IBEX3D_VULKAN_VALIDATION
 	requiredExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 
 	requiredLayers.clear();
@@ -151,7 +151,7 @@ bool vkRenderingContext::initInstance(const char* appName)
 	requiredDeviceExtensions.clear();
 	requiredDeviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 
-#ifdef IBEX3D_VULKAN_USE_VALIDATION_LAYERS
+#ifdef IBEX3D_VULKAN_VALIDATION
 	if (!checkInstanceLayerSupport())
 	{
 		vkUtils::printVkError("vkRenderingContext::initInstance()", "Requested validation layers unavailable on this device.");
@@ -172,7 +172,7 @@ bool vkRenderingContext::initInstance(const char* appName)
 	instanceInfo.ppEnabledExtensionNames = requiredExtensions.data();
 	instanceInfo.enabledExtensionCount = static_cast<uint32_t>(requiredExtensions.size());
 
-#ifdef IBEX3D_VULKAN_USE_VALIDATION_LAYERS
+#ifdef IBEX3D_VULKAN_VALIDATION
 	VkDebugUtilsMessengerCreateInfoEXT messengerInfo = {};
 	vkUtils::populateDebugMessengerCreateInfo(messengerInfo);
 
@@ -192,7 +192,7 @@ bool vkRenderingContext::initInstance(const char* appName)
 		return false;
 	}
 
-#ifdef IBEX3D_VULKAN_USE_VALIDATION_LAYERS
+#ifdef IBEX3D_VULKAN_VALIDATION
 	result = vkExtFunctions::CreateDebugUtilsMessengerEXT(m_instance, &messengerInfo, nullptr, &m_debugMessenger);
 
 	if (result != VK_SUCCESS)
@@ -314,7 +314,7 @@ bool vkRenderingContext::initLogicalDevice()
 	logicalDeviceInfo.enabledExtensionCount = static_cast<uint32_t>(requiredDeviceExtensions.size());
 	logicalDeviceInfo.ppEnabledExtensionNames = requiredDeviceExtensions.data();
 
-#ifdef IBEX3D_VULKAN_USE_VALIDATION_LAYERS
+#ifdef IBEX3D_VULKAN_VALIDATION
 	logicalDeviceInfo.enabledLayerCount = static_cast<uint32_t>(requiredLayers.size());
 	logicalDeviceInfo.ppEnabledLayerNames = requiredLayers.data();
 #else
@@ -1286,7 +1286,7 @@ void vkRenderingContext::cleanupInstance()
 {
 	if (m_instance != nullptr)
 	{
-#ifdef IBEX3D_VULKAN_USE_VALIDATION_LAYERS
+#ifdef IBEX3D_VULKAN_VALIDATION
 		if (m_debugMessenger != nullptr)
 		{
 			vkExtFunctions::DestroyDebugUtilsMessengerEXT(m_instance, m_debugMessenger, nullptr);
@@ -1314,7 +1314,7 @@ bool vkRenderingContext::checkInstanceLayerSupport()
 {
 	if (requiredLayers.empty()) return true;
 
-#ifdef IBEX3D_VULKAN_USE_VALIDATION_LAYERS
+#ifdef IBEX3D_VULKAN_VALIDATION
 	uint32_t layerCount = 0;
 	vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
 

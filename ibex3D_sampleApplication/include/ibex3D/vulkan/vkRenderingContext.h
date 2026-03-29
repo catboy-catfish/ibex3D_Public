@@ -1,6 +1,6 @@
 #pragma once
-#include <ibexVulkan/vkMeshClass.h>
-#include <ibexVulkan/vkTextureClass.h>
+#include <ibex3D/vulkan/vkMeshClass.h>
+#include <ibex3D/vulkan/vkTextureClass.h>
 
 class vkRenderingContext
 {

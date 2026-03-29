@@ -1,4 +1,5 @@
-#include <ibexVulkan/vkUtils.h>
+#include <ibex3D/vulkan/vkUtils.h>
+
 #include <ibex3D/utility/utilFunctions.h>
 
 #include <glslang/Include/glslang_c_interface.h>
@@ -13,7 +14,7 @@
 // - Extension functions ------------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------
 
-#ifdef IBEX3D_VULKAN_USE_VALIDATION_LAYERS
+#ifdef IBEX3D_VULKAN_VALIDATION
 VkResult vkExtFunctions::CreateDebugUtilsMessengerEXT
 (
 	VkInstance instance,
@@ -68,7 +69,7 @@ void vkUtils::printVkResultError(VkResult result, const char* functionName, cons
 // - Validation layers --------------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------
 
-#ifdef IBEX3D_VULKAN_USE_VALIDATION_LAYERS
+#ifdef IBEX3D_VULKAN_VALIDATION
 void vkUtils::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& info)
 {
 	info = {};

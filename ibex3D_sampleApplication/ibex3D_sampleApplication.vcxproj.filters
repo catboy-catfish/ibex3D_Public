@@ -4,20 +4,20 @@
     <ClInclude Include="include\ibex3D\core\appRuntime.h">
       <Filter>ibex3D\core\appRuntime</Filter>
     </ClInclude>
-    <ClInclude Include="include\ibexVulkan\vkUtils.h">
-      <Filter>ibexVulkan\vkUtils</Filter>
+    <ClInclude Include="include\ibex3D\vulkan\vkUtils.h">
+      <Filter>ibex3D\vulkan\vkUtils</Filter>
     </ClInclude>
-    <ClInclude Include="include\ibexVulkan\vkMeshClass.h">
-      <Filter>ibexVulkan\vkMeshClass</Filter>
+    <ClInclude Include="include\ibex3D\vulkan\vkMeshClass.h">
+      <Filter>ibex3D\vulkan\vkMeshClass</Filter>
     </ClInclude>
-    <ClInclude Include="include\ibexVulkan\vkRenderingContext.h">
-      <Filter>ibexVulkan\vkRenderingContext</Filter>
+    <ClInclude Include="include\ibex3D\vulkan\vkRenderingContext.h">
+      <Filter>ibex3D\vulkan\vkRenderingContext</Filter>
     </ClInclude>
     <ClInclude Include="include\sampleApp\appInterface.h">
       <Filter>sampleApp\appInterface</Filter>
     </ClInclude>
-    <ClInclude Include="include\ibexVulkan\vkTextureClass.h">
-      <Filter>ibexVulkan\vkTextureClass</Filter>
+    <ClInclude Include="include\ibex3D\vulkan\vkTextureClass.h">
+      <Filter>ibex3D\vulkan\vkTextureClass</Filter>
     </ClInclude>
     <ClInclude Include="include\ibex3D\utility\memoryUtils.h">
       <Filter>ibex3D\utility\memoryUtils</Filter>
@@ -28,7 +28,7 @@
     <ClInclude Include="include\ibex3D\utility\windowsUtils.h">
       <Filter>ibex3D\utility\windowsUtilFunctions</Filter>
     </ClInclude>
-	<ClInclude Include="include\ibex3D\math\vec4.h">
+    <ClInclude Include="include\ibex3D\math\vec4.h">
       <Filter>ibex3D\math\vec4</Filter>
     </ClInclude>
     <ClInclude Include="include\ibex3D\math\vec3.h">
@@ -42,14 +42,14 @@
     <ClCompile Include="source\ibex3D\core\appRuntime_win32.cpp">
       <Filter>ibex3D\core\appRuntime</Filter>
     </ClCompile>
-    <ClCompile Include="source\ibexVulkan\vkUtils.cpp">
-      <Filter>ibexVulkan\vkUtils</Filter>
+    <ClCompile Include="source\ibex3D\vulkan\vkUtils.cpp">
+      <Filter>ibex3D\vulkan\vkUtils</Filter>
     </ClCompile>
-    <ClCompile Include="source\ibexVulkan\vkMeshClass.cpp">
-      <Filter>ibexVulkan\vkMeshClass</Filter>
+    <ClCompile Include="source\ibex3D\vulkan\vkMeshClass.cpp">
+      <Filter>ibex3D\vulkan\vkMeshClass</Filter>
     </ClCompile>
-    <ClCompile Include="source\ibexVulkan\vkRenderingContext_win32.cpp">
-      <Filter>ibexVulkan\vkRenderingContext</Filter>
+    <ClCompile Include="source\ibex3D\vulkan\vkRenderingContext_win32.cpp">
+      <Filter>ibex3D\vulkan\vkRenderingContext</Filter>
     </ClCompile>
     <ClCompile Include="source\sampleApp\main.cpp">
       <Filter>sampleApp</Filter>
@@ -57,8 +57,8 @@
     <ClCompile Include="source\sampleApp\appInterface.cpp">
       <Filter>sampleApp\appInterface</Filter>
     </ClCompile>
-    <ClCompile Include="source\ibexVulkan\vkTextureClass.cpp">
-      <Filter>ibexVulkan\vkTextureClass</Filter>
+    <ClCompile Include="source\ibex3D\vulkan\vkTextureClass.cpp">
+      <Filter>ibex3D\vulkan\vkTextureClass</Filter>
     </ClCompile>
     <ClCompile Include="source\ibex3D\utility\utilFunctions.cpp">
       <Filter>ibex3D\utility\utilFunctions</Filter>
@@ -66,7 +66,7 @@
     <ClCompile Include="source\ibex3D\utility\windowsUtilFunctions.cpp">
       <Filter>ibex3D\utility\windowsUtilFunctions</Filter>
     </ClCompile>
-	<ClCompile Include="source\ibex3D\math\vec4.cpp">
+    <ClCompile Include="source\ibex3D\math\vec4.cpp">
       <Filter>ibex3D\math\vec4</Filter>
     </ClCompile>
     <ClCompile Include="source\ibex3D\math\vec3.cpp">
@@ -80,9 +80,6 @@
     <Filter Include="ibex3D">
       <UniqueIdentifier>{4eff8279-bd35-49af-b9ce-5997a9f9d7f7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ibexVulkan">
-      <UniqueIdentifier>{360f4903-ba0c-4bd6-a5f8-1fd6d7523bcc}</UniqueIdentifier>
-    </Filter>
     <Filter Include="sampleApp">
       <UniqueIdentifier>{0815c615-db27-42f7-8e9f-190d0685f0e7}</UniqueIdentifier>
     </Filter>
@@ -95,15 +92,6 @@
     <Filter Include="ibex3D\core\appRuntime">
       <UniqueIdentifier>{2d5e1e2e-dd8e-43ed-be04-8ac436237f74}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ibexVulkan\vkUtils">
-      <UniqueIdentifier>{17eef45c-99e1-4079-9294-b6ef4af655e9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ibexVulkan\vkMeshClass">
-      <UniqueIdentifier>{2af6fead-42b0-406e-b016-6f0b58751fc3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ibexVulkan\vkRenderingContext">
-      <UniqueIdentifier>{b6999d60-d730-45d5-b322-b8e0e18f4ced}</UniqueIdentifier>
-    </Filter>
     <Filter Include="sampleApp\appInterface">
       <UniqueIdentifier>{139baaab-a8bb-4745-834a-0b85947e9679}</UniqueIdentifier>
     </Filter>
@@ -115,9 +103,6 @@
     </Filter>
     <Filter Include="assets\images">
       <UniqueIdentifier>{c8710c5f-51e9-42b9-9b2b-00d190359dbb}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ibexVulkan\vkTextureClass">
-      <UniqueIdentifier>{29ca2cb4-426d-4c28-b81f-bd6e9a1bd787}</UniqueIdentifier>
     </Filter>
     <Filter Include="ibex3D\utility\memoryUtils">
       <UniqueIdentifier>{d00ad263-acb1-443f-99df-7a6817c20b0d}</UniqueIdentifier>
@@ -134,7 +119,7 @@
     <Filter Include="ibex3D\math">
       <UniqueIdentifier>{54ede78e-50bb-47c9-afd3-00271ba91a76}</UniqueIdentifier>
     </Filter>
-	<Filter Include="ibex3D\math\vec4">
+    <Filter Include="ibex3D\math\vec4">
       <UniqueIdentifier>{debf7157-9fa1-4904-b6e8-1c85d4f5b845}</UniqueIdentifier>
     </Filter>
     <Filter Include="ibex3D\math\vec3">
@@ -142,6 +127,21 @@
     </Filter>
     <Filter Include="ibex3D\math\vec2">
       <UniqueIdentifier>{62b294a1-7e0d-4b11-8eb1-16e6a274f5e4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\vulkan">
+      <UniqueIdentifier>{360f4903-ba0c-4bd6-a5f8-1fd6d7523bcc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\vulkan\vkUtils">
+      <UniqueIdentifier>{17eef45c-99e1-4079-9294-b6ef4af655e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\vulkan\vkMeshClass">
+      <UniqueIdentifier>{2af6fead-42b0-406e-b016-6f0b58751fc3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\vulkan\vkRenderingContext">
+      <UniqueIdentifier>{b6999d60-d730-45d5-b322-b8e0e18f4ced}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\vulkan\vkTextureClass">
+      <UniqueIdentifier>{29ca2cb4-426d-4c28-b81f-bd6e9a1bd787}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

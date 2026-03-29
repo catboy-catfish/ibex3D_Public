@@ -23,7 +23,7 @@ struct vkSwapchainSupportInfo
 class vkExtFunctions
 {
 public:
-#ifdef IBEX3D_VULKAN_USE_VALIDATION_LAYERS
+#ifdef IBEX3D_VULKAN_VALIDATION
 	static VkResult CreateDebugUtilsMessengerEXT
 	(
 		VkInstance instance,
@@ -50,7 +50,7 @@ public:
 	static void printVkResultError(VkResult result, const char* functionName, const char* message);
 
 	// Validation layers
-#ifdef IBEX3D_VULKAN_USE_VALIDATION_LAYERS
+#ifdef IBEX3D_VULKAN_VALIDATION
 	static void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& info);
 
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debugMessengerCallback

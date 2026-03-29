@@ -1,7 +1,7 @@
 #include <sampleApp/appInterface.h>
 
 #include <ibex3D/core/appRuntime.h>
-#include <ibexVulkan/vkRenderingContext.h>
+#include <ibex3D/vulkan/vkRenderingContext.h>
 
 #define MAX_MESH_ROTATION 6.283f
 
