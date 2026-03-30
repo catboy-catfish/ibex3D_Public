@@ -51,9 +51,6 @@
     <ClCompile Include="source\ibex3D\vulkan\vkRenderingContext_win32.cpp">
       <Filter>ibex3D\vulkan\vkRenderingContext</Filter>
     </ClCompile>
-    <ClCompile Include="source\sampleApp\main.cpp">
-      <Filter>sampleApp</Filter>
-    </ClCompile>
     <ClCompile Include="source\sampleApp\appInterface.cpp">
       <Filter>sampleApp\appInterface</Filter>
     </ClCompile>
@@ -74,6 +71,9 @@
     </ClCompile>
     <ClCompile Include="source\ibex3D\math\vec2.cpp">
       <Filter>ibex3D\math\vec2</Filter>
+    </ClCompile>
+    <ClCompile Include="source\sampleApp\main_vectorTests.cpp">
+      <Filter>sampleApp</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

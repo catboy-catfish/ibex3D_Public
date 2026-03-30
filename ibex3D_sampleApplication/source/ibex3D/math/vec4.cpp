@@ -2,10 +2,14 @@
 
 #include <math.h>
 
+#if defined(IBEX3D_SIMD_SSE)
+#include <immintrin.h>
+#endif
+
 // ----------------------------------------------------------------------------------------------------
 
 vec4 vec4::operator + (const vec4& other) const
-{
+{	
 	return vec4(x + other.x, y + other.y, z + other.z, w + other.w);
 }
 
@@ -31,26 +35,47 @@ vec4 vec4::operator / (const vec4& other) const
 
 void vec4::operator += (const vec4& other)
 {
+#ifdef IBEX3D_SIMD_SSE
+	__m128 lhs = _mm_load_ps(&x);
+	__m128 rhs = _mm_load_ps(&other.x);
+	__m128 result = _mm_add_ps(lhs, rhs);
+	_mm_store_ps(&x, result);
+#else
 	x += other.x;
 	y += other.y;
 	z += other.z;
 	w += other.w;
+#endif
 }
 
 void vec4::operator -= (const vec4& other)
 {
+#ifdef IBEX3D_SIMD_SSE
+	__m128 lhs = _mm_load_ps(&x);
+	__m128 rhs = _mm_load_ps(&other.x);
+	__m128 result = _mm_sub_ps(lhs, rhs);
+	_mm_store_ps(&x, result);
+#else
 	x -= other.x;
 	y -= other.y;
 	z -= other.z;
 	w -= other.w;
+#endif
 }
 
 void vec4::operator *= (const vec4& other)
 {
+#ifdef IBEX3D_SIMD_SSE
+	__m128 lhs = _mm_load_ps(&x);
+	__m128 rhs = _mm_load_ps(&other.x);
+	__m128 result = _mm_mul_ps(lhs, rhs);
+	_mm_store_ps(&x, result);
+#else
 	x *= other.x;
 	y *= other.y;
 	z *= other.z;
 	w *= other.w;
+#endif
 }
 
 void vec4::operator /= (const vec4& other)
@@ -59,10 +84,17 @@ void vec4::operator /= (const vec4& other)
 	{
 		if ((other.z != 0.0f) && (other.w != 0.0f))
 		{
+#ifdef IBEX3D_SIMD_SSE
+			__m128 lhs = _mm_load_ps(&x);
+			__m128 rhs = _mm_load_ps(&other.x);
+			__m128 result = _mm_div_ps(lhs, rhs);
+			_mm_store_ps(&x, result);
+#else
 			x /= other.x;
 			y /= other.y;
 			z /= other.z;
 			w /= other.w;
+#endif
 			return;
 		}
 	}
@@ -186,10 +218,17 @@ vec4 vec4::unsafeDividedByFloat(float in) const
 
 void vec4::unsafeDivideBy(const vec4& other)
 {
+#ifdef IBEX3D_SIMD_SSE
+	__m128 lhs = _mm_load_ps(&x);
+	__m128 rhs = _mm_load_ps(&other.x);
+	__m128 result = _mm_div_ps(lhs, rhs);
+	_mm_store_ps(&x, result);
+#else
 	x /= other.x;
 	y /= other.y;
 	z /= other.z;
 	w /= other.w;
+#endif
 }
 
 void vec4::unsafeDivideByFloat(float in)
