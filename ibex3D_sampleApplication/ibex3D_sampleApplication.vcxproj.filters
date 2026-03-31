@@ -72,7 +72,7 @@
     <ClCompile Include="source\ibex3D\math\vec2.cpp">
       <Filter>ibex3D\math\vec2</Filter>
     </ClCompile>
-    <ClCompile Include="source\sampleApp\main_vectorTests.cpp">
+    <ClCompile Include="source\sampleApp\main.cpp">
       <Filter>sampleApp</Filter>
     </ClCompile>
   </ItemGroup>

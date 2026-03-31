@@ -36,7 +36,7 @@
     <ClCompile Include="source\ibex3D\vulkan\vkUtils.cpp" />
     <ClCompile Include="source\ibex3D\vulkan\vkMeshClass.cpp" />
     <ClCompile Include="source\sampleApp\appInterface.cpp" />
-    <ClCompile Include="source\sampleApp\main_vectorTests.cpp" />
+    <ClCompile Include="source\sampleApp\main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\models\viking_room.obj" />
@@ -103,6 +103,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <FloatingPointModel>Fast</FloatingPointModel>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -124,6 +125,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <FloatingPointModel>Fast</FloatingPointModel>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
