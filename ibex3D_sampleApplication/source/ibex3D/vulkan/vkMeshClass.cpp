@@ -22,8 +22,8 @@ namespace std
 			glm::vec3 col = glm::vec3(vertex.color.x, vertex.color.y, vertex.color.z);
 			glm::vec2 txc = glm::vec2(vertex.texCoord.x, vertex.texCoord.y);
 
-			// TODO: Look into hashing to better understand this bullshit
 			// The ^ is the bitwise XOR operator
+			// TODO: Look into hashing to better understand this bullshit
 
 			return	((hash<glm::vec3>()(pos) ^ 
 					(hash<glm::vec3>()(col) << 1)) >> 1) ^ 
@@ -70,19 +70,35 @@ std::array<VkVertexInputAttributeDescription, 3> vkVertex::getAttributeDescs()
 
 // ----------------------------------------------------------------------------------------------------
 
-bool vkMeshClass::initModel(const char* meshFilePath)
+void vkMeshClass::initSimpleModel()
+{
+	vertices =
+	{
+		{{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
+		{{ 0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
+		{{ 0.5f,  0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
+		{{-0.5f,  0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}
+	};
+
+	indices =
+	{
+		0, 1, 2, 2, 3, 0
+	};
+}
+
+bool vkMeshClass::loadObjFromFile(const char* objFilePath)
 {
 	tinyobj::attrib_t attrib;
 	std::vector<tinyobj::shape_t> shapes;
 	std::vector<tinyobj::material_t> materials;
 	std::string err;
 
-	if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, meshFilePath))
+	if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, objFilePath))
 	{
-		vkUtils::printVkError("vkMeshClass::initModel()", "Couldn't load the model file.");
+		vkUtils::printVkError("vkMeshClass::loadObjFromFile()", "Couldn't load the model file.");
 		return false;
 	}
-	
+
 	std::unordered_map<vkVertex, uint32_t> uniqueVertices{};
 
 	for (const auto& shape : shapes)
@@ -420,10 +436,14 @@ void vkMeshClass::updateUniformBuffer(uint32_t currentImage, const VkExtent2D& s
 
 bool vkMeshClass::initialize(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue, size_t maxFramesInFlight, const char* meshFilePath, vkTextureClass* texture)
 {
-	if (!initModel(meshFilePath))
+	initSimpleModel();
+	
+	/*
+	if (!loadObjFromFile(meshFilePath))
 	{
 		return false;
 	}
+	*/
 	
 	if (!initVertexBuffer(device, physDevice, cmdPool, gfxQueue))
 	{

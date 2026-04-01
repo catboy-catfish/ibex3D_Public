@@ -1,8 +1,8 @@
-// #include <ibex3D/utility/memoryUtils.h>
+#include <ibex3D/core/entryPoint.h>
 #include <ibex3D/core/appRuntime.h>
 
-int main()
-{	
+int ibex3D_entryPoint()
+{
 	auto runtime = new appRuntime;
 
 	if (runtime->initialize(1280, 720, "Hello, ibex3D!"))

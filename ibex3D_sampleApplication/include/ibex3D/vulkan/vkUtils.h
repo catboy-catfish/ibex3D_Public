@@ -1,6 +1,9 @@
 #pragma once
+
 #include <vulkan/vulkan.h>
 #include <vector>
+
+// ----------------------------------------------------------------------------------------------------
 
 struct vkQueueFamilyIndices
 {
@@ -19,6 +22,8 @@ struct vkSwapchainSupportInfo
 	std::vector<VkSurfaceFormatKHR> formats;
 	std::vector<VkPresentModeKHR> presentModes;
 };
+
+// ----------------------------------------------------------------------------------------------------
 
 class vkExtFunctions
 {
@@ -70,7 +75,7 @@ public:
 
 	// Swapchain
 	static VkSurfaceFormatKHR chooseSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
-	static VkPresentModeKHR choosePresentMode(const std::vector<VkPresentModeKHR>& availableModes);
+	static VkPresentModeKHR choosePresentMode(const std::vector<VkPresentModeKHR>& availableModes, bool vSync);
 	static VkExtent2D chooseExtent(const VkSurfaceCapabilitiesKHR& surfaceCaps, int width, int height);
 
 	// Shader loading
@@ -88,8 +93,8 @@ public:
 	static void destroyBuffer(VkDevice device, VkBuffer& buffer, VkDeviceMemory& bufferMem);
 
 	// Depth buffers
-	static VkFormat findSupportedFormat(VkPhysicalDevice physDevice, const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
-	static VkFormat findDepthFormat(VkPhysicalDevice physDevice);
+	static VkFormat findSupportedFormat(VkPhysicalDevice physDevice, const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features, bool& success);
+	static VkFormat findDepthFormat(VkPhysicalDevice physDevice, bool& success);
 	static bool formatHasStencilComponent(VkFormat format);
 
 	// Images

@@ -12,20 +12,29 @@
 
 static const int MAX_FRAMES_IN_FLIGHT = 2;
 
-static std::vector<const char*> requiredExtensions;
-static std::vector<const char*> requiredDeviceExtensions;
-static std::vector<const char*> requiredLayers;
+static std::vector<const char*> instExtensionNames =
+{
+	VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
+	VK_KHR_SURFACE_EXTENSION_NAME
+};
+
+static std::vector<const char*> deviceExtensionNames =
+{
+	VK_KHR_SWAPCHAIN_EXTENSION_NAME
+};
+
+static std::vector<const char*> instLayerNames;
 
 // - Public functions ---------------------------------------------------------------------------------
 
-bool vkRenderingContext::initialize(const char* appName, void* wndMemory)
+bool vkRenderingContext::initialize(void* wndMemory)
 {		
 	int wndWidth, wndHeight;
 	IBEX3D_BASSERT(win32Utils::getWindowDimensions(static_cast<HWND>(wndMemory), wndWidth, wndHeight));
 
-	IBEX3D_BASSERT(initInstance(appName));
+	IBEX3D_BASSERT(initInstance());
 	IBEX3D_BASSERT(initSurface(wndMemory));
-	IBEX3D_BASSERT(initPhysicalDevice(VK_SAMPLE_COUNT_4_BIT));
+	IBEX3D_BASSERT(initPhysicalDevice(VK_SAMPLE_COUNT_1_BIT));
 	IBEX3D_BASSERT(initLogicalDevice());
 	IBEX3D_BASSERT(initSwapchain(wndWidth, wndHeight));
 	IBEX3D_BASSERT(initRenderPass());
@@ -136,20 +145,9 @@ void vkRenderingContext::cleanup()
 // - Main functions -----------------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------
 
-bool vkRenderingContext::initInstance(const char* appName)
+bool vkRenderingContext::initInstance()
 {
-	requiredExtensions.clear();
-	requiredExtensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
-	requiredExtensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
-#ifdef IBEX3D_VULKAN_VALIDATION
-	requiredExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-
-	requiredLayers.clear();
-	requiredLayers.push_back("VK_LAYER_KHRONOS_validation");
-#endif
-
-	requiredDeviceExtensions.clear();
-	requiredDeviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+	configureRequiredExtensions();
 
 #ifdef IBEX3D_VULKAN_VALIDATION
 	if (!checkInstanceLayerSupport())
@@ -161,23 +159,24 @@ bool vkRenderingContext::initInstance(const char* appName)
 
 	VkApplicationInfo applicationInfo = {};
 	applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-	applicationInfo.pApplicationName = appName;
+	applicationInfo.pApplicationName = "No name";
 	applicationInfo.pEngineName = "ibex3D";
+	applicationInfo.apiVersion = VK_API_VERSION_1_3;
 	applicationInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
 	applicationInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
 
 	VkInstanceCreateInfo instanceInfo = {};
 	instanceInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 	instanceInfo.pApplicationInfo = &applicationInfo;
-	instanceInfo.ppEnabledExtensionNames = requiredExtensions.data();
-	instanceInfo.enabledExtensionCount = static_cast<uint32_t>(requiredExtensions.size());
+	instanceInfo.ppEnabledExtensionNames = instExtensionNames.data();
+	instanceInfo.enabledExtensionCount = static_cast<uint32_t>(instExtensionNames.size());
 
 #ifdef IBEX3D_VULKAN_VALIDATION
 	VkDebugUtilsMessengerCreateInfoEXT messengerInfo = {};
 	vkUtils::populateDebugMessengerCreateInfo(messengerInfo);
 
-	instanceInfo.ppEnabledLayerNames = requiredLayers.data();
-	instanceInfo.enabledLayerCount = static_cast<uint32_t>(requiredLayers.size());
+	instanceInfo.ppEnabledLayerNames = instLayerNames.data();
+	instanceInfo.enabledLayerCount = static_cast<uint32_t>(instLayerNames.size());
 	instanceInfo.pNext = static_cast<void*>(&messengerInfo);
 #else
 	instanceInfo.enabledLayerCount = 0;
@@ -311,12 +310,12 @@ bool vkRenderingContext::initLogicalDevice()
 	logicalDeviceInfo.pEnabledFeatures = &deviceFeatures;
 	logicalDeviceInfo.queueCreateInfoCount = static_cast<uint32_t>(queueInfos.size());
 	logicalDeviceInfo.pQueueCreateInfos = queueInfos.data();
-	logicalDeviceInfo.enabledExtensionCount = static_cast<uint32_t>(requiredDeviceExtensions.size());
-	logicalDeviceInfo.ppEnabledExtensionNames = requiredDeviceExtensions.data();
+	logicalDeviceInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensionNames.size());
+	logicalDeviceInfo.ppEnabledExtensionNames = deviceExtensionNames.data();
 
 #ifdef IBEX3D_VULKAN_VALIDATION
-	logicalDeviceInfo.enabledLayerCount = static_cast<uint32_t>(requiredLayers.size());
-	logicalDeviceInfo.ppEnabledLayerNames = requiredLayers.data();
+	logicalDeviceInfo.enabledLayerCount = static_cast<uint32_t>(instLayerNames.size());
+	logicalDeviceInfo.ppEnabledLayerNames = instLayerNames.data();
 #else
 	logicalDeviceInfo.enabledLayerCount = 0;
 #endif
@@ -336,11 +335,11 @@ bool vkRenderingContext::initLogicalDevice()
 }
 
 bool vkRenderingContext::initSwapchain(int wndWidth, int wndHeight)
-{
+{	
 	vkSwapchainSupportInfo scSupport = vkUtils::querySwapchainSupport(m_physicalDevice, m_surface);
 
 	VkSurfaceFormatKHR surfaceFormat = vkUtils::chooseSurfaceFormat(scSupport.formats);
-	VkPresentModeKHR presentMode = vkUtils::choosePresentMode(scSupport.presentModes);
+	VkPresentModeKHR presentMode = vkUtils::choosePresentMode(scSupport.presentModes, m_useVsync);
 	VkExtent2D extent = vkUtils::chooseExtent(scSupport.capabilities, wndWidth, wndHeight);
 
 	m_swapchainImageCount = scSupport.capabilities.minImageCount + 1;
@@ -402,8 +401,22 @@ bool vkRenderingContext::initSwapchain(int wndWidth, int wndHeight)
 	}
 
 	result = vkGetSwapchainImagesKHR(m_logicalDevice, m_swapchain, &m_swapchainImageCount, nullptr);
+	
+	if (result != VK_SUCCESS)
+	{
+		vkUtils::printVkResultError(result, "vkRenderingContext::initSwapchain()", "Couldn't get the number of swapchain images.");
+		return false;
+	}
+
 	m_swapchainImages.resize(m_swapchainImageCount);
+	
 	result = vkGetSwapchainImagesKHR(m_logicalDevice, m_swapchain, &m_swapchainImageCount, m_swapchainImages.data());
+
+	if (result != VK_SUCCESS)
+	{
+		vkUtils::printVkResultError(result, "vkRenderingContext::initSwapchain()", "Couldn't retrieve the images from the swapchain.");
+		return false;
+	}
 
 	m_swapchainImageFormat = surfaceFormat.format;
 	m_swapchainExtent = extent;
@@ -446,9 +459,11 @@ bool vkRenderingContext::initRenderPass()
 
 #pragma region Depth attachment and reference
 	VkAttachmentDescription depthAttachment = {};
-	depthAttachment.format = vkUtils::findDepthFormat(m_physicalDevice);
 
-	if (depthAttachment.format == VK_FORMAT_MAX_ENUM)
+	bool success = false;
+	depthAttachment.format = vkUtils::findDepthFormat(m_physicalDevice, success);
+
+	if (!success)
 	{
 		vkUtils::printVkError("vkRenderingContext::initRenderPass()", "Couldn't find a suitable depth attachment format.");
 		return false;
@@ -507,7 +522,7 @@ bool vkRenderingContext::initRenderPass()
 		depthAttachment,
 		colorAttachmentResolve
 	};
-
+	
 	VkRenderPassCreateInfo renderPassInfo = {};
 	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 	renderPassInfo.subpassCount = 1;
@@ -862,10 +877,10 @@ bool vkRenderingContext::initColorResources()
 
 bool vkRenderingContext::initDepthResources()
 {
-	VkFormat depthFormat = vkUtils::findDepthFormat(m_physicalDevice);
+	bool success = false;
+	VkFormat depthFormat = vkUtils::findDepthFormat(m_physicalDevice, success);
 
-	// FIX: Could this be cause for a false alarm?
-	if (depthFormat == VK_FORMAT_MAX_ENUM)
+	if (!success)
 	{
 		vkUtils::printVkError("vkRenderingContext::initDepthResources()", "Couldn't find a suitable format for the depth image.");
 		return false;
@@ -1310,9 +1325,17 @@ void vkRenderingContext::cleanupInstance()
 // - Helper functions ---------------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------
 
+void vkRenderingContext::configureRequiredExtensions()
+{
+#ifdef IBEX3D_VULKAN_VALIDATION
+	instExtensionNames.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+	instLayerNames.push_back("VK_LAYER_KHRONOS_validation");
+#endif
+}
+
 bool vkRenderingContext::checkInstanceLayerSupport()
 {
-	if (requiredLayers.empty()) return true;
+	if (instLayerNames.empty()) return true;
 
 #ifdef IBEX3D_VULKAN_VALIDATION
 	uint32_t layerCount = 0;
@@ -1321,7 +1344,7 @@ bool vkRenderingContext::checkInstanceLayerSupport()
 	std::vector<VkLayerProperties> availableLayers(layerCount);
 	vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
 
-	for (const char* layerName : requiredLayers)
+	for (const char* layerName : instLayerNames)
 	{
 		bool layerFound = false;
 		
@@ -1354,8 +1377,8 @@ bool vkRenderingContext::checkPhysicalDeviceExtensionSupport(VkPhysicalDevice de
 
 	std::set<std::string> extensions
 	(
-		requiredDeviceExtensions.begin(),
-		requiredDeviceExtensions.end()
+		deviceExtensionNames.begin(),
+		deviceExtensionNames.end()
 	);
 
 	for (const auto& extension : availableExtensions)

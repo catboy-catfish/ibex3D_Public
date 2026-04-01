@@ -5,14 +5,14 @@
 class vkRenderingContext
 {
 public:
-	bool initialize(const char* appName, void* wndMemory);
+	bool initialize(void* wndMemory);
 	void setMeshRotation(float rotation);
 	bool drawFrame();
 	void enableResizedFlag();
 	void cleanup();
 
 private:
-	bool initInstance(const char* appName);
+	bool initInstance();
 	bool initSurface(void* wndMemory);
 	bool initPhysicalDevice(VkSampleCountFlagBits msaaSamplesUsed);
 	bool initLogicalDevice();
@@ -35,6 +35,7 @@ private:
 	void cleanupLogicalDevice();
 	void cleanupInstance();
 
+	void configureRequiredExtensions();
 	bool checkInstanceLayerSupport();
 	bool checkPhysicalDeviceExtensionSupport(VkPhysicalDevice device);
 	void printAvailableInstanceExtensions();
@@ -77,5 +78,7 @@ private:
 
 	vkTextureClass m_textureClass;
 	vkMeshClass m_meshClass;
+
 	bool m_wasJustResized = false;
+	bool m_useVsync = true;
 };

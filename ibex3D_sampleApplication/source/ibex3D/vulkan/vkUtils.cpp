@@ -202,15 +202,17 @@ int vkUtils::ratePhysicalDeviceSuitability(VkPhysicalDevice physDevice, VkSurfac
 {
 	int score = 0;
 
-	VkPhysicalDeviceProperties deviceProperties = {};
-	vkGetPhysicalDeviceProperties(physDevice, &deviceProperties);
+	VkPhysicalDeviceProperties2 deviceProperties = {};
+	deviceProperties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
 
-	if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+	vkGetPhysicalDeviceProperties2(physDevice, &deviceProperties);
+
+	if (deviceProperties.properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
 	{
 		score += 1000;
 	}
 
-	score += deviceProperties.limits.maxImageDimension2D;
+	score += deviceProperties.properties.limits.maxImageDimension2D;
 
 	VkPhysicalDeviceFeatures deviceFeatures = {};
 	vkGetPhysicalDeviceFeatures(physDevice, &deviceFeatures);
@@ -269,10 +271,12 @@ VkSurfaceFormatKHR vkUtils::chooseSurfaceFormat(const std::vector<VkSurfaceForma
 	return availableFormats[0];
 }
 
-VkPresentModeKHR vkUtils::choosePresentMode(const std::vector<VkPresentModeKHR>& availableModes)
+VkPresentModeKHR vkUtils::choosePresentMode(const std::vector<VkPresentModeKHR>& availableModes, bool vSync)
 {
+	if (vSync) return VK_PRESENT_MODE_FIFO_KHR;
+	
 	for (const auto& mode : availableModes)
-	{
+	{	
 		if (mode == VK_PRESENT_MODE_MAILBOX_KHR)
 		{
 			return mode;
@@ -284,12 +288,10 @@ VkPresentModeKHR vkUtils::choosePresentMode(const std::vector<VkPresentModeKHR>&
 
 VkExtent2D vkUtils::chooseExtent(const VkSurfaceCapabilitiesKHR& surfaceCaps, int width, int height)
 {
-	if (surfaceCaps.currentExtent.width != UINT_MAX)
+	if (surfaceCaps.currentExtent.width == UINT_MAX)
 	{
-		return surfaceCaps.currentExtent;
-	}
-	else
-	{
+		// on Wayland
+
 		VkExtent2D actualExtent =
 		{
 			static_cast<uint32_t>(width),
@@ -300,6 +302,10 @@ VkExtent2D vkUtils::chooseExtent(const VkSurfaceCapabilitiesKHR& surfaceCaps, in
 		actualExtent.height = std::clamp(actualExtent.height, surfaceCaps.minImageExtent.height, surfaceCaps.maxImageExtent.height);
 
 		return actualExtent;
+	}
+	else
+	{
+		return surfaceCaps.currentExtent;
 	}
 }
 
@@ -495,7 +501,7 @@ void vkUtils::destroyBuffer(VkDevice device, VkBuffer& buffer, VkDeviceMemory& b
 // - Depth buffers ------------------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------
 
-VkFormat vkUtils::findSupportedFormat(VkPhysicalDevice physDevice, const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features)
+VkFormat vkUtils::findSupportedFormat(VkPhysicalDevice physDevice, const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features, bool& success)
 {
 	for (VkFormat format : candidates)
 	{
@@ -504,26 +510,31 @@ VkFormat vkUtils::findSupportedFormat(VkPhysicalDevice physDevice, const std::ve
 
 		if ((tiling == VK_IMAGE_TILING_LINEAR) && ((props.linearTilingFeatures & features) == features))
 		{
+			success = true;
 			return format;
 		}
 		else if ((tiling == VK_IMAGE_TILING_OPTIMAL) && ((props.optimalTilingFeatures & features) == features))
 		{
+			success = true;
 			return format;
 		}
 	}
 
 	printVkError("vkUtils::findSupportedFormat()", "Couldn't find any suitable format.");
-	return VK_FORMAT_MAX_ENUM;
+	
+	success = false;
+	return VK_FORMAT_UNDEFINED;
 }
 
-VkFormat vkUtils::findDepthFormat(VkPhysicalDevice physDevice)
+VkFormat vkUtils::findDepthFormat(VkPhysicalDevice physDevice, bool& success)
 {
 	return findSupportedFormat
 	(
 		physDevice,
 		{ VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT },
 		VK_IMAGE_TILING_OPTIMAL,
-		VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
+		VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT,
+		success
 	);
 }
 

@@ -37,6 +37,9 @@
     <ClInclude Include="include\ibex3D\math\vec2.h">
       <Filter>ibex3D\math\vec2</Filter>
     </ClInclude>
+    <ClInclude Include="include\ibex3D\core\entryPoint.h">
+      <Filter>ibex3D\core\entryPoint</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\ibex3D\core\appRuntime_win32.cpp">
@@ -142,6 +145,9 @@
     </Filter>
     <Filter Include="ibex3D\vulkan\vkTextureClass">
       <UniqueIdentifier>{29ca2cb4-426d-4c28-b81f-bd6e9a1bd787}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\core\entryPoint">
+      <UniqueIdentifier>{a672335b-10b1-4553-af6c-62a14f016bdd}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

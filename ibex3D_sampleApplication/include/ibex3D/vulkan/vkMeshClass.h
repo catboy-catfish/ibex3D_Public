@@ -61,7 +61,9 @@ struct vkMeshClass
 
 	// ----------------------------------------------------------------------------------------------------
 
-	bool initModel(const char* meshFilePath);
+	void initSimpleModel();
+	bool loadObjFromFile(const char* objFilePath);
+
 	bool initVertexBuffer(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue);
 	bool initIndexBuffer(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue);
 	bool initUniformBuffers(VkDevice device, VkPhysicalDevice physDevice, size_t maxFramesInFlight);
