@@ -1,5 +1,5 @@
 #include <ibex3D/core/appRuntime.h>
-#include <ibex3D/utility/windowsUtils.h>
+#include <ibex3D/core/win32.h>
 
 #include <sampleApp/appInterface.h>
 

@@ -13,12 +13,12 @@
   <ItemGroup>
     <ClInclude Include="include\ibex3D\core\appRuntime.h" />
     <ClInclude Include="include\ibex3D\core\entryPoint.h" />
+    <ClInclude Include="include\ibex3D\core\win32.h" />
     <ClInclude Include="include\ibex3D\math\vec2.h" />
     <ClInclude Include="include\ibex3D\math\vec3.h" />
     <ClInclude Include="include\ibex3D\math\vec4.h" />
-    <ClInclude Include="include\ibex3D\utility\memoryUtils.h" />
-    <ClInclude Include="include\ibex3D\utility\utilFunctions.h" />
-    <ClInclude Include="include\ibex3D\utility\windowsUtils.h" />
+    <ClInclude Include="include\ibex3D\utility\memory.h" />
+    <ClInclude Include="include\ibex3D\utility\miscellaneous.h" />
     <ClInclude Include="include\ibex3D\vulkan\vkRenderingContext.h" />
     <ClInclude Include="include\ibex3D\vulkan\vkTextureClass.h" />
     <ClInclude Include="include\ibex3D\vulkan\vkUtils.h" />
@@ -30,8 +30,8 @@
     <ClCompile Include="source\ibex3D\math\vec2.cpp" />
     <ClCompile Include="source\ibex3D\math\vec3.cpp" />
     <ClCompile Include="source\ibex3D\math\vec4.cpp" />
-    <ClCompile Include="source\ibex3D\utility\utilFunctions.cpp" />
-    <ClCompile Include="source\ibex3D\utility\windowsUtilFunctions.cpp" />
+    <ClCompile Include="source\ibex3D\utility\miscellaneous.cpp" />
+    <ClCompile Include="source\ibex3D\core\win32.cpp" />
     <ClCompile Include="source\ibex3D\vulkan\vkRenderingContext_win32.cpp" />
     <ClCompile Include="source\ibex3D\vulkan\vkTextureClass.cpp" />
     <ClCompile Include="source\ibex3D\vulkan\vkUtils.cpp" />

@@ -1,14 +1,14 @@
 #include <ibex3D/vulkan/vkUtils.h>
 
-#include <ibex3D/utility/utilFunctions.h>
+#include <ibex3D/utility/miscellaneous.h>
 
 #include <glslang/Include/glslang_c_interface.h>
 #include <glslang/Public/resource_limits_c.h>
 
-#include <algorithm>
-#include <limits>
-#include <set>
 #include <stdio.h>
+#include <algorithm>
+#include <set>
+#include <limits>
 
 // ----------------------------------------------------------------------------------------------------
 // - Extension functions ------------------------------------------------------------------------------

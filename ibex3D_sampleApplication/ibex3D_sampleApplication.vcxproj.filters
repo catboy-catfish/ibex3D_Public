@@ -19,14 +19,11 @@
     <ClInclude Include="include\ibex3D\vulkan\vkTextureClass.h">
       <Filter>ibex3D\vulkan\vkTextureClass</Filter>
     </ClInclude>
-    <ClInclude Include="include\ibex3D\utility\memoryUtils.h">
-      <Filter>ibex3D\utility\memoryUtils</Filter>
+    <ClInclude Include="include\ibex3D\utility\memory.h">
+      <Filter>ibex3D\utility\memory</Filter>
     </ClInclude>
-    <ClInclude Include="include\ibex3D\utility\utilFunctions.h">
-      <Filter>ibex3D\utility\utilFunctions</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ibex3D\utility\windowsUtils.h">
-      <Filter>ibex3D\utility\windowsUtilFunctions</Filter>
+    <ClInclude Include="include\ibex3D\utility\miscellaneous.h">
+      <Filter>ibex3D\utility\miscellaneous</Filter>
     </ClInclude>
     <ClInclude Include="include\ibex3D\math\vec4.h">
       <Filter>ibex3D\math\vec4</Filter>
@@ -39,6 +36,9 @@
     </ClInclude>
     <ClInclude Include="include\ibex3D\core\entryPoint.h">
       <Filter>ibex3D\core\entryPoint</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ibex3D\core\win32.h">
+      <Filter>ibex3D\core\win32</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -60,11 +60,8 @@
     <ClCompile Include="source\ibex3D\vulkan\vkTextureClass.cpp">
       <Filter>ibex3D\vulkan\vkTextureClass</Filter>
     </ClCompile>
-    <ClCompile Include="source\ibex3D\utility\utilFunctions.cpp">
-      <Filter>ibex3D\utility\utilFunctions</Filter>
-    </ClCompile>
-    <ClCompile Include="source\ibex3D\utility\windowsUtilFunctions.cpp">
-      <Filter>ibex3D\utility\windowsUtilFunctions</Filter>
+    <ClCompile Include="source\ibex3D\utility\miscellaneous.cpp">
+      <Filter>ibex3D\utility\miscellaneous</Filter>
     </ClCompile>
     <ClCompile Include="source\ibex3D\math\vec4.cpp">
       <Filter>ibex3D\math\vec4</Filter>
@@ -77,6 +74,9 @@
     </ClCompile>
     <ClCompile Include="source\sampleApp\main.cpp">
       <Filter>sampleApp</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ibex3D\core\win32.cpp">
+      <Filter>ibex3D\core\win32</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -106,15 +106,6 @@
     </Filter>
     <Filter Include="assets\images">
       <UniqueIdentifier>{c8710c5f-51e9-42b9-9b2b-00d190359dbb}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ibex3D\utility\memoryUtils">
-      <UniqueIdentifier>{d00ad263-acb1-443f-99df-7a6817c20b0d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ibex3D\utility\utilFunctions">
-      <UniqueIdentifier>{3714fd07-54da-4763-bd40-3a8bf7990f68}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ibex3D\utility\windowsUtilFunctions">
-      <UniqueIdentifier>{384c8fb8-63a7-4405-b7c9-31889ead9f86}</UniqueIdentifier>
     </Filter>
     <Filter Include="assets\models">
       <UniqueIdentifier>{a51a472c-ab7f-4138-ae9d-39ba12a1e3d5}</UniqueIdentifier>
@@ -148,6 +139,15 @@
     </Filter>
     <Filter Include="ibex3D\core\entryPoint">
       <UniqueIdentifier>{a672335b-10b1-4553-af6c-62a14f016bdd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\core\win32">
+      <UniqueIdentifier>{7c33c444-e40b-445e-9197-a9cdd2d259d3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\utility\memory">
+      <UniqueIdentifier>{d00ad263-acb1-443f-99df-7a6817c20b0d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\utility\miscellaneous">
+      <UniqueIdentifier>{3714fd07-54da-4763-bd40-3a8bf7990f68}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

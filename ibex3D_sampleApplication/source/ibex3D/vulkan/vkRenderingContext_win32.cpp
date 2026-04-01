@@ -1,14 +1,14 @@
 #include <ibex3D/vulkan/vkRenderingContext.h>
 #include <ibex3D/vulkan/vkUtils.h>
 
-#include <ibex3D/utility/utilFunctions.h>
-#include <ibex3D/utility/windowsUtils.h>
-
+#include <ibex3D/core/win32.h>
 #include <vulkan/vulkan_win32.h>
 
-#include <map>
-#include <set>
+#include <ibex3D/utility/miscellaneous.h>
+
 #include <stdio.h>
+#include <set>
+#include <map>
 
 static const int MAX_FRAMES_IN_FLIGHT = 2;
 

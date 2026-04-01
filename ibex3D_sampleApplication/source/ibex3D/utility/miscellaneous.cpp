@@ -1,4 +1,4 @@
-#include <ibex3D/utility/utilFunctions.h>
+#include <ibex3D/utility/miscellaneous.h>
 
 #include <fstream>
 #include <stdio.h>
