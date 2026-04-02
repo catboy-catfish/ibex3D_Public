@@ -1,4 +1,5 @@
 #include <ibex3D/core/appRuntime.h>
+#include <ibex3D/core/inputClass.h>
 #include <ibex3D/core/win32.h>
 
 #include <sampleApp/appInterface.h>
@@ -32,6 +33,16 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 		{
 			rtHandle->update();
 			return 0;
+		}
+		case WM_KEYDOWN:
+		{
+			rtHandle->windowEvent_onKeyDown(static_cast<unsigned int>(wParam));
+			break;
+		}
+		case WM_KEYUP:
+		{
+			rtHandle->windowEvent_onKeyUp(static_cast<unsigned int>(wParam));
+			break;
 		}
 		case WM_SIZE:
 		{
@@ -69,6 +80,9 @@ bool appRuntime::initialize(int wndWidth, int wndHeight, const char* wndTitle)
 		return false;
 	}
 
+	pInputClass = new inputClass;
+	pInputClass->initialize();
+
 	if (!initApplication(wndWidth, wndHeight))
 	{
 	 	return false;
@@ -88,7 +102,7 @@ void appRuntime::startRunning()
 }
 
 void appRuntime::update()
-{
+{	
 	endTime = std::chrono::high_resolution_clock::now();
 
 	float deltaTime = std::chrono::duration<float>(endTime - startTime).count();
@@ -98,6 +112,11 @@ void appRuntime::update()
 	{
 		pAppInterface->update(deltaTime);
 		pAppInterface->render(deltaTime);
+	}
+
+	if (pInputClass->isKeyDown(VK_ESCAPE))
+	{
+		forceClose();
 	}
 }
 
@@ -120,7 +139,30 @@ void appRuntime::forceClose()
 void appRuntime::cleanup()
 {
 	cleanupApplication();
+
+	if (pInputClass != nullptr)
+	{
+		delete pInputClass;
+		pInputClass = nullptr;
+	}
+
 	cleanupWindow();
+}
+
+void appRuntime::windowEvent_onKeyDown(unsigned int key)
+{
+	if (pInputClass != nullptr)
+	{
+		pInputClass->onKeyDown(key);
+	}
+}
+
+void appRuntime::windowEvent_onKeyUp(unsigned int key)
+{
+	if (pInputClass != nullptr)
+	{
+		pInputClass->onKeyUp(key);
+	}
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -315,6 +357,12 @@ bool appRuntime::isSafeToStartRunning()
 	if (wndData->hWnd == nullptr)
 	{
 		printf("RUNTIME ERROR - appRuntime::isSafeToStartRunning(): pWindowData->hWnd is nullptr.\n");
+		return false;
+	}
+
+	if (pInputClass == nullptr)
+	{
+		printf("RUNTIME ERROR - appRuntime::isSafeToStartRunning(): pInputClass is nullptr.\n");
 		return false;
 	}
 

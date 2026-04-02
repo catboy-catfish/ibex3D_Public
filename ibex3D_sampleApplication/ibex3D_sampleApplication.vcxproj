@@ -13,6 +13,7 @@
   <ItemGroup>
     <ClInclude Include="include\ibex3D\core\appRuntime.h" />
     <ClInclude Include="include\ibex3D\core\entryPoint.h" />
+    <ClInclude Include="include\ibex3D\core\inputClass.h" />
     <ClInclude Include="include\ibex3D\core\win32.h" />
     <ClInclude Include="include\ibex3D\math\vec2.h" />
     <ClInclude Include="include\ibex3D\math\vec3.h" />
@@ -27,6 +28,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\ibex3D\core\appRuntime_win32.cpp" />
+    <ClCompile Include="source\ibex3D\core\inputClass.cpp" />
     <ClCompile Include="source\ibex3D\math\vec2.cpp" />
     <ClCompile Include="source\ibex3D\math\vec3.cpp" />
     <ClCompile Include="source\ibex3D\math\vec4.cpp" />

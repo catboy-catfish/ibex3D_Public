@@ -40,6 +40,7 @@
     <ClInclude Include="include\ibex3D\core\win32.h">
       <Filter>ibex3D\core\win32</Filter>
     </ClInclude>
+    <ClInclude Include="include\ibex3D\core\inputClass.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\ibex3D\core\appRuntime_win32.cpp">
@@ -78,6 +79,7 @@
     <ClCompile Include="source\ibex3D\core\win32.cpp">
       <Filter>ibex3D\core\win32</Filter>
     </ClCompile>
+    <ClCompile Include="source\ibex3D\core\inputClass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="ibex3D">
@@ -148,6 +150,9 @@
     </Filter>
     <Filter Include="ibex3D\utility\miscellaneous">
       <UniqueIdentifier>{3714fd07-54da-4763-bd40-3a8bf7990f68}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\core\inputClass">
+      <UniqueIdentifier>{4c0d4dc2-d979-447a-97af-a93b133749c5}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

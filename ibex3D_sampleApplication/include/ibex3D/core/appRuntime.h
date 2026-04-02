@@ -3,6 +3,8 @@
 #include <chrono>
 
 class appInterface;
+class inputClass;
+
 class appRuntime
 {
 public:
@@ -12,6 +14,8 @@ public:
 	void forceClose();
 	void cleanup();
 
+	void windowEvent_onKeyDown(unsigned int key);
+	void windowEvent_onKeyUp(unsigned int key);
 	void windowEvent_onResize();
 	void windowEvent_onFocus();
 	void windowEvent_onUnfocus();
@@ -30,7 +34,8 @@ private:
 private:
 	void* pWindowData = nullptr;
 	appInterface* pAppInterface = nullptr;
-	
+	inputClass* pInputClass = nullptr;
+
 	std::chrono::high_resolution_clock::time_point startTime = std::chrono::high_resolution_clock::now();
 	std::chrono::high_resolution_clock::time_point endTime = std::chrono::high_resolution_clock::now();
 
