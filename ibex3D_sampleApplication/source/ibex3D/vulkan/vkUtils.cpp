@@ -273,11 +273,11 @@ VkSurfaceFormatKHR vkUtils::chooseSurfaceFormat(const std::vector<VkSurfaceForma
 
 VkPresentModeKHR vkUtils::choosePresentMode(const std::vector<VkPresentModeKHR>& availableModes, bool vSync)
 {
-	if (vSync) return VK_PRESENT_MODE_FIFO_KHR;
+	VkPresentModeKHR targetMode = (vSync ? VK_PRESENT_MODE_MAILBOX_KHR : VK_PRESENT_MODE_IMMEDIATE_KHR);
 	
 	for (const auto& mode : availableModes)
 	{	
-		if (mode == VK_PRESENT_MODE_MAILBOX_KHR)
+		if (mode == targetMode)
 		{
 			return mode;
 		}
@@ -290,8 +290,8 @@ VkExtent2D vkUtils::chooseExtent(const VkSurfaceCapabilitiesKHR& surfaceCaps, in
 {
 	if (surfaceCaps.currentExtent.width == UINT_MAX)
 	{
-		// on Wayland
-
+		/* on Wayland */
+		
 		VkExtent2D actualExtent =
 		{
 			static_cast<uint32_t>(width),
@@ -305,6 +305,7 @@ VkExtent2D vkUtils::chooseExtent(const VkSurfaceCapabilitiesKHR& surfaceCaps, in
 	}
 	else
 	{
+		/* Not on Wayland */
 		return surfaceCaps.currentExtent;
 	}
 }
@@ -547,13 +548,13 @@ bool vkUtils::formatHasStencilComponent(VkFormat format)
 // - Images -------------------------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------
 
-bool vkUtils::createImage(VkDevice device, VkPhysicalDevice physDevice, uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags memProperties, VkImage& image, VkDeviceMemory& imageMem)
+bool vkUtils::createImage(VkDevice device, VkPhysicalDevice physDevice, VkExtent2D extent, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags memProperties, VkImage& image, VkDeviceMemory& imageMem)
 {
 	VkImageCreateInfo imageInfo = {};
 	imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 	imageInfo.imageType = VK_IMAGE_TYPE_2D;
-	imageInfo.extent.width = width;
-	imageInfo.extent.height = height;
+	imageInfo.extent.width = extent.width;
+	imageInfo.extent.height = extent.height;
 	imageInfo.extent.depth = 1;
 	imageInfo.mipLevels = mipLevels;
 	imageInfo.arrayLayers = 1;

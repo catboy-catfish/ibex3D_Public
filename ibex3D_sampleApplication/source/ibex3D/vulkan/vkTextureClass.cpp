@@ -48,12 +48,17 @@ bool vkTextureClass::initImageAndView(VkDevice device, VkPhysicalDevice physDevi
 
 	stbi_image_free(pixels);
 
+	VkExtent2D texExtent = 
+	{
+		texWidth,
+		texHeight
+	};
+
 	if (!vkUtils::createImage
 	(
 		device,
 		physDevice,
-		texWidth,
-		texHeight,
+		texExtent,
 		mipLevels,
 		VK_SAMPLE_COUNT_1_BIT,
 		VK_FORMAT_R8G8B8A8_SRGB,

@@ -98,7 +98,7 @@ public:
 	static bool formatHasStencilComponent(VkFormat format);
 
 	// Images
-	static bool createImage(VkDevice device, VkPhysicalDevice physDevice, uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags memProperties, VkImage& image, VkDeviceMemory& imageMem);
+	static bool createImage(VkDevice device, VkPhysicalDevice physDevice, VkExtent2D extent, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags memProperties, VkImage& image, VkDeviceMemory& imageMem);
 	static VkImageView createImageView(VkDevice device, VkImage image, uint32_t mipLevels, VkFormat format, VkImageAspectFlags aspect);
 	static bool copyBufferToImage(VkDevice device, VkCommandPool cmdPool, VkQueue gfxQueue, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
 	static bool transitionImageLayout(VkDevice device, VkCommandPool cmdPool, VkQueue gfxQueue, VkImage image, uint32_t mipLevels, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);

@@ -436,14 +436,10 @@ void vkMeshClass::updateUniformBuffer(uint32_t currentImage, const VkExtent2D& s
 
 bool vkMeshClass::initialize(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue, size_t maxFramesInFlight, const char* meshFilePath, vkTextureClass* texture)
 {
-	initSimpleModel();
-	
-	/*
 	if (!loadObjFromFile(meshFilePath))
 	{
 		return false;
 	}
-	*/
 	
 	if (!initVertexBuffer(device, physDevice, cmdPool, gfxQueue))
 	{

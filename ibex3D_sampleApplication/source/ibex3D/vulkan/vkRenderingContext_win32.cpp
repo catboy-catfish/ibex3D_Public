@@ -338,9 +338,10 @@ bool vkRenderingContext::initSwapchain(int wndWidth, int wndHeight)
 {	
 	vkSwapchainSupportInfo scSupport = vkUtils::querySwapchainSupport(m_physicalDevice, m_surface);
 
-	VkSurfaceFormatKHR surfaceFormat = vkUtils::chooseSurfaceFormat(scSupport.formats);
-	VkPresentModeKHR presentMode = vkUtils::choosePresentMode(scSupport.presentModes, m_useVsync);
+	VkSurfaceFormatKHR format = vkUtils::chooseSurfaceFormat(scSupport.formats);
 	VkExtent2D extent = vkUtils::chooseExtent(scSupport.capabilities, wndWidth, wndHeight);
+
+	VkPresentModeKHR presentMode = vkUtils::choosePresentMode(scSupport.presentModes, m_useVsync);
 
 	m_swapchainImageCount = scSupport.capabilities.minImageCount + 1;
 
@@ -353,8 +354,8 @@ bool vkRenderingContext::initSwapchain(int wndWidth, int wndHeight)
 	swapchainInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
 	swapchainInfo.surface = m_surface;
 	swapchainInfo.minImageCount = m_swapchainImageCount;
-	swapchainInfo.imageFormat = surfaceFormat.format;
-	swapchainInfo.imageColorSpace = surfaceFormat.colorSpace;
+	swapchainInfo.imageFormat = format.format;
+	swapchainInfo.imageColorSpace = format.colorSpace;
 	swapchainInfo.imageExtent = extent;
 	swapchainInfo.imageArrayLayers = 1;
 	swapchainInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
@@ -418,7 +419,7 @@ bool vkRenderingContext::initSwapchain(int wndWidth, int wndHeight)
 		return false;
 	}
 
-	m_swapchainImageFormat = surfaceFormat.format;
+	m_swapchainImageFormat = format.format;
 	m_swapchainExtent = extent;
 
 	// ----------------------------------------------------------------------------------------------------
@@ -441,7 +442,6 @@ bool vkRenderingContext::initSwapchain(int wndWidth, int wndHeight)
 
 bool vkRenderingContext::initRenderPass()
 {
-#pragma region Color attachment and reference
 	VkAttachmentDescription colorAttachment = {};
 	colorAttachment.format = m_swapchainImageFormat;
 	colorAttachment.samples = m_msaaSamples;
@@ -455,9 +455,7 @@ bool vkRenderingContext::initRenderPass()
 	VkAttachmentReference colorAttachmentRef = {};
 	colorAttachmentRef.attachment = 0;
 	colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-#pragma endregion
 
-#pragma region Depth attachment and reference
 	VkAttachmentDescription depthAttachment = {};
 
 	bool success = false;
@@ -480,9 +478,7 @@ bool vkRenderingContext::initRenderPass()
 	VkAttachmentReference depthAttachmentRef = {};
 	depthAttachmentRef.attachment = 1;
 	depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-#pragma endregion
 
-#pragma region Color resolve attachment and reference
 	VkAttachmentDescription colorAttachmentResolve = {};
 	colorAttachmentResolve.format = m_swapchainImageFormat;
 	colorAttachmentResolve.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -496,9 +492,7 @@ bool vkRenderingContext::initRenderPass()
 	VkAttachmentReference colorAttachmentResolveRef = {};
 	colorAttachmentResolveRef.attachment = 2;
 	colorAttachmentResolveRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-#pragma endregion
 
-#pragma region Subpass and dependency
 	VkSubpassDescription subpass = {};
 	subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 	subpass.colorAttachmentCount = 1;
@@ -513,9 +507,7 @@ bool vkRenderingContext::initRenderPass()
 	subpassDependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
 	subpassDependency.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 	subpassDependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-#pragma endregion
 
-#pragma region Render pass
 	std::array<VkAttachmentDescription, 3> attachments =
 	{
 		colorAttachment,
@@ -539,7 +531,6 @@ bool vkRenderingContext::initRenderPass()
 		vkUtils::printVkResultError(result, "vkRenderingContext::initRenderPass()", "Couldn't create the render pass.");
 		return false;
 	}
-#pragma endregion
 
 	return true;
 }
@@ -556,7 +547,6 @@ bool vkRenderingContext::initDescriptorSetLayout()
 
 bool vkRenderingContext::initGraphicsPipeline()
 {
-#pragma region Shader modules and stages info
 	// TODO: Figure out how to compile the GLSL shaders into SPIR-V at runtime using libshaderc
 	auto vtxShaderBytecode = ibex3D_utilFunctions::readFile("assets/shaders/shader.vert.spv");
 	if (vtxShaderBytecode.empty()) return false;
@@ -595,9 +585,7 @@ bool vkRenderingContext::initGraphicsPipeline()
 	frgShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
 	frgShaderStageInfo.module = frgShaderModule;
 	frgShaderStageInfo.pName = "main";
-#pragma endregion
 
-#pragma region Dynamic state info
 	std::vector<VkDynamicState> dynamicStates =
 	{
 		VK_DYNAMIC_STATE_VIEWPORT,
@@ -608,9 +596,7 @@ bool vkRenderingContext::initGraphicsPipeline()
 	dynamicStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
 	dynamicStateInfo.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
 	dynamicStateInfo.pDynamicStates = dynamicStates.data();
-#pragma endregion
 
-#pragma region Vertex input and assembly states
 	auto bindingDesc = vkVertex::getBindingDesc();
 	auto attribDescs = vkVertex::getAttributeDescs();
 
@@ -625,9 +611,7 @@ bool vkRenderingContext::initGraphicsPipeline()
 	inputAssemblyInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
 	inputAssemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	inputAssemblyInfo.primitiveRestartEnable = VK_FALSE;
-#pragma endregion
 
-#pragma region Viewport info
 	VkViewport viewport = {};
 	viewport.x = 0.0f;
 	viewport.y = 0.0f;
@@ -646,9 +630,7 @@ bool vkRenderingContext::initGraphicsPipeline()
 	viewportStateInfo.pViewports = &viewport;
 	viewportStateInfo.scissorCount = 1;
 	viewportStateInfo.pScissors = &scissor;
-#pragma endregion
 
-#pragma region Rasterization state info
 	VkPipelineRasterizationStateCreateInfo rasterStateInfo = {};
 	rasterStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;	// The length of this thing holy fuck
 	rasterStateInfo.depthClampEnable = VK_FALSE;
@@ -661,9 +643,7 @@ bool vkRenderingContext::initGraphicsPipeline()
 	rasterStateInfo.depthBiasConstantFactor = 0.0f;
 	rasterStateInfo.depthBiasClamp = 0.0f;
 	rasterStateInfo.depthBiasSlopeFactor = 0.0f;
-#pragma endregion
 
-#pragma region Multisampling info
 	VkPipelineMultisampleStateCreateInfo multisamplingInfo = {};
 	multisamplingInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 	multisamplingInfo.rasterizationSamples = m_msaaSamples;
@@ -672,9 +652,7 @@ bool vkRenderingContext::initGraphicsPipeline()
 	multisamplingInfo.pSampleMask = nullptr;
 	multisamplingInfo.alphaToCoverageEnable = VK_FALSE;
 	multisamplingInfo.alphaToOneEnable = VK_FALSE;
-#pragma endregion
 
-#pragma region Color blending info
 	// Revisit this if you want to implement alpha blending!
 	VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
 	colorBlendAttachment.blendEnable = VK_FALSE;
@@ -686,7 +664,10 @@ bool vkRenderingContext::initGraphicsPipeline()
 	colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
 
 	colorBlendAttachment.colorWriteMask =
-		VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+		VK_COLOR_COMPONENT_R_BIT | 
+		VK_COLOR_COMPONENT_G_BIT | 
+		VK_COLOR_COMPONENT_B_BIT | 
+		VK_COLOR_COMPONENT_A_BIT;
 
 	VkPipelineColorBlendStateCreateInfo colorBlendInfo = {};
 	colorBlendInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
@@ -698,9 +679,7 @@ bool vkRenderingContext::initGraphicsPipeline()
 	colorBlendInfo.blendConstants[1] = 0.0f;
 	colorBlendInfo.blendConstants[2] = 0.0f;
 	colorBlendInfo.blendConstants[3] = 0.0f;
-#pragma endregion
 
-#pragma region Depth stencil state info
 	VkPipelineDepthStencilStateCreateInfo depthStencilInfo = {};
 	depthStencilInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
 	depthStencilInfo.depthTestEnable = VK_TRUE;
@@ -712,9 +691,7 @@ bool vkRenderingContext::initGraphicsPipeline()
 	depthStencilInfo.stencilTestEnable = VK_FALSE;
 	depthStencilInfo.front = {};				// Optional
 	depthStencilInfo.back = {};					// Optional
-#pragma endregion
 
-#pragma region Pipeline layout
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
 	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	pipelineLayoutInfo.setLayoutCount = 1;
@@ -742,9 +719,7 @@ bool vkRenderingContext::initGraphicsPipeline()
 
 		return false;
 	}
-#pragma endregion
 
-#pragma region Graphics pipeline
 	VkPipelineShaderStageCreateInfo shaderStages[] =
 	{
 		vtxShaderStageInfo,
@@ -789,9 +764,7 @@ bool vkRenderingContext::initGraphicsPipeline()
 
 		return false;
 	}
-#pragma endregion
 
-#pragma region Shader stage cleanup
 	if (frgShaderModule != nullptr)
 	{
 		vkDestroyShaderModule(m_logicalDevice, frgShaderModule, nullptr);
@@ -803,7 +776,6 @@ bool vkRenderingContext::initGraphicsPipeline()
 		vkDestroyShaderModule(m_logicalDevice, vtxShaderModule, nullptr);
 		vtxShaderModule = nullptr;
 	}
-#pragma endregion
 	return true;
 }
 
@@ -841,8 +813,7 @@ bool vkRenderingContext::initColorResources()
 	(
 		m_logicalDevice,
 		m_physicalDevice,
-		m_swapchainExtent.width,
-		m_swapchainExtent.height,
+		m_swapchainExtent,
 		1,
 		m_msaaSamples,
 		colorFormat,
@@ -890,8 +861,7 @@ bool vkRenderingContext::initDepthResources()
 	(
 		m_logicalDevice,
 		m_physicalDevice,
-		m_swapchainExtent.width,
-		m_swapchainExtent.height,
+		m_swapchainExtent,
 		1,
 		m_msaaSamples,
 		depthFormat,

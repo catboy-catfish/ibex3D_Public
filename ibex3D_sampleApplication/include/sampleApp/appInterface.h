@@ -26,5 +26,5 @@ private:
 	size_t m_frameCounter = 0;
 
 	float m_meshRotation = 0.0f;
-	float m_meshRotationSpeed = 0.25f;
+	float m_meshRotationSpeed = 30.0f;
 };
