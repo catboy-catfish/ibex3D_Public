@@ -314,11 +314,11 @@ VkExtent2D vkUtils::chooseExtent(const VkSurfaceCapabilitiesKHR& surfaceCaps, in
 // - Shader loading -----------------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------
 
-VkShaderModule vkUtils::createShaderModule(VkDevice device, const std::vector<char>& spirvBytecode)
+VkShaderModule vkUtils::createShaderModuleFromSPIRV(VkDevice device, const std::vector<char>& spirvBytecode)
 {
 	if (spirvBytecode.empty())
 	{
-		printVkError("vkUtils::createShaderModule()", "Argument \"spirvBytecode\" is empty.");
+		printVkError("vkUtils::createShaderModuleFromSPIRV()", "Argument \"spirvBytecode\" is empty.");
 		return nullptr;
 	}
 
@@ -332,14 +332,14 @@ VkShaderModule vkUtils::createShaderModule(VkDevice device, const std::vector<ch
 
 	if (result != VK_SUCCESS)
 	{
-		printVkResultError(result, "vkUtils::createShaderModule()", "Couldn't create the shader module.");
+		printVkResultError(result, "vkUtils::createShaderModuleFromSPIRV()", "Couldn't create the shader module.");
 		return nullptr;
 	}
 
 	return shaderModule;
 }
 
-VkShaderModule vkUtils::createShaderModuleFromText(VkDevice device, const char* fileName)
+VkShaderModule vkUtils::createShaderModuleFromGLSL(VkDevice device, const char* fileName)
 {
 	/*
 		Pick up from where you left off at https://youtu.be/Qbs9v1W7St8?t=416

@@ -47,8 +47,6 @@ struct vkMeshClass
 	VkBuffer idxBuffer = nullptr;
 	VkDeviceMemory vtxBufferMemory = nullptr;
 	VkDeviceMemory idxBufferMemory = nullptr;
-	VkDescriptorSetLayout descriptorSetLayout = nullptr;
-	VkDescriptorPool descriptorPool = nullptr;
 
 	std::vector<vkVertex> vertices;
 	std::vector<uint32_t> indices;
@@ -56,8 +54,6 @@ struct vkMeshClass
 	std::vector<VkBuffer> uniformBuffers;
 	std::vector<VkDeviceMemory> uniformBuffersMemory;
 	std::vector<void*> uniformBuffersMapped;
-	
-	std::vector<VkDescriptorSet> descriptorSets;
 	
 	float currentRotation = 0.0f;
 
@@ -68,14 +64,12 @@ struct vkMeshClass
 
 	bool initVertexBuffer(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue);
 	bool initIndexBuffer(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue);
-	bool initUniformBuffers(VkDevice device, VkPhysicalDevice physDevice, size_t maxFramesInFlight);
-	bool initDescriptorSetLayout(VkDevice device);
-	bool initDescriptorPoolAndSets(VkDevice device, vkTextureClass* texture, size_t maxFramesInFlight);
+	bool initUniformBuffers(VkDevice device, VkPhysicalDevice physDevice);
 
 	void updateUniformBuffer(uint32_t currentImg, const VkExtent2D& scExtent);
 
-	bool initialize(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue, size_t maxFramesInFlight, const char* meshFilePath, vkTextureClass* texture);
+	bool initialize(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue, const char* meshFilePath, vkTextureClass* texture);
 	void setMeshRotation(float rotation);
-	void draw(VkCommandBuffer buffer, VkPipelineLayout pipelineLayout, uint32_t currentFrame);
+	void draw(VkCommandBuffer buffer, VkPipelineLayout pipelineLayout, VkDescriptorSet descriptorSet);
 	void cleanup(VkDevice device);
 };

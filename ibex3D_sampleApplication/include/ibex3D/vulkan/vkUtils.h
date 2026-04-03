@@ -79,8 +79,8 @@ public:
 	static VkExtent2D chooseExtent(const VkSurfaceCapabilitiesKHR& surfaceCaps, int width, int height);
 
 	// Shader loading
-	static VkShaderModule createShaderModule(VkDevice device, const std::vector<char>& spirvBytecode);
-	static VkShaderModule createShaderModuleFromText(VkDevice device, const char* fileName);			// NOT IMPLEMENTED!!!
+	static VkShaderModule createShaderModuleFromSPIRV(VkDevice device, const std::vector<char>& spirvBytecode);
+	static VkShaderModule createShaderModuleFromGLSL(VkDevice device, const char* fileName);			// NOT IMPLEMENTED!!!
 
 	// Command buffers
 	static VkCommandBuffer beginSingleTimeCommands(VkDevice device, VkCommandPool pool);

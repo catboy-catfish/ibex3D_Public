@@ -1,4 +1,5 @@
 #include <ibex3D/vulkan/vkRenderingContext.h>
+#include <ibex3D/vulkan/vkDefinitions.h>
 #include <ibex3D/vulkan/vkUtils.h>
 
 #include <ibex3D/core/win32.h>
@@ -9,8 +10,6 @@
 #include <stdio.h>
 #include <set>
 #include <map>
-
-static const int MAX_FRAMES_IN_FLIGHT = 2;
 
 static std::vector<const char*> instExtensionNames =
 {
@@ -44,7 +43,8 @@ bool vkRenderingContext::initialize(void* wndMemory)
 	IBEX3D_BASSERT(initColorResources());
 	IBEX3D_BASSERT(initDepthResources());
 	IBEX3D_BASSERT(initFramebuffers());
-	IBEX3D_BASSERT(initModel());
+	IBEX3D_BASSERT(initModelAndTexture());
+	IBEX3D_BASSERT(initDescriptorPoolAndSets());
 	IBEX3D_BASSERT(initCommandBuffers());
 	IBEX3D_BASSERT(initSyncObjects());
 
@@ -78,6 +78,7 @@ bool vkRenderingContext::drawFrame()
 
 	vkResetFences(m_logicalDevice, 1, &m_frameFences[m_currentFrame]);
 	vkResetCommandBuffer(m_commandBuffers[m_currentFrame], 0);
+
 	recordCommandBuffer(m_commandBuffers[m_currentFrame], imageIndex);
 
 	// - Submitting command buffer ------------------------------------------------------------------------
@@ -536,11 +537,38 @@ bool vkRenderingContext::initRenderPass()
 
 bool vkRenderingContext::initDescriptorSetLayout()
 {
-	if (!m_meshClass.initDescriptorSetLayout(m_logicalDevice))
+	VkDescriptorSetLayoutBinding uboLayoutBinding = {};
+	uboLayoutBinding.binding = 0;
+	uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	uboLayoutBinding.descriptorCount = 1;
+	uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	uboLayoutBinding.pImmutableSamplers = nullptr;
+
+	VkDescriptorSetLayoutBinding samplerLayoutBinding = {};
+	samplerLayoutBinding.binding = 1;
+	samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	samplerLayoutBinding.descriptorCount = 1;
+	samplerLayoutBinding.pImmutableSamplers = nullptr;
+	samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+	std::array<VkDescriptorSetLayoutBinding, 2> bindings =
 	{
+		uboLayoutBinding, samplerLayoutBinding
+	};
+
+	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
+	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+	layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
+	layoutInfo.pBindings = bindings.data();
+
+	VkResult result = vkCreateDescriptorSetLayout(m_logicalDevice, &layoutInfo, nullptr, &m_descriptorSetLayout);
+
+	if (result != VK_SUCCESS)
+	{
+		vkUtils::printVkResultError(result, "vkRenderingContext::initDescriptorSetLayout()", "Couldn't create the descriptor set layout for the uniform buffer.");
 		return false;
 	}
-	
+
 	return true;
 }
 
@@ -553,14 +581,14 @@ bool vkRenderingContext::initGraphicsPipeline()
 	auto frgShaderBytecode = ibex3D_utilFunctions::readFile("assets/shaders/shader.frag.spv");
 	if (frgShaderBytecode.empty()) return false;
 
-	VkShaderModule vtxShaderModule = vkUtils::createShaderModule(m_logicalDevice, vtxShaderBytecode);
+	VkShaderModule vtxShaderModule = vkUtils::createShaderModuleFromSPIRV(m_logicalDevice, vtxShaderBytecode);
 
 	if (vtxShaderModule == nullptr)
 	{
 		return false;
 	}
 
-	VkShaderModule frgShaderModule = vkUtils::createShaderModule(m_logicalDevice, frgShaderBytecode);
+	VkShaderModule frgShaderModule = vkUtils::createShaderModuleFromSPIRV(m_logicalDevice, frgShaderBytecode);
 
 	if (frgShaderModule == nullptr)
 	{
@@ -694,7 +722,7 @@ bool vkRenderingContext::initGraphicsPipeline()
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
 	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	pipelineLayoutInfo.setLayoutCount = 1;
-	pipelineLayoutInfo.pSetLayouts = &m_meshClass.descriptorSetLayout;
+	pipelineLayoutInfo.pSetLayouts = &m_descriptorSetLayout;
 	pipelineLayoutInfo.pushConstantRangeCount = 0;
 	pipelineLayoutInfo.pPushConstantRanges = nullptr;
 
@@ -938,7 +966,7 @@ bool vkRenderingContext::initFramebuffers()
 	return true;
 }
 
-bool vkRenderingContext::initModel()
+bool vkRenderingContext::initModelAndTexture()
 {	
 	if (!m_textureClass.initialize(m_logicalDevice, m_physicalDevice, "assets/images/viking_room.png", m_commandPool, m_graphicsQueue))
 	{
@@ -951,12 +979,89 @@ bool vkRenderingContext::initModel()
 		m_physicalDevice, 
 		m_commandPool,
 		m_graphicsQueue,
-		MAX_FRAMES_IN_FLIGHT,
 		"assets/models/viking_room.obj",
 		&m_textureClass
 	))
 	{
 		return false;
+	}
+
+	return true;
+}
+
+bool vkRenderingContext::initDescriptorPoolAndSets()
+{
+	std::array<VkDescriptorPoolSize, 2> poolSizes = {};
+	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	poolSizes[0].descriptorCount = MAX_FRAMES_IN_FLIGHT;
+	poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	poolSizes[1].descriptorCount = poolSizes[0].descriptorCount;
+
+	VkDescriptorPoolCreateInfo poolInfo = {};
+	poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+	poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
+	poolInfo.pPoolSizes = poolSizes.data();
+	poolInfo.maxSets = MAX_FRAMES_IN_FLIGHT;
+
+	VkResult result = vkCreateDescriptorPool(m_logicalDevice, &poolInfo, nullptr, &m_descriptorPool);
+
+	if (result != VK_SUCCESS)
+	{
+		vkUtils::printVkResultError(result, "vkRenderingContext::initDescriptorPoolAndSets()", "Couldn't create the descriptor pool.");
+		return false;
+	}
+
+	// ----------------------------------------------------------------------------------------------------
+
+	std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, m_descriptorSetLayout);
+
+	VkDescriptorSetAllocateInfo allocInfo = {};
+	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+	allocInfo.descriptorPool = m_descriptorPool;
+	allocInfo.descriptorSetCount = MAX_FRAMES_IN_FLIGHT;
+	allocInfo.pSetLayouts = layouts.data();
+
+	m_descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
+
+	result = vkAllocateDescriptorSets(m_logicalDevice, &allocInfo, m_descriptorSets.data());
+
+	if (result != VK_SUCCESS)
+	{
+		vkUtils::printVkResultError(result, "vkRenderingContext::initDescriptorPoolAndSets()", "Couldn't allocate the descriptor sets.");
+		return false;
+	}
+
+	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+	{
+		VkDescriptorBufferInfo bufferInfo = {};
+		bufferInfo.buffer = m_meshClass.uniformBuffers[i];
+		bufferInfo.offset = 0;
+		bufferInfo.range = sizeof(vkUniformBufferData);
+
+		VkDescriptorImageInfo imageInfo = {};
+		imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		imageInfo.imageView = m_textureClass.imageView;
+		imageInfo.sampler = m_textureClass.sampler;
+
+		std::array<VkWriteDescriptorSet, 2> descriptorWrites = {};
+
+		descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWrites[0].dstSet = m_descriptorSets[i];
+		descriptorWrites[0].dstBinding = 0;
+		descriptorWrites[0].dstArrayElement = 0;
+		descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		descriptorWrites[0].descriptorCount = 1;
+		descriptorWrites[0].pBufferInfo = &bufferInfo;
+
+		descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWrites[1].dstSet = m_descriptorSets[i];
+		descriptorWrites[1].dstBinding = 1;
+		descriptorWrites[1].dstArrayElement = 0;
+		descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		descriptorWrites[1].descriptorCount = 1;
+		descriptorWrites[1].pImageInfo = &imageInfo;
+
+		vkUpdateDescriptorSets(m_logicalDevice, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 	}
 
 	return true;
@@ -1074,7 +1179,7 @@ bool vkRenderingContext::recordCommandBuffer(VkCommandBuffer buffer, uint32_t im
 	scissor.extent = m_swapchainExtent;
 	vkCmdSetScissor(buffer, 0, 1, &scissor);
 
-	m_meshClass.draw(buffer, m_pipelineLayout, m_currentFrame);
+	m_meshClass.draw(buffer, m_pipelineLayout, m_descriptorSets[m_currentFrame]);
 
 	vkCmdEndRenderPass(buffer);
 
@@ -1215,6 +1320,12 @@ void vkRenderingContext::cleanupLogicalDevice()
 		m_meshClass.cleanup(m_logicalDevice);
 		m_textureClass.cleanup(m_logicalDevice);
 
+		if (m_descriptorPool != nullptr)
+		{
+			vkDestroyDescriptorPool(m_logicalDevice, m_descriptorPool, nullptr);
+			m_descriptorPool = nullptr;
+		}
+
 		if (m_graphicsPipeline != nullptr)
 		{
 			vkDestroyPipeline(m_logicalDevice, m_graphicsPipeline, nullptr);
@@ -1225,6 +1336,12 @@ void vkRenderingContext::cleanupLogicalDevice()
 		{
 			vkDestroyPipelineLayout(m_logicalDevice, m_pipelineLayout, nullptr);
 			m_pipelineLayout = nullptr;
+		}
+
+		if (m_descriptorSetLayout != nullptr)
+		{
+			vkDestroyDescriptorSetLayout(m_logicalDevice, m_descriptorSetLayout, nullptr);
+			m_descriptorSetLayout = nullptr;
 		}
 
 		if (m_renderPass != nullptr)

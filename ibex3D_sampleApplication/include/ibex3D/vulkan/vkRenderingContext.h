@@ -24,7 +24,8 @@ private:
 	bool initColorResources();
 	bool initDepthResources();
 	bool initFramebuffers();
-	bool initModel();
+	bool initModelAndTexture();
+	bool initDescriptorPoolAndSets();
 	bool initCommandBuffers();
 	bool initSyncObjects();
 
@@ -52,6 +53,7 @@ private:
 	VkQueue m_presentQueue = nullptr;
 	VkSwapchainKHR m_swapchain = nullptr;
 	VkRenderPass m_renderPass = nullptr;
+	VkDescriptorSetLayout m_descriptorSetLayout = nullptr;
 	VkPipelineLayout m_pipelineLayout = nullptr;
 	VkPipeline m_graphicsPipeline = nullptr;
 	VkCommandPool m_commandPool = nullptr;
@@ -61,16 +63,18 @@ private:
 	VkImage m_depthImage = nullptr;
 	VkDeviceMemory m_depthImageMemory = nullptr;
 	VkImageView m_depthImageView = nullptr;
+	VkDescriptorPool m_descriptorPool = nullptr;
 
 	VkSampleCountFlagBits m_msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 	VkFormat m_swapchainImageFormat = VK_FORMAT_UNDEFINED;
 	VkExtent2D m_swapchainExtent = {};
-	uint32_t m_swapchainImageCount = 0;
 	uint32_t m_currentFrame = 0;
+	uint32_t m_swapchainImageCount = 0;
 
 	std::vector<VkImage> m_swapchainImages;
 	std::vector<VkImageView> m_swapchainImageViews;
 	std::vector<VkFramebuffer> m_swapchainFramebuffers;
+	std::vector<VkDescriptorSet> m_descriptorSets;
 	std::vector<VkCommandBuffer> m_commandBuffers;
 	std::vector<VkSemaphore> m_swapchainSemaphores;
 	std::vector<VkSemaphore> m_frameSemaphores;
