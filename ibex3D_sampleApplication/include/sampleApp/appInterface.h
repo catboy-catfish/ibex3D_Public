@@ -6,25 +6,32 @@ class vkRenderingContext;
 class appInterface
 {
 public:
-	bool initialize(appRuntime* runtimePtr, void* pWindow);
+	bool initialize(appRuntime* pRuntime, void* pWindow);
 	void update(float deltaTime);
 	void render(float deltaTime);
 	void cleanup();
 
-	void windowEvent_onResize(int wndWidth, int wndHeight);
-	void windowEvent_onFocus();
-	void windowEvent_onUnfocus();
-	void windowEvent_onClose();
+	void input_onKeyDownEvent(unsigned int key);
+	void input_onKeyUpEvent(unsigned int key);
+	bool input_isKeyDown(unsigned int key);
+
+	void window_onResizeEvent(int wndWidth, int wndHeight);
+	void window_onFocusEvent();
+	void window_onUnfocusEvent();
+	void window_onCloseRequestedEvent();
 
 	bool isSafeToStartRunning();
 
 private:
+	bool m_keyStates[256] = { false };
+
 	appRuntime* m_appRuntime = nullptr;
 	vkRenderingContext* m_renderingContext = nullptr;
 
-	float m_timer = 0.0f;
-	size_t m_frameCounter = 0;
+	float m_elapsedTime = 0.0f;
+	size_t m_elapsedFrames = 0;
 
-	float m_meshRotation = 0.0f;
-	float m_meshRotationSpeed = 0.25f;
+	float m_meshRot = 0.0f;
+	float m_meshRotVel = 0.0f;
+	float m_meshRotSpd = 1.0f;
 };

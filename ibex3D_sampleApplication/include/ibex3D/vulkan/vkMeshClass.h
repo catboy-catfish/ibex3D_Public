@@ -52,9 +52,11 @@ struct vkMeshClass
 
 	std::vector<vkVertex> vertices;
 	std::vector<uint32_t> indices;
+
 	std::vector<VkBuffer> uniformBuffers;
 	std::vector<VkDeviceMemory> uniformBuffersMemory;
 	std::vector<void*> uniformBuffersMapped;
+	
 	std::vector<VkDescriptorSet> descriptorSets;
 	
 	float currentRotation = 0.0f;

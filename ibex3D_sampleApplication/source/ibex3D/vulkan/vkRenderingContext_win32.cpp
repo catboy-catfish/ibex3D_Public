@@ -34,7 +34,7 @@ bool vkRenderingContext::initialize(void* wndMemory)
 
 	IBEX3D_BASSERT(initInstance());
 	IBEX3D_BASSERT(initSurface(wndMemory));
-	IBEX3D_BASSERT(initPhysicalDevice(VK_SAMPLE_COUNT_1_BIT));
+	IBEX3D_BASSERT(initPhysicalDevice(VK_SAMPLE_COUNT_4_BIT));
 	IBEX3D_BASSERT(initLogicalDevice());
 	IBEX3D_BASSERT(initSwapchain(wndWidth, wndHeight));
 	IBEX3D_BASSERT(initRenderPass());
@@ -339,9 +339,8 @@ bool vkRenderingContext::initSwapchain(int wndWidth, int wndHeight)
 	vkSwapchainSupportInfo scSupport = vkUtils::querySwapchainSupport(m_physicalDevice, m_surface);
 
 	VkSurfaceFormatKHR format = vkUtils::chooseSurfaceFormat(scSupport.formats);
-	VkExtent2D extent = vkUtils::chooseExtent(scSupport.capabilities, wndWidth, wndHeight);
-
 	VkPresentModeKHR presentMode = vkUtils::choosePresentMode(scSupport.presentModes, m_useVsync);
+	VkExtent2D extent = vkUtils::chooseExtent(scSupport.capabilities, wndWidth, wndHeight);
 
 	m_swapchainImageCount = scSupport.capabilities.minImageCount + 1;
 
@@ -813,7 +812,8 @@ bool vkRenderingContext::initColorResources()
 	(
 		m_logicalDevice,
 		m_physicalDevice,
-		m_swapchainExtent,
+		m_swapchainExtent.width,
+		m_swapchainExtent.height,
 		1,
 		m_msaaSamples,
 		colorFormat,
@@ -861,7 +861,8 @@ bool vkRenderingContext::initDepthResources()
 	(
 		m_logicalDevice,
 		m_physicalDevice,
-		m_swapchainExtent,
+		m_swapchainExtent.width,
+		m_swapchainExtent.height,
 		1,
 		m_msaaSamples,
 		depthFormat,

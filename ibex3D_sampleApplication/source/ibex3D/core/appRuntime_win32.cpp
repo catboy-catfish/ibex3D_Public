@@ -1,5 +1,4 @@
 #include <ibex3D/core/appRuntime.h>
-#include <ibex3D/core/inputClass.h>
 #include <ibex3D/core/win32.h>
 
 #include <sampleApp/appInterface.h>
@@ -36,32 +35,32 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 		}
 		case WM_KEYDOWN:
 		{
-			rtHandle->windowEvent_onKeyDown(static_cast<unsigned int>(wParam));
+			rtHandle->window_onKeyDownEvent(static_cast<unsigned int>(wParam));
 			break;
 		}
 		case WM_KEYUP:
 		{
-			rtHandle->windowEvent_onKeyUp(static_cast<unsigned int>(wParam));
+			rtHandle->window_onKeyUpEvent(static_cast<unsigned int>(wParam));
 			break;
 		}
 		case WM_SIZE:
 		{
-			rtHandle->windowEvent_onResize();
+			rtHandle->window_onResizeEvent();
 			break;
 		}
 		case WM_SETFOCUS:
 		{
-			rtHandle->windowEvent_onFocus();
+			rtHandle->window_onFocusEvent();
 			break;
 		}
 		case WM_KILLFOCUS:
 		{
-			rtHandle->windowEvent_onUnfocus();
+			rtHandle->window_onUnfocusEvent();
 			break;
 		}
 		case WM_CLOSE:
 		{
-			rtHandle->windowEvent_onClose();
+			rtHandle->window_onCloseRequestedEvent();
 			break;
 		}
 	}
@@ -79,9 +78,6 @@ bool appRuntime::initialize(int wndWidth, int wndHeight, const char* wndTitle)
 	{
 		return false;
 	}
-
-	pInputClass = new inputClass;
-	pInputClass->initialize();
 
 	if (!initApplication(wndWidth, wndHeight))
 	{
@@ -103,18 +99,18 @@ void appRuntime::startRunning()
 
 void appRuntime::update()
 {	
-	endTime = std::chrono::high_resolution_clock::now();
+	m_endTime = std::chrono::high_resolution_clock::now();
 
-	float deltaTime = std::chrono::duration<float>(endTime - startTime).count();
-	startTime = endTime;
+	float deltaTime = std::chrono::duration<float>(m_endTime - m_startTime).count();
+	m_startTime = m_endTime;
 
-	if (pAppInterface != nullptr)
+	if (m_appInterface != nullptr)
 	{
-		pAppInterface->update(deltaTime);
-		pAppInterface->render(deltaTime);
+		m_appInterface->update(deltaTime);
+		m_appInterface->render(deltaTime);
 	}
 
-	if (pInputClass->isKeyDown(VK_ESCAPE))
+	if (m_appInterface->input_isKeyDown(VK_ESCAPE))
 	{
 		forceClose();
 	}
@@ -124,9 +120,9 @@ void appRuntime::forceClose()
 {
 	m_keepRunningFlag = false;
 
-	if (pWindowData != nullptr)
+	if (m_windowData != nullptr)
 	{
-		auto wndData = static_cast<windowData_t*>(pWindowData);
+		auto wndData = static_cast<windowData_t*>(m_windowData);
 
 		if (wndData->hWnd != nullptr)
 		{
@@ -139,29 +135,22 @@ void appRuntime::forceClose()
 void appRuntime::cleanup()
 {
 	cleanupApplication();
-
-	if (pInputClass != nullptr)
-	{
-		delete pInputClass;
-		pInputClass = nullptr;
-	}
-
 	cleanupWindow();
 }
 
-void appRuntime::windowEvent_onKeyDown(unsigned int key)
+void appRuntime::window_onKeyDownEvent(unsigned int key)
 {
-	if (pInputClass != nullptr)
+	if (m_appInterface != nullptr)
 	{
-		pInputClass->onKeyDown(key);
+		m_appInterface->input_onKeyDownEvent(key);
 	}
 }
 
-void appRuntime::windowEvent_onKeyUp(unsigned int key)
+void appRuntime::window_onKeyUpEvent(unsigned int key)
 {
-	if (pInputClass != nullptr)
+	if (m_appInterface != nullptr)
 	{
-		pInputClass->onKeyUp(key);
+		m_appInterface->input_onKeyUpEvent(key);
 	}
 }
 
@@ -169,11 +158,11 @@ void appRuntime::windowEvent_onKeyUp(unsigned int key)
 // - Window event functions ---------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------
 
-void appRuntime::windowEvent_onResize()
+void appRuntime::window_onResizeEvent()
 {	
-	if (pWindowData != nullptr)
+	if (m_windowData != nullptr)
 	{
-		auto wndData = static_cast<windowData_t*>(pWindowData);
+		auto wndData = static_cast<windowData_t*>(m_windowData);
 
 		int wndWidth, wndHeight;
 		if (!win32Utils::getWindowDimensions(wndData->hWnd, wndWidth, wndHeight))
@@ -181,34 +170,34 @@ void appRuntime::windowEvent_onResize()
 			return;
 		}
 
-		if (pAppInterface != nullptr)
+		if (m_appInterface != nullptr)
 		{
-			pAppInterface->windowEvent_onResize(wndWidth, wndHeight);
+			m_appInterface->window_onResizeEvent(wndWidth, wndHeight);
 		}
 	}
 }
 
-void appRuntime::windowEvent_onFocus()
+void appRuntime::window_onFocusEvent()
 {
-	if (pAppInterface != nullptr)
+	if (m_appInterface != nullptr)
 	{
-		pAppInterface->windowEvent_onFocus();
+		m_appInterface->window_onFocusEvent();
 	}
 }
 
-void appRuntime::windowEvent_onUnfocus()
+void appRuntime::window_onUnfocusEvent()
 {
-	if (pAppInterface != nullptr)
+	if (m_appInterface != nullptr)
 	{
-		pAppInterface->windowEvent_onUnfocus();
+		m_appInterface->window_onUnfocusEvent();
 	}
 }
 
-void appRuntime::windowEvent_onClose()
+void appRuntime::window_onCloseRequestedEvent()
 {
-	if (pAppInterface != nullptr)
+	if (m_appInterface != nullptr)
 	{
-		pAppInterface->windowEvent_onClose();
+		m_appInterface->window_onCloseRequestedEvent();
 	}
 
 	m_keepRunningFlag = false;
@@ -221,7 +210,7 @@ void appRuntime::windowEvent_onClose()
 bool appRuntime::initWindow(int wndWidth, int wndHeight, const char* wndTitle)
 {
 	auto wndData = new windowData_t;
-	pWindowData = static_cast<void*>(wndData);
+	m_windowData = static_cast<void*>(wndData);
 
 	wndData->className = "ibex3D Window Class";
 	wndData->hInstance = GetModuleHandleA(nullptr);
@@ -286,9 +275,9 @@ void appRuntime::updateWindow()
 
 void appRuntime::cleanupWindow()
 {
-	if (pWindowData == nullptr) return;
+	if (m_windowData == nullptr) return;
 
-	auto wndData = static_cast<windowData_t*>(pWindowData);
+	auto wndData = static_cast<windowData_t*>(m_windowData);
 
 	if (wndData->hWnd != nullptr)
 	{
@@ -303,7 +292,7 @@ void appRuntime::cleanupWindow()
 	}
 
 	delete wndData;
-	pWindowData = nullptr;
+	m_windowData = nullptr;
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -312,10 +301,10 @@ void appRuntime::cleanupWindow()
 
 bool appRuntime::initApplication(int wndWidth, int wndHeight)
 {
-	pAppInterface = new appInterface;
+	m_appInterface = new appInterface;
 
-	auto wndData = static_cast<windowData_t*>(pWindowData);
-	if (!pAppInterface->initialize(this, static_cast<void*>(wndData->hWnd)))
+	auto wndData = static_cast<windowData_t*>(m_windowData);
+	if (!m_appInterface->initialize(this, static_cast<void*>(wndData->hWnd)))
 	{
 		printf("RUNTIME ERROR - appRuntime::initApplication(): appInterface::initialize() failed.\n");
 		return false;
@@ -326,11 +315,11 @@ bool appRuntime::initApplication(int wndWidth, int wndHeight)
 
 void appRuntime::cleanupApplication()
 {
-	if (pAppInterface != nullptr)
+	if (m_appInterface != nullptr)
 	{
-		pAppInterface->cleanup();
-		delete pAppInterface;
-		pAppInterface = nullptr;
+		m_appInterface->cleanup();
+		delete m_appInterface;
+		m_appInterface = nullptr;
 	}
 }
 
@@ -340,42 +329,36 @@ void appRuntime::cleanupApplication()
 
 bool appRuntime::isSafeToStartRunning()
 {
-	if (pWindowData == nullptr)
+	if (m_windowData == nullptr)
 	{
-		printf("RUNTIME ERROR - appRuntime::isSafeToStartRunning(): pWindowData is nullptr.\n");
+		printf("RUNTIME ERROR - appRuntime::isSafeToStartRunning(): m_windowData is nullptr.\n");
 		return false;
 	}
 	
-	auto wndData = static_cast<windowData_t*>(pWindowData);
+	auto wndData = static_cast<windowData_t*>(m_windowData);
 
 	if (wndData->hInstance == nullptr)
 	{
-		printf("RUNTIME ERROR - appRuntime::isSafeToStartRunning(): pWindowData->hInstance is nullptr.\n");
+		printf("RUNTIME ERROR - appRuntime::isSafeToStartRunning(): m_windowData->hInstance is nullptr.\n");
 		return false;
 	}
 
 	if (wndData->hWnd == nullptr)
 	{
-		printf("RUNTIME ERROR - appRuntime::isSafeToStartRunning(): pWindowData->hWnd is nullptr.\n");
+		printf("RUNTIME ERROR - appRuntime::isSafeToStartRunning(): m_windowData->hWnd is nullptr.\n");
 		return false;
 	}
 
-	if (pInputClass == nullptr)
+	if (m_appInterface == nullptr)
 	{
-		printf("RUNTIME ERROR - appRuntime::isSafeToStartRunning(): pInputClass is nullptr.\n");
-		return false;
-	}
-
-	if (pAppInterface == nullptr)
-	{
-		printf("RUNTIME ERROR - appRuntime::isSafeToStartRunning(): pAppInterface is nullptr.\n");
+		printf("RUNTIME ERROR - appRuntime::isSafeToStartRunning(): m_appInterface is nullptr.\n");
 		return false;
 	}
 	else
 	{
-		if (!pAppInterface->isSafeToStartRunning())
+		if (!m_appInterface->isSafeToStartRunning())
 		{
-			printf("RUNTIME ERROR - appRuntime::isSafeToStartRunning(): pAppInterface->isSafeToStartRunning() returned false.\n");
+			printf("RUNTIME ERROR - appRuntime::isSafeToStartRunning(): m_appInterface->isSafeToStartRunning() returned false.\n");
 			return false;
 		}
 	}

@@ -3,8 +3,6 @@
 #include <chrono>
 
 class appInterface;
-class inputClass;
-
 class appRuntime
 {
 public:
@@ -14,12 +12,12 @@ public:
 	void forceClose();
 	void cleanup();
 
-	void windowEvent_onKeyDown(unsigned int key);
-	void windowEvent_onKeyUp(unsigned int key);
-	void windowEvent_onResize();
-	void windowEvent_onFocus();
-	void windowEvent_onUnfocus();
-	void windowEvent_onClose();
+	void window_onKeyDownEvent(unsigned int key);
+	void window_onKeyUpEvent(unsigned int key);
+	void window_onResizeEvent();
+	void window_onFocusEvent();
+	void window_onUnfocusEvent();
+	void window_onCloseRequestedEvent();
 
 private:
 	bool initWindow(int wndWidth, int wndHeight, const char* wndTitle);
@@ -32,12 +30,11 @@ private:
 	bool isSafeToStartRunning();
 
 private:
-	void* pWindowData = nullptr;
-	appInterface* pAppInterface = nullptr;
-	inputClass* pInputClass = nullptr;
+	void* m_windowData = nullptr;
+	appInterface* m_appInterface = nullptr;
 
-	std::chrono::high_resolution_clock::time_point startTime = std::chrono::high_resolution_clock::now();
-	std::chrono::high_resolution_clock::time_point endTime = std::chrono::high_resolution_clock::now();
+	std::chrono::high_resolution_clock::time_point m_startTime = std::chrono::high_resolution_clock::now();
+	std::chrono::high_resolution_clock::time_point m_endTime = std::chrono::high_resolution_clock::now();
 
 	bool m_keepRunningFlag = true;
 };
