@@ -110,6 +110,21 @@ void vec2::divideByFloat(float in)
 	}
 }
 
+vec2 vec2::lerpedTo(const vec2& other, float amount) const
+{
+	return vec2
+	(
+		x + ((other.x - x) * amount),
+		y + ((other.y - y) * amount)
+	);
+}
+
+void vec2::lerpTo(const vec2& other, float amount)
+{
+	x += (other.x - x) * amount;
+	y += (other.y - y) * amount;
+}
+
 float vec2::getLength() const
 {
 	return sqrtf((x * x) + (y * y));

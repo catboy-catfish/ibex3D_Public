@@ -33,6 +33,9 @@ struct vec3
 	vec3 dividedByFloat(float in) const;
 	void divideByFloat(float in);
 
+	vec3 lerpedTo(const vec3& other, float amount) const;
+	void lerpTo(const vec3& other, float amount);
+
 	float getLength() const;
 
 	vec3 normalized() const;

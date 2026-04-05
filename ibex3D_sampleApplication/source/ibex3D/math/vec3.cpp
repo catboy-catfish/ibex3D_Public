@@ -124,6 +124,23 @@ void vec3::divideByFloat(float in)
 	}
 }
 
+vec3 vec3::lerpedTo(const vec3& other, float amount) const
+{
+	return vec3
+	(
+		x + ((other.x - x) * amount),
+		y + ((other.y - y) * amount),
+		z + ((other.z - z) * amount)
+	);
+}
+
+void vec3::lerpTo(const vec3& other, float amount)
+{
+	x += (other.x - x) * amount;
+	y += (other.y - y) * amount;
+	z += (other.z - z) * amount;
+}
+
 float vec3::getLength() const
 {
 	return sqrtf((x*x) + (y*y) + (z*z));

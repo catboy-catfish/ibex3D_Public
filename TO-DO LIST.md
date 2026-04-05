@@ -2,6 +2,7 @@
 
 General/Miscellaneous:
 
+- Add documentation
 - Focus on styling up the engine code until you have the balls to make actual progress
 - Switch from Visual Studio to something like CMake to become more platform and compiler-independent
 - Use meta build systems to exclude source code files depending on build platform

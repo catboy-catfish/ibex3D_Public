@@ -32,6 +32,9 @@ struct vec2
 	vec2 dividedByFloat(float in) const;
 	void divideByFloat(float in);
 
+	vec2 lerpedTo(const vec2& other, float amount) const;
+	void lerpTo(const vec2& other, float amount);
+
 	float getLength() const;
 
 	vec2 normalized() const;

@@ -34,6 +34,9 @@ struct vec4
 	vec4 dividedByFloat(float in) const;
 	void divideByFloat(float in);
 
+	vec4 lerpedTo(const vec4& other, float amount) const;
+	void lerpTo(const vec4& other, float amount);
+
 	float getLength() const;
 
 	vec4 normalized() const;
