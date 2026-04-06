@@ -40,9 +40,6 @@
     <ClInclude Include="include\ibex3D\core\win32.h">
       <Filter>ibex3D\core\win32</Filter>
     </ClInclude>
-    <ClInclude Include="include\ibex3D\vulkan\vkDefinitions.h">
-      <Filter>ibex3D\vulkan\vkDefinitions</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\ibex3D\core\appRuntime_win32.cpp">
@@ -151,9 +148,6 @@
     </Filter>
     <Filter Include="ibex3D\utility\miscellaneous">
       <UniqueIdentifier>{3714fd07-54da-4763-bd40-3a8bf7990f68}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ibex3D\vulkan\vkDefinitions">
-      <UniqueIdentifier>{67157c6a-61e5-48ca-bc3b-ae8564e1ff9c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

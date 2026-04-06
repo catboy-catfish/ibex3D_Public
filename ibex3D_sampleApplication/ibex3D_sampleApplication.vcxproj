@@ -19,7 +19,6 @@
     <ClInclude Include="include\ibex3D\math\vec4.h" />
     <ClInclude Include="include\ibex3D\utility\memory.h" />
     <ClInclude Include="include\ibex3D\utility\miscellaneous.h" />
-    <ClInclude Include="include\ibex3D\vulkan\vkDefinitions.h" />
     <ClInclude Include="include\ibex3D\vulkan\vkRenderingContext.h" />
     <ClInclude Include="include\ibex3D\vulkan\vkTextureClass.h" />
     <ClInclude Include="include\ibex3D\vulkan\vkUtils.h" />

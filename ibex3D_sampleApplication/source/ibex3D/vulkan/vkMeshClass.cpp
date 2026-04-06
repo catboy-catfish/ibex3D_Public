@@ -1,10 +1,8 @@
 #include <ibex3D/vulkan/vkMeshClass.h>
-#include <ibex3D/vulkan/vkDefinitions.h>
-#include <ibex3D/vulkan/vkTextureClass.h>
 #include <ibex3D/vulkan/vkUtils.h>
 
 #define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtc/matrix_transform.hpp>
+#include <glm/glm.hpp>
 #include <glm/gtx/hash.hpp>
 
 #define TINYOBJLOADER_IMPLEMENTATION
@@ -278,49 +276,7 @@ bool vkMeshClass::initIndexBuffer(VkDevice device, VkPhysicalDevice physDevice, 
 	return true;
 }
 
-bool vkMeshClass::initUniformBuffers(VkDevice device, VkPhysicalDevice physDevice)
-{
-	VkDeviceSize bufferSize = sizeof(vkUniformBufferData);
-
-	uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
-	uniformBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
-	uniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
-
-	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-	{
-		if (!vkUtils::createBuffer
-		(
-			device,
-			physDevice,
-			bufferSize,
-			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-			uniformBuffers[i],
-			uniformBuffersMemory[i]
-		))
-		{
-			return false;
-		}
-
-		vkMapMemory(device, uniformBuffersMemory[i], 0, bufferSize, 0, &uniformBuffersMapped[i]);
-		// TODO: Add error checking?
-	}
-	
-	return true;
-}
-
-void vkMeshClass::updateUniformBuffer(uint32_t currentImage, const VkExtent2D& swapchainExtent)
-{
-	vkUniformBufferData data = {};
-	data.modelMatrix = glm::rotate(glm::mat4(1.0f), currentRotation, glm::vec3(0.0f, 0.0f, 1.0f));
-	data.viewMatrix = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	data.projMatrix = glm::perspective(glm::radians(45.0f), swapchainExtent.width / (float)swapchainExtent.height, 0.1f, 10.0f);
-	data.projMatrix[1][1] *= -1.0f;
-
-	memcpy(uniformBuffersMapped[currentImage], &data, sizeof(data));
-}
-
-bool vkMeshClass::initialize(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue, const char* meshFilePath, vkTextureClass* texture)
+bool vkMeshClass::initialize(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue, const char* meshFilePath)
 {
 	if (!loadObjFromFile(meshFilePath))
 	{
@@ -337,17 +293,7 @@ bool vkMeshClass::initialize(VkDevice device, VkPhysicalDevice physDevice, VkCom
 		return false;
 	}
 
-	if (!initUniformBuffers(device, physDevice))
-	{
-		return false;
-	}
-
 	return true;
-}
-
-void vkMeshClass::setMeshRotation(float rotation)
-{
-	currentRotation = rotation;
 }
 
 void vkMeshClass::draw(VkCommandBuffer buffer, VkPipelineLayout pipelineLayout, VkDescriptorSet descriptorSet)
@@ -364,23 +310,6 @@ void vkMeshClass::draw(VkCommandBuffer buffer, VkPipelineLayout pipelineLayout, 
 
 void vkMeshClass::cleanup(VkDevice device)
 {	
-	for (auto& buffer : uniformBuffers)
-	{
-		vkDestroyBuffer(device, buffer, nullptr);
-		buffer = nullptr;
-	}
-
-	uniformBuffers.clear();
-
-	for (auto& memory : uniformBuffersMemory)
-	{
-		vkUnmapMemory(device, memory);
-		vkFreeMemory(device, memory, nullptr);
-		memory = nullptr;
-	}
-
-	uniformBuffersMemory.clear();
-
 	vkUtils::destroyBuffer(device, idxBuffer, idxBufferMemory);
 	vkUtils::destroyBuffer(device, vtxBuffer, vtxBufferMemory);
 }

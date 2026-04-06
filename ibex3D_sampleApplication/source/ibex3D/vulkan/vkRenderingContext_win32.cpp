@@ -1,5 +1,4 @@
 #include <ibex3D/vulkan/vkRenderingContext.h>
-#include <ibex3D/vulkan/vkDefinitions.h>
 #include <ibex3D/vulkan/vkUtils.h>
 
 #include <ibex3D/core/win32.h>
@@ -7,21 +6,18 @@
 
 #include <ibex3D/utility/miscellaneous.h>
 
-#include <stdio.h>
-#include <set>
 #include <map>
+#include <set>
+#include <stdio.h>
 
-static std::vector<const char*> instExtensionNames =
-{
-	VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
-	VK_KHR_SURFACE_EXTENSION_NAME
-};
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include <glm/gtc/matrix_transform.hpp>
 
-static std::vector<const char*> deviceExtensionNames =
-{
-	VK_KHR_SWAPCHAIN_EXTENSION_NAME
-};
+#define MAX_FRAMES_IN_FLIGHT 2
 
+static std::vector<const char*> instExtensionNames = { VK_KHR_WIN32_SURFACE_EXTENSION_NAME, VK_KHR_SURFACE_EXTENSION_NAME };
+static std::vector<const char*> deviceExtensionNames = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 static std::vector<const char*> instLayerNames;
 
 // - Public functions ---------------------------------------------------------------------------------
@@ -44,6 +40,7 @@ bool vkRenderingContext::initialize(void* wndMemory)
 	IBEX3D_BASSERT(initDepthResources());
 	IBEX3D_BASSERT(initFramebuffers());
 	IBEX3D_BASSERT(initModelAndTexture());
+	IBEX3D_BASSERT(initUniformBuffers());
 	IBEX3D_BASSERT(initDescriptorPoolAndSets());
 	IBEX3D_BASSERT(initCommandBuffers());
 	IBEX3D_BASSERT(initSyncObjects());
@@ -53,7 +50,7 @@ bool vkRenderingContext::initialize(void* wndMemory)
 
 void vkRenderingContext::setMeshRotation(float rotation)
 {
-	m_meshClass.setMeshRotation(rotation);
+	m_currentMeshRotation = rotation;
 }
 
 bool vkRenderingContext::drawFrame()
@@ -74,7 +71,7 @@ bool vkRenderingContext::drawFrame()
 		return false;
 	}
 
-	m_meshClass.updateUniformBuffer(m_currentFrame, m_swapchainExtent);
+	updateUniformBuffer(m_currentFrame);
 
 	vkResetFences(m_logicalDevice, 1, &m_frameFences[m_currentFrame]);
 	vkResetCommandBuffer(m_commandBuffers[m_currentFrame], 0);
@@ -968,22 +965,50 @@ bool vkRenderingContext::initFramebuffers()
 
 bool vkRenderingContext::initModelAndTexture()
 {	
-	if (!m_textureClass.initialize(m_logicalDevice, m_physicalDevice, "assets/images/viking_room.png", m_commandPool, m_graphicsQueue))
+	if (!m_textureClass.initialize(m_logicalDevice, m_physicalDevice, m_commandPool, m_graphicsQueue, "assets/images/viking_room.png"))
 	{
 		return false;
 	}
 	
-	if (!m_meshClass.initialize
-	(
-		m_logicalDevice,
-		m_physicalDevice, 
-		m_commandPool,
-		m_graphicsQueue,
-		"assets/models/viking_room.obj",
-		&m_textureClass
-	))
+	if (!m_meshClass.initialize(m_logicalDevice, m_physicalDevice, m_commandPool, m_graphicsQueue, "assets/models/viking_room.obj"))
 	{
 		return false;
+	}
+
+	return true;
+}
+
+bool vkRenderingContext::initUniformBuffers()
+{
+	VkDeviceSize bufferSize = sizeof(vkUniformBufferData);
+
+	m_uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+	m_uniformBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
+	m_uniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
+
+	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+	{
+		if (!vkUtils::createBuffer
+		(
+			m_logicalDevice,
+			m_physicalDevice,
+			bufferSize,
+			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+			m_uniformBuffers[i],
+			m_uniformBuffersMemory[i]
+		))
+		{
+			return false;
+		}
+
+		VkResult result = vkMapMemory(m_logicalDevice, m_uniformBuffersMemory[i], 0, bufferSize, 0, &m_uniformBuffersMapped[i]);
+
+		if (result != VK_SUCCESS)
+		{
+			vkUtils::printVkResultError(result, "vkRenderingContext::initUniformBuffers()", "Couldn't map the uniform buffer memory.");
+			return false;
+		}
 	}
 
 	return true;
@@ -1034,7 +1059,7 @@ bool vkRenderingContext::initDescriptorPoolAndSets()
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 	{
 		VkDescriptorBufferInfo bufferInfo = {};
-		bufferInfo.buffer = m_meshClass.uniformBuffers[i];
+		bufferInfo.buffer = m_uniformBuffers[i];
 		bufferInfo.offset = 0;
 		bufferInfo.range = sizeof(vkUniformBufferData);
 
@@ -1132,6 +1157,17 @@ bool vkRenderingContext::initSyncObjects()
 	}
 
 	return true;
+}
+
+void vkRenderingContext::updateUniformBuffer(uint32_t currentImage)
+{
+	vkUniformBufferData data = {};
+	data.modelMatrix = glm::rotate(glm::mat4(1.0f), m_currentMeshRotation, glm::vec3(0.0f, 0.0f, 1.0f));
+	data.viewMatrix = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	data.projMatrix = glm::perspective(glm::radians(45.0f), m_swapchainExtent.width / (float)m_swapchainExtent.height, 0.1f, 10.0f);
+	data.projMatrix[1][1] *= -1.0f;
+
+	memcpy(m_uniformBuffersMapped[currentImage], &data, sizeof(data));
 }
 
 bool vkRenderingContext::recordCommandBuffer(VkCommandBuffer buffer, uint32_t imageIndex)
@@ -1314,8 +1350,24 @@ void vkRenderingContext::cleanupLogicalDevice()
 	if (m_logicalDevice != nullptr)
 	{
 		vkDeviceWaitIdle(m_logicalDevice);
-
 		cleanupSwapchain(m_logicalDevice);
+
+		for (auto& buffer : m_uniformBuffers)
+		{
+			vkDestroyBuffer(m_logicalDevice, buffer, nullptr);
+			buffer = nullptr;
+		}
+
+		m_uniformBuffers.clear();
+
+		for (auto& memory : m_uniformBuffersMemory)
+		{
+			vkUnmapMemory(m_logicalDevice, memory);
+			vkFreeMemory(m_logicalDevice, memory, nullptr);
+			memory = nullptr;
+		}
+
+		m_uniformBuffersMemory.clear();
 
 		m_meshClass.cleanup(m_logicalDevice);
 		m_textureClass.cleanup(m_logicalDevice);

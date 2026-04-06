@@ -2,6 +2,17 @@
 #include <ibex3D/vulkan/vkMeshClass.h>
 #include <ibex3D/vulkan/vkTextureClass.h>
 
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include <glm/glm.hpp>
+
+struct vkUniformBufferData
+{
+	glm::mat4 modelMatrix;
+	glm::mat4 viewMatrix;
+	glm::mat4 projMatrix;
+};
+
 class vkRenderingContext
 {
 public:
@@ -25,10 +36,12 @@ private:
 	bool initDepthResources();
 	bool initFramebuffers();
 	bool initModelAndTexture();
+	bool initUniformBuffers();
 	bool initDescriptorPoolAndSets();
 	bool initCommandBuffers();
 	bool initSyncObjects();
 
+	void updateUniformBuffer(uint32_t currentImage);
 	bool recordCommandBuffer(VkCommandBuffer buffer, uint32_t imageIndex);
 	bool recreateSwapchain();
 
@@ -74,6 +87,9 @@ private:
 	std::vector<VkImage> m_swapchainImages;
 	std::vector<VkImageView> m_swapchainImageViews;
 	std::vector<VkFramebuffer> m_swapchainFramebuffers;
+	std::vector<VkBuffer> m_uniformBuffers;
+	std::vector<VkDeviceMemory> m_uniformBuffersMemory;
+	std::vector<void*> m_uniformBuffersMapped;
 	std::vector<VkDescriptorSet> m_descriptorSets;
 	std::vector<VkCommandBuffer> m_commandBuffers;
 	std::vector<VkSemaphore> m_swapchainSemaphores;
@@ -83,6 +99,7 @@ private:
 	vkTextureClass m_textureClass;
 	vkMeshClass m_meshClass;
 
+	float m_currentMeshRotation = 0.0f;
 	bool m_wasJustResized = false;
 	bool m_useVsync = true;
 };

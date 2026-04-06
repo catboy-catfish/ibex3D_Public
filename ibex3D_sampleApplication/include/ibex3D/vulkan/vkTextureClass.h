@@ -11,9 +11,9 @@ struct vkTextureClass
 
 	uint32_t mipLevels = 0;
 
-	bool initImageAndView(VkDevice device, VkPhysicalDevice physDevice, const char* imgFilePath, VkCommandPool cmdPool, VkQueue gfxQueue);
+	bool initImageAndView(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue, const char* imgFilePath);
 	bool initSampler(VkDevice device, VkPhysicalDevice physDevice);
 
-	bool initialize(VkDevice device, VkPhysicalDevice physDevice, const char* imgFilePath, VkCommandPool cmdPool, VkQueue gfxQueue);
+	bool initialize(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue, const char* imgFilePath);
 	void cleanup(VkDevice device);
 };
