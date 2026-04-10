@@ -29,7 +29,7 @@ bool win32Utils::getWindowDimensions(HWND hWnd, int& width, int& height)
 const char* win32Utils::hresultToText(HRESULT hr)
 {
 	// FIX: Text is only readable in release mode, not debug mode.
-	
+
 	_com_error error(hr);
 	const TCHAR* tcharErrMsg = error.ErrorMessage();
 

@@ -2,17 +2,6 @@
 #include <ibex3D/vulkan/vkMeshClass.h>
 #include <ibex3D/vulkan/vkTextureClass.h>
 
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#include <glm/glm.hpp>
-
-struct vkUniformBufferData
-{
-	glm::mat4 modelMatrix;
-	glm::mat4 viewMatrix;
-	glm::mat4 projMatrix;
-};
-
 class vkRenderingContext
 {
 public:
@@ -49,7 +38,7 @@ private:
 	void cleanupLogicalDevice();
 	void cleanupInstance();
 
-	void configureRequiredExtensions();
+	void configureRequiredStuff();
 	bool checkInstanceLayerSupport();
 	bool checkPhysicalDeviceExtensionSupport(VkPhysicalDevice device);
 	void printAvailableInstanceExtensions();

@@ -50,18 +50,11 @@ bool vkTextureClass::initImageAndView(VkDevice device, VkPhysicalDevice physDevi
 
 	if (!vkUtils::createImage
 	(
-		device,
-		physDevice,
-		texWidth,
-		texHeight,
-		mipLevels,
-		VK_SAMPLE_COUNT_1_BIT,
-		VK_FORMAT_R8G8B8A8_SRGB,
-		VK_IMAGE_TILING_OPTIMAL,
+		device, physDevice,
+		texWidth, texHeight, mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL,
 		VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
 		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-		image,
-		imageMemory
+		image, imageMemory
 	))
 	{
 		vkUtils::printVkError("vkTextureClass::initImageAndView()", "Couldn't create the image.\n");
@@ -69,31 +62,41 @@ bool vkTextureClass::initImageAndView(VkDevice device, VkPhysicalDevice physDevi
 		return false;
 	}
 
-	// TODO: Error check these three later?
-	vkUtils::transitionImageLayout
+	if (!vkUtils::transitionImageLayout
 	(
-		device,
-		cmdPool,
-		gfxQueue,
-		image,
-		mipLevels,
-		VK_FORMAT_R8G8B8A8_SRGB,
-		VK_IMAGE_LAYOUT_UNDEFINED,
-		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
-	);
+		device, cmdPool, gfxQueue,
+		image, mipLevels, VK_FORMAT_R8G8B8A8_SRGB,
+		VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
+	))
+	{
+		vkUtils::printVkError("vkTextureClass::initImageAndView()", "Couldn't transition the image layout.\n");
+		vkUtils::destroyBuffer(device, stagingBuffer, stagingBufferMemory);
+		return false;
+	}
 
-	vkUtils::copyBufferToImage
+	if (!vkUtils::copyBufferToImage
 	(
-		device,
-		cmdPool,
-		gfxQueue,
-		stagingBuffer,
-		image,
-		static_cast<uint32_t>(texWidth),
-		static_cast<uint32_t>(texHeight)
-	);
-	
-	vkUtils::generateMipmaps(device, physDevice, cmdPool, gfxQueue, image, VK_FORMAT_R8G8B8A8_SRGB, texWidth, texHeight, mipLevels);
+		device, cmdPool, gfxQueue,
+		stagingBuffer, image,
+		static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight)
+	))
+	{
+		vkUtils::printVkError("vkTextureClass::initImageAndView()", "Couldn't copy the staging buffer to the image.\n");
+		vkUtils::destroyBuffer(device, stagingBuffer, stagingBufferMemory);
+		return false;
+	}
+
+	if (!vkUtils::generateMipmaps
+	(
+		device, physDevice, cmdPool, gfxQueue,
+		image, VK_FORMAT_R8G8B8A8_SRGB, texWidth, texHeight, mipLevels
+	))
+	{
+		vkUtils::printVkError("vkTextureClass::initImageAndView()", "Couldn't generate the image mipmaps.\n");
+		vkUtils::destroyBuffer(device, stagingBuffer, stagingBufferMemory);
+		return false;
+	}
+
 	vkUtils::destroyBuffer(device, stagingBuffer, stagingBufferMemory);
 
 	// ----------------------------------------------------------------------------------------------------

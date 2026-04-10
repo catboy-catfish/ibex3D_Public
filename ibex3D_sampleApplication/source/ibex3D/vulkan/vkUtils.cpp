@@ -564,7 +564,7 @@ bool vkUtils::createImage(VkDevice device, VkPhysicalDevice physDevice, uint32_t
 	imageInfo.usage = usage;
 	imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	imageInfo.samples = numSamples;
-	imageInfo.flags = 0;	// Optional.
+	imageInfo.flags = 0;
 
 	VkResult result = vkCreateImage(device, &imageInfo, nullptr, &image);
 
@@ -750,7 +750,7 @@ bool vkUtils::generateMipmaps(VkDevice device, VkPhysicalDevice physDevice, VkCo
 
 	if (!(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT))
 	{
-		printVkError("vkUtils::generateMipmaps()", "Image format does not support linear blitting, which is required.");
+		printVkError("vkUtils::generateMipmaps()", "Image format is required to support linear blitting, but it does not.");
 		return false;
 	}
 

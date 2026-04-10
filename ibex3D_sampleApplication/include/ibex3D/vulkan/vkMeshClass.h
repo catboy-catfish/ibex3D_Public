@@ -1,18 +1,16 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
-
-#include <ibex3D/math/vec2.h>
-#include <ibex3D/math/vec3.h>
-
 #include <array>
 #include <vector>
 
+#include <vulkan/vulkan.h>
+#include <glm/glm.hpp>
+
 struct vkVertex
 {
-	vec3 position;
-	vec3 color;
-	vec2 texCoord;
+	glm::vec3 position;
+	glm::vec3 color;
+	glm::vec2 texCoord;
 
 	// ----------------------------------------------------------------------------------------------------
 	

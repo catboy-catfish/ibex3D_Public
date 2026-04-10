@@ -2,7 +2,6 @@
 #include <ibex3D/vulkan/vkUtils.h>
 
 #define GLM_ENABLE_EXPERIMENTAL
-#include <glm/glm.hpp>
 #include <glm/gtx/hash.hpp>
 
 #define TINYOBJLOADER_IMPLEMENTATION
@@ -17,16 +16,12 @@ namespace std
 	{
 		size_t operator()(vkVertex const& vertex) const
 		{
-			glm::vec3 pos = glm::vec3(vertex.position.x, vertex.position.y, vertex.position.z);
-			glm::vec3 col = glm::vec3(vertex.color.x, vertex.color.y, vertex.color.z);
-			glm::vec2 txc = glm::vec2(vertex.texCoord.x, vertex.texCoord.y);
-
 			// The ^ is the bitwise XOR operator
 			// TODO: Look into hashing to better understand this bullshit
 
-			return	((hash<glm::vec3>()(pos) ^ 
-					(hash<glm::vec3>()(col) << 1)) >> 1) ^ 
-					(hash<glm::vec2>()(txc) << 1);
+			return	((hash<glm::vec3>()(vertex.position) ^ 
+					(hash<glm::vec3>()(vertex.color) << 1)) >> 1) ^ 
+					(hash<glm::vec2>()(vertex.texCoord) << 1);
 		}
 	};
 }

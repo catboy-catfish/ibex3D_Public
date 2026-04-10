@@ -1,26 +1,35 @@
 #include <ibex3D/vulkan/vkRenderingContext.h>
 #include <ibex3D/vulkan/vkUtils.h>
-
-#include <ibex3D/core/win32.h>
-#include <vulkan/vulkan_win32.h>
-
 #include <ibex3D/utility/miscellaneous.h>
 
 #include <map>
 #include <set>
 #include <stdio.h>
 
+#include <ibex3D/core/win32.h>
+#include <vulkan/vulkan_win32.h>
+
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+
+// ----------------------------------------------------------------------------------------------------
 
 #define MAX_FRAMES_IN_FLIGHT 2
 
-static std::vector<const char*> instExtensionNames = { VK_KHR_WIN32_SURFACE_EXTENSION_NAME, VK_KHR_SURFACE_EXTENSION_NAME };
-static std::vector<const char*> deviceExtensionNames = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
-static std::vector<const char*> instLayerNames;
+static std::vector<const char*> instanceExtensions;
+static std::vector<const char*> instanceLayers;
+static std::vector<const char*> deviceExtensions;
 
-// - Public functions ---------------------------------------------------------------------------------
+struct vkUniformBufferData
+{
+	glm::mat4 modelMatrix;
+	glm::mat4 viewMatrix;
+	glm::mat4 projMatrix;
+};
+
+// ----------------------------------------------------------------------------------------------------
 
 bool vkRenderingContext::initialize(void* wndMemory)
 {		
@@ -71,11 +80,10 @@ bool vkRenderingContext::drawFrame()
 		return false;
 	}
 
-	updateUniformBuffer(m_currentFrame);
-
 	vkResetFences(m_logicalDevice, 1, &m_frameFences[m_currentFrame]);
 	vkResetCommandBuffer(m_commandBuffers[m_currentFrame], 0);
 
+	updateUniformBuffer(m_currentFrame);
 	recordCommandBuffer(m_commandBuffers[m_currentFrame], imageIndex);
 
 	// - Submitting command buffer ------------------------------------------------------------------------
@@ -139,13 +147,9 @@ void vkRenderingContext::cleanup()
 	cleanupInstance();
 }
 
-// ----------------------------------------------------------------------------------------------------
-// - Main functions -----------------------------------------------------------------------------------
-// ----------------------------------------------------------------------------------------------------
-
 bool vkRenderingContext::initInstance()
 {
-	configureRequiredExtensions();
+	configureRequiredStuff();
 
 #ifdef IBEX3D_VULKAN_VALIDATION
 	if (!checkInstanceLayerSupport())
@@ -166,15 +170,15 @@ bool vkRenderingContext::initInstance()
 	VkInstanceCreateInfo instanceInfo = {};
 	instanceInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 	instanceInfo.pApplicationInfo = &applicationInfo;
-	instanceInfo.ppEnabledExtensionNames = instExtensionNames.data();
-	instanceInfo.enabledExtensionCount = static_cast<uint32_t>(instExtensionNames.size());
+	instanceInfo.ppEnabledExtensionNames = instanceExtensions.data();
+	instanceInfo.enabledExtensionCount = static_cast<uint32_t>(instanceExtensions.size());
 
 #ifdef IBEX3D_VULKAN_VALIDATION
 	VkDebugUtilsMessengerCreateInfoEXT messengerInfo = {};
 	vkUtils::populateDebugMessengerCreateInfo(messengerInfo);
 
-	instanceInfo.ppEnabledLayerNames = instLayerNames.data();
-	instanceInfo.enabledLayerCount = static_cast<uint32_t>(instLayerNames.size());
+	instanceInfo.ppEnabledLayerNames = instanceLayers.data();
+	instanceInfo.enabledLayerCount = static_cast<uint32_t>(instanceLayers.size());
 	instanceInfo.pNext = static_cast<void*>(&messengerInfo);
 #else
 	instanceInfo.enabledLayerCount = 0;
@@ -308,12 +312,12 @@ bool vkRenderingContext::initLogicalDevice()
 	logicalDeviceInfo.pEnabledFeatures = &deviceFeatures;
 	logicalDeviceInfo.queueCreateInfoCount = static_cast<uint32_t>(queueInfos.size());
 	logicalDeviceInfo.pQueueCreateInfos = queueInfos.data();
-	logicalDeviceInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensionNames.size());
-	logicalDeviceInfo.ppEnabledExtensionNames = deviceExtensionNames.data();
+	logicalDeviceInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
+	logicalDeviceInfo.ppEnabledExtensionNames = deviceExtensions.data();
 
 #ifdef IBEX3D_VULKAN_VALIDATION
-	logicalDeviceInfo.enabledLayerCount = static_cast<uint32_t>(instLayerNames.size());
-	logicalDeviceInfo.ppEnabledLayerNames = instLayerNames.data();
+	logicalDeviceInfo.enabledLayerCount = static_cast<uint32_t>(instanceLayers.size());
+	logicalDeviceInfo.ppEnabledLayerNames = instanceLayers.data();
 #else
 	logicalDeviceInfo.enabledLayerCount = 0;
 #endif
@@ -1465,17 +1469,26 @@ void vkRenderingContext::cleanupInstance()
 // - Helper functions ---------------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------
 
-void vkRenderingContext::configureRequiredExtensions()
+void vkRenderingContext::configureRequiredStuff()
 {
+	instanceExtensions.clear();
+	instanceExtensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+	instanceExtensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
+
 #ifdef IBEX3D_VULKAN_VALIDATION
-	instExtensionNames.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-	instLayerNames.push_back("VK_LAYER_KHRONOS_validation");
+	instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+	
+	instanceLayers.clear();
+	instanceLayers.push_back("VK_LAYER_KHRONOS_validation");
 #endif
+
+	deviceExtensions.clear();
+	deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 }
 
 bool vkRenderingContext::checkInstanceLayerSupport()
 {
-	if (instLayerNames.empty()) return true;
+	if (instanceLayers.empty()) return true;
 
 #ifdef IBEX3D_VULKAN_VALIDATION
 	uint32_t layerCount = 0;
@@ -1484,7 +1497,7 @@ bool vkRenderingContext::checkInstanceLayerSupport()
 	std::vector<VkLayerProperties> availableLayers(layerCount);
 	vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
 
-	for (const char* layerName : instLayerNames)
+	for (const char* layerName : instanceLayers)
 	{
 		bool layerFound = false;
 		
@@ -1517,8 +1530,8 @@ bool vkRenderingContext::checkPhysicalDeviceExtensionSupport(VkPhysicalDevice de
 
 	std::set<std::string> extensions
 	(
-		deviceExtensionNames.begin(),
-		deviceExtensionNames.end()
+		deviceExtensions.begin(),
+		deviceExtensions.end()
 	);
 
 	for (const auto& extension : availableExtensions)
