@@ -442,7 +442,7 @@ bool vkUtils::createBuffer(VkDevice device, VkPhysicalDevice physDevice, VkDevic
 	(
 		physDevice,
 		memRequirements.memoryTypeBits,
-		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+		memProperties,
 		memoryType
 	))
 	{
