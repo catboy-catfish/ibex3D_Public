@@ -1,4 +1,4 @@
-#include <ibex3D/vulkan/vkUtils.h>
+#include <ibex3D/vulkan/utils.h>
 
 #include <ibex3D/utility/miscellaneous.h>
 
@@ -418,6 +418,7 @@ bool vkUtils::findMemoryType(VkPhysicalDevice physDevice, uint32_t typeFilter, V
 	return false;
 }
 
+/*
 bool vkUtils::createBuffer(VkDevice device, VkPhysicalDevice physDevice, VkDeviceSize bufferSize, VkBufferUsageFlags bufferUsage, VkMemoryPropertyFlags memProperties, VkBuffer& buffer, VkDeviceMemory& bufferMem)
 {
 	VkBufferCreateInfo bufferInfo = {};
@@ -497,6 +498,7 @@ void vkUtils::destroyBuffer(VkDevice device, VkBuffer& buffer, VkDeviceMemory& b
 		bufferMem = nullptr;
 	}
 }
+*/
 
 // ----------------------------------------------------------------------------------------------------
 // - Depth buffers ------------------------------------------------------------------------------------

@@ -1,6 +1,7 @@
 #pragma once
-#include <ibex3D/vulkan/vkMeshClass.h>
-#include <ibex3D/vulkan/vkTextureClass.h>
+#include <ibex3D/vulkan/meshObject.h>
+#include <ibex3D/vulkan/textureObject.h>
+#include <ibex3D/vulkan/persistentBufferObject.h>
 
 class vkRenderingContext
 {
@@ -72,21 +73,19 @@ private:
 	VkExtent2D m_swapchainExtent = {};
 	uint32_t m_currentFrame = 0;
 	uint32_t m_swapchainImageCount = 0;
-
+	
 	std::vector<VkImage> m_swapchainImages;
 	std::vector<VkImageView> m_swapchainImageViews;
 	std::vector<VkFramebuffer> m_swapchainFramebuffers;
-	std::vector<VkBuffer> m_uniformBuffers;
-	std::vector<VkDeviceMemory> m_uniformBuffersMemory;
-	std::vector<void*> m_uniformBuffersMapped;
+	std::vector<vkPersistentBufferObject> m_uniformBuffers;
 	std::vector<VkDescriptorSet> m_descriptorSets;
 	std::vector<VkCommandBuffer> m_commandBuffers;
 	std::vector<VkSemaphore> m_swapchainSemaphores;
 	std::vector<VkSemaphore> m_frameSemaphores;
 	std::vector<VkFence> m_frameFences;
 
-	vkTextureClass m_textureClass;
-	vkMeshClass m_meshClass;
+	vkTextureObject m_textureClass;
+	vkMeshObject m_meshClass;
 
 	float m_currentMeshRotation = 0.0f;
 	bool m_wasJustResized = false;

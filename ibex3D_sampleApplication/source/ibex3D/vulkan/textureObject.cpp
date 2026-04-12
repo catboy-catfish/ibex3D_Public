@@ -1,5 +1,6 @@
-#include <ibex3D/vulkan/vkTextureClass.h>
-#include <ibex3D/vulkan/vkUtils.h>
+#include <ibex3D/vulkan/textureObject.h>
+#include <ibex3D/vulkan/bufferObject.h>
+#include <ibex3D/vulkan/utils.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/image.h>
@@ -7,46 +8,44 @@
 #include <algorithm>
 #include <cmath>
 
-bool vkTextureClass::initImageAndView(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue, const char* imgFilePath)
+bool vkTextureObject::initImageAndView(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue, const char* imgFilePath)
 {
 	int texWidth, texHeight, texChannels;
 	stbi_uc* pixels = stbi_load(imgFilePath, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 
 	if (pixels == nullptr)
 	{
-		vkUtils::printVkError("vkTextureClass::initImageAndView()", "Couldn't load the texture data.\n");
+		vkUtils::printVkError("vkTextureObject::initImageAndView()", "Couldn't load the texture data.\n");
 		return false;
 	}
 
-	mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))) + 1;
-
 	VkDeviceSize imageSize = texWidth * texHeight * 4;
 
-	VkBuffer stagingBuffer = nullptr;
-	VkDeviceMemory stagingBufferMemory = nullptr;
-
-	if (!vkUtils::createBuffer
+	vkBufferObject stagingBuffer;
+	if (!stagingBuffer.initialize
 	(
 		device,
 		physDevice,
 		imageSize,
 		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-		stagingBuffer,
-		stagingBufferMemory
+		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
 	))
 	{
-		vkUtils::printVkError("vkTextureClass::initImageAndView()", "Couldn't create the staging buffer and allocate memory.\n");
+		vkUtils::printVkError("vkTextureObject::initImageAndView()", "Couldn't create the staging buffer and allocate memory.\n");
 		stbi_image_free(pixels);
 		return false;
 	}
 
-	void* data;
-	vkMapMemory(device, stagingBufferMemory, 0, imageSize, 0, &data);
-	memcpy(data, pixels, static_cast<uint32_t>(imageSize));
-	vkUnmapMemory(device, stagingBufferMemory);
+	if (!stagingBuffer.updateBufferData(device, imageSize, pixels))
+	{
+		vkUtils::printVkError("vkTextureObject::initImageAndView()", "Couldn't update the staging buffer data.\n");
+		stbi_image_free(pixels);
+		return false;
+	}
 
 	stbi_image_free(pixels);
+
+	mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))) + 1;
 
 	if (!vkUtils::createImage
 	(
@@ -57,8 +56,8 @@ bool vkTextureClass::initImageAndView(VkDevice device, VkPhysicalDevice physDevi
 		image, imageMemory
 	))
 	{
-		vkUtils::printVkError("vkTextureClass::initImageAndView()", "Couldn't create the image.\n");
-		vkUtils::destroyBuffer(device, stagingBuffer, stagingBufferMemory);
+		vkUtils::printVkError("vkTextureObject::initImageAndView()", "Couldn't create the image.\n");
+		stagingBuffer.cleanup(device);
 		return false;
 	}
 
@@ -69,20 +68,20 @@ bool vkTextureClass::initImageAndView(VkDevice device, VkPhysicalDevice physDevi
 		VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
 	))
 	{
-		vkUtils::printVkError("vkTextureClass::initImageAndView()", "Couldn't transition the image layout.\n");
-		vkUtils::destroyBuffer(device, stagingBuffer, stagingBufferMemory);
+		vkUtils::printVkError("vkTextureObject::initImageAndView()", "Couldn't transition the image layout.\n");
+		stagingBuffer.cleanup(device);
 		return false;
 	}
 
 	if (!vkUtils::copyBufferToImage
 	(
 		device, cmdPool, gfxQueue,
-		stagingBuffer, image,
+		stagingBuffer.buffer, image,
 		static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight)
 	))
 	{
-		vkUtils::printVkError("vkTextureClass::initImageAndView()", "Couldn't copy the staging buffer to the image.\n");
-		vkUtils::destroyBuffer(device, stagingBuffer, stagingBufferMemory);
+		vkUtils::printVkError("vkTextureObject::initImageAndView()", "Couldn't copy the staging buffer to the image.\n");
+		stagingBuffer.cleanup(device);
 		return false;
 	}
 
@@ -92,12 +91,12 @@ bool vkTextureClass::initImageAndView(VkDevice device, VkPhysicalDevice physDevi
 		image, VK_FORMAT_R8G8B8A8_SRGB, texWidth, texHeight, mipLevels
 	))
 	{
-		vkUtils::printVkError("vkTextureClass::initImageAndView()", "Couldn't generate the image mipmaps.\n");
-		vkUtils::destroyBuffer(device, stagingBuffer, stagingBufferMemory);
+		vkUtils::printVkError("vkTextureObject::initImageAndView()", "Couldn't generate the image mipmaps.\n");
+		stagingBuffer.cleanup(device);
 		return false;
 	}
 
-	vkUtils::destroyBuffer(device, stagingBuffer, stagingBufferMemory);
+	stagingBuffer.cleanup(device);
 
 	// ----------------------------------------------------------------------------------------------------
 
@@ -105,14 +104,14 @@ bool vkTextureClass::initImageAndView(VkDevice device, VkPhysicalDevice physDevi
 
 	if (imageView == nullptr)
 	{
-		vkUtils::printVkError("vkTextureClass::initImageView()", "Couldn't create the image view.\n");
+		vkUtils::printVkError("vkTextureObject::initImageView()", "Couldn't create the image view.\n");
 		return false;
 	}
 
 	return true;
 }
 
-bool vkTextureClass::initSampler(VkDevice device, VkPhysicalDevice physDevice)
+bool vkTextureObject::initSampler(VkDevice device, VkPhysicalDevice physDevice)
 {
 	VkPhysicalDeviceProperties pdProperties = {};
 	vkGetPhysicalDeviceProperties(physDevice, &pdProperties);
@@ -144,7 +143,7 @@ bool vkTextureClass::initSampler(VkDevice device, VkPhysicalDevice physDevice)
 	return true;
 }
 
-bool vkTextureClass::initialize(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue, const char* imgFilePath)
+bool vkTextureObject::initialize(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue, const char* imgFilePath)
 {
 	if (!initImageAndView(device, physDevice, cmdPool, gfxQueue, imgFilePath))
 	{
@@ -159,7 +158,7 @@ bool vkTextureClass::initialize(VkDevice device, VkPhysicalDevice physDevice, Vk
 	return true;
 }
 
-void vkTextureClass::cleanup(VkDevice device)
+void vkTextureObject::cleanup(VkDevice device)
 {
 	if (sampler != nullptr)
 	{

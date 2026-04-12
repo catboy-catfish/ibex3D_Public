@@ -1,5 +1,5 @@
-#include <ibex3D/vulkan/vkRenderingContext.h>
-#include <ibex3D/vulkan/vkUtils.h>
+#include <ibex3D/vulkan/renderingContext.h>
+#include <ibex3D/vulkan/utils.h>
 #include <ibex3D/utility/miscellaneous.h>
 
 #include <map>
@@ -984,33 +984,28 @@ bool vkRenderingContext::initModelAndTexture()
 
 bool vkRenderingContext::initUniformBuffers()
 {
-	VkDeviceSize bufferSize = sizeof(vkUniformBufferData);
-
 	m_uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
-	m_uniformBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
-	m_uniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
+	
+	VkDeviceSize bufferSize = sizeof(vkUniformBufferData);
 
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 	{
-		if (!vkUtils::createBuffer
+		if (!m_uniformBuffers[i].initialize
 		(
 			m_logicalDevice,
 			m_physicalDevice,
 			bufferSize,
 			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-			m_uniformBuffers[i],
-			m_uniformBuffersMemory[i]
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
 		))
 		{
+			vkUtils::printVkError("vkRenderingContext::initUniformBuffers()", "Couldn't initialize one or more uniform buffers.");
 			return false;
 		}
 
-		VkResult result = vkMapMemory(m_logicalDevice, m_uniformBuffersMemory[i], 0, bufferSize, 0, &m_uniformBuffersMapped[i]);
-
-		if (result != VK_SUCCESS)
+		if (!m_uniformBuffers[i].mapBufferData(m_logicalDevice, bufferSize))
 		{
-			vkUtils::printVkResultError(result, "vkRenderingContext::initUniformBuffers()", "Couldn't map the uniform buffer memory.");
+			vkUtils::printVkError("vkRenderingContext::initUniformBuffers()", "Couldn't map the memory for one or more uniform buffers.");
 			return false;
 		}
 	}
@@ -1063,7 +1058,7 @@ bool vkRenderingContext::initDescriptorPoolAndSets()
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 	{
 		VkDescriptorBufferInfo bufferInfo = {};
-		bufferInfo.buffer = m_uniformBuffers[i];
+		bufferInfo.buffer = m_uniformBuffers[i].buffer;
 		bufferInfo.offset = 0;
 		bufferInfo.range = sizeof(vkUniformBufferData);
 
@@ -1171,7 +1166,7 @@ void vkRenderingContext::updateUniformBuffer(uint32_t currentImage)
 	data.projMatrix = glm::perspective(glm::radians(45.0f), m_swapchainExtent.width / (float)m_swapchainExtent.height, 0.1f, 10.0f);
 	data.projMatrix[1][1] *= -1.0f;
 
-	memcpy(m_uniformBuffersMapped[currentImage], &data, sizeof(data));
+	m_uniformBuffers[currentImage].setBufferData(sizeof(data), &data);
 }
 
 bool vkRenderingContext::recordCommandBuffer(VkCommandBuffer buffer, uint32_t imageIndex)
@@ -1358,20 +1353,11 @@ void vkRenderingContext::cleanupLogicalDevice()
 
 		for (auto& buffer : m_uniformBuffers)
 		{
-			vkDestroyBuffer(m_logicalDevice, buffer, nullptr);
-			buffer = nullptr;
+			buffer.unmapBufferData(m_logicalDevice);
+			buffer.cleanup(m_logicalDevice);
 		}
 
 		m_uniformBuffers.clear();
-
-		for (auto& memory : m_uniformBuffersMemory)
-		{
-			vkUnmapMemory(m_logicalDevice, memory);
-			vkFreeMemory(m_logicalDevice, memory, nullptr);
-			memory = nullptr;
-		}
-
-		m_uniformBuffersMemory.clear();
 
 		m_meshClass.cleanup(m_logicalDevice);
 		m_textureClass.cleanup(m_logicalDevice);

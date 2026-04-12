@@ -1,7 +1,7 @@
 #include <sampleApp/appInterface.h>
 
 #include <ibex3D/core/appRuntime.h>
-#include <ibex3D/vulkan/vkRenderingContext.h>
+#include <ibex3D/vulkan/renderingContext.h>
 
 /*
 	Win32 virtual key codes.

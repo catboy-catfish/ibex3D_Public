@@ -1,9 +1,10 @@
 #pragma once
 
+#include <ibex3D/vulkan/bufferObject.h>
+
 #include <array>
 #include <vector>
 
-#include <vulkan/vulkan.h>
 #include <glm/glm.hpp>
 
 struct vkVertex
@@ -25,12 +26,10 @@ struct vkVertex
 	static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescs();
 };
 
-struct vkMeshClass
+struct vkMeshObject
 {	
-	VkBuffer vtxBuffer = nullptr;
-	VkBuffer idxBuffer = nullptr;
-	VkDeviceMemory vtxBufferMemory = nullptr;
-	VkDeviceMemory idxBufferMemory = nullptr;
+	vkBufferObject vertexBuffer;
+	vkBufferObject indexBuffer;
 
 	std::vector<vkVertex> vertices;
 	std::vector<uint32_t> indices;

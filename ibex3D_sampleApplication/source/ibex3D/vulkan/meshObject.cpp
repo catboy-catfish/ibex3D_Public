@@ -1,5 +1,5 @@
-#include <ibex3D/vulkan/vkMeshClass.h>
-#include <ibex3D/vulkan/vkUtils.h>
+#include <ibex3D/vulkan/meshObject.h>
+#include <ibex3D/vulkan/utils.h>
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/hash.hpp>
@@ -64,7 +64,7 @@ std::array<VkVertexInputAttributeDescription, 3> vkVertex::getAttributeDescs()
 
 // ----------------------------------------------------------------------------------------------------
 
-void vkMeshClass::initSimpleModel()
+void vkMeshObject::initSimpleModel()
 {
 	vertices =
 	{
@@ -80,7 +80,7 @@ void vkMeshClass::initSimpleModel()
 	};
 }
 
-bool vkMeshClass::loadObjFromFile(const char* objFilePath)
+bool vkMeshObject::loadObjFromFile(const char* objFilePath)
 {
 	tinyobj::attrib_t attrib;
 	std::vector<tinyobj::shape_t> shapes;
@@ -89,7 +89,7 @@ bool vkMeshClass::loadObjFromFile(const char* objFilePath)
 
 	if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, objFilePath))
 	{
-		vkUtils::printVkError("vkMeshClass::loadObjFromFile()", "Couldn't load the model file.");
+		vkUtils::printVkError("vkMeshObject::loadObjFromFile()", "Couldn't load the model file.");
 		return false;
 	}
 
@@ -135,143 +135,109 @@ bool vkMeshClass::loadObjFromFile(const char* objFilePath)
 	return true;
 }
 
-bool vkMeshClass::initVertexBuffer(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue)
+bool vkMeshObject::initVertexBuffer(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue)
 {
 	VkDeviceSize bufferSize = vertices.size() * sizeof(vertices[0]);
 
-	VkBuffer stagingBuffer = nullptr;
-	VkDeviceMemory stagingBufferMemory = nullptr;
+	vkBufferObject stagingBuffer;
 
-	bool result = vkUtils::createBuffer
+	if (!stagingBuffer.initialize
 	(
 		device,
 		physDevice,
 		bufferSize,
 		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-		stagingBuffer,
-		stagingBufferMemory
-	);
-
-	if (!result)
+		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+	))
 	{
-		vkUtils::printVkError("vkMeshClass::initVertexBuffer()", "Couldn't create the staging buffer.");
+		vkUtils::printVkError("vkMeshObject::initVertexBuffer()", "Couldn't create the staging buffer.");
 		return false;
 	}
 
-	void* data;
-	vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
-	memcpy(data, vertices.data(), static_cast<size_t>(bufferSize));
-	vkUnmapMemory(device, stagingBufferMemory);
+	if (!stagingBuffer.updateBufferData(device, bufferSize, vertices.data()))
+	{
+		vkUtils::printVkError("vkMeshObject::initVertexBuffer()", "Couldn't set the staging buffer data.");
+		stagingBuffer.cleanup(device);
+		return false;
+	}
 
-	result = vkUtils::createBuffer
+	if (!vertexBuffer.initialize
 	(
 		device,
 		physDevice,
 		bufferSize,
 		VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-		vtxBuffer,
-		vtxBufferMemory
-	);
-
-	if (!result)
+		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+	))
 	{
-		vkUtils::printVkError("vkMeshClass::initVertexBuffer()", "Couldn't create the vertex buffer.");
-		vkUtils::destroyBuffer(device, stagingBuffer, stagingBufferMemory);
+		vkUtils::printVkError("vkMeshObject::initVertexBuffer()", "Couldn't create the vertex buffer.");
+		stagingBuffer.cleanup(device);
 		return false;
 	}
 
-	result = vkUtils::copyBuffer
-	(
-		device,
-		cmdPool,
-		gfxQueue,
-		stagingBuffer,
-		vtxBuffer,
-		bufferSize
-	);
-
-	if (!result)
+	if (!vertexBuffer.cmdCopyBuffer(device, cmdPool, gfxQueue, bufferSize, stagingBuffer.buffer))
 	{
-		vkUtils::printVkError("vkMeshClass::initVertexBuffer()", "Couldn't copy the staging buffer memory to the vertex buffer.");
-		vkUtils::destroyBuffer(device, stagingBuffer, stagingBufferMemory);
+		vkUtils::printVkError("vkMeshObject::initVertexBuffer()", "Couldn't copy the staging buffer memory to the vertex buffer.");
+		stagingBuffer.cleanup(device);
 		return false;
 	}
 
-	vkUtils::destroyBuffer(device, stagingBuffer, stagingBufferMemory);
+	stagingBuffer.cleanup(device);
 	return true;
 }
 
-bool vkMeshClass::initIndexBuffer(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue)
+bool vkMeshObject::initIndexBuffer(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue)
 {
 	VkDeviceSize bufferSize = indices.size() * sizeof(indices[0]);
 
-	VkBuffer stagingBuffer = nullptr;
-	VkDeviceMemory stagingBufferMemory = nullptr;
+	vkBufferObject stagingBuffer;
 
-	bool result = vkUtils::createBuffer
+	if (!stagingBuffer.initialize
 	(
 		device,
 		physDevice,
 		bufferSize,
 		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-		stagingBuffer,
-		stagingBufferMemory
-	);
-
-	if (!result)
+		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+	))
 	{
-		vkUtils::printVkError("vkMeshClass::initIndexBuffer()", "Couldn't create the staging buffer.");
+		vkUtils::printVkError("vkMeshObject::initIndexBuffer()", "Couldn't create the staging buffer.");
 		return false;
 	}
 
-	void* data;
-	vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
-	memcpy(data, indices.data(), static_cast<size_t>(bufferSize));
-	vkUnmapMemory(device, stagingBufferMemory);
+	if (!stagingBuffer.updateBufferData(device, bufferSize, indices.data()))
+	{
+		vkUtils::printVkError("vkMeshObject::initIndexBuffer()", "Couldn't set the staging buffer data.");
+		stagingBuffer.cleanup(device);
+		return false;
+	}
 
-	result = vkUtils::createBuffer
+	if (!indexBuffer.initialize
 	(
 		device,
 		physDevice,
 		bufferSize,
 		VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-		idxBuffer,
-		idxBufferMemory
-	);
-
-	if (!result)
+		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+	))
 	{
-		vkUtils::printVkError("vkMeshClass::initIndexBuffer()", "Couldn't create the index buffer.");
-		vkUtils::destroyBuffer(device, stagingBuffer, stagingBufferMemory);
+		vkUtils::printVkError("vkMeshObject::initIndexBuffer()", "Couldn't create the index buffer.");
+		stagingBuffer.cleanup(device);
 		return false;
 	}
 
-	result = vkUtils::copyBuffer
-	(
-		device,
-		cmdPool,
-		gfxQueue,
-		stagingBuffer,
-		idxBuffer,
-		bufferSize
-	);
-
-	if (!result)
+	if (!indexBuffer.cmdCopyBuffer(device, cmdPool, gfxQueue, bufferSize, stagingBuffer.buffer))
 	{
-		vkUtils::printVkError("vkMeshClass::initVertexBuffer()", "Couldn't copy the staging buffer memory to the index buffer.");
-		vkUtils::destroyBuffer(device, stagingBuffer, stagingBufferMemory);
+		vkUtils::printVkError("vkMeshObject::initIndexBuffer()", "Couldn't copy the staging buffer memory to the index buffer.");
+		stagingBuffer.cleanup(device);
 		return false;
 	}
 
-	vkUtils::destroyBuffer(device, stagingBuffer, stagingBufferMemory);
+	stagingBuffer.cleanup(device);
 	return true;
 }
 
-bool vkMeshClass::initialize(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue, const char* meshFilePath)
+bool vkMeshObject::initialize(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue, const char* meshFilePath)
 {
 	if (!loadObjFromFile(meshFilePath))
 	{
@@ -291,20 +257,20 @@ bool vkMeshClass::initialize(VkDevice device, VkPhysicalDevice physDevice, VkCom
 	return true;
 }
 
-void vkMeshClass::draw(VkCommandBuffer buffer, VkPipelineLayout pipelineLayout, VkDescriptorSet descriptorSet)
+void vkMeshObject::draw(VkCommandBuffer buffer, VkPipelineLayout pipelineLayout, VkDescriptorSet descriptorSet)
 {
-	VkBuffer vertexBuffers[] = { vtxBuffer };
+	VkBuffer vertexBuffers[] = { vertexBuffer.buffer };
 	VkDeviceSize offsets[] = { 0 };
 
 	vkCmdBindVertexBuffers(buffer, 0, 1, vertexBuffers, offsets);
-	vkCmdBindIndexBuffer(buffer, idxBuffer, 0, VK_INDEX_TYPE_UINT32);
+	vkCmdBindIndexBuffer(buffer, indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
 	vkCmdBindDescriptorSets(buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
 
 	vkCmdDrawIndexed(buffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 }
 
-void vkMeshClass::cleanup(VkDevice device)
+void vkMeshObject::cleanup(VkDevice device)
 {	
-	vkUtils::destroyBuffer(device, idxBuffer, idxBufferMemory);
-	vkUtils::destroyBuffer(device, vtxBuffer, vtxBufferMemory);
+	indexBuffer.cleanup(device);
+	vertexBuffer.cleanup(device);
 }

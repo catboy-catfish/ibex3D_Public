@@ -2,7 +2,7 @@
 
 #include <vulkan/vulkan.h>
 
-struct vkTextureClass
+struct vkTextureObject
 {
 	VkImage image = nullptr;
 	VkDeviceMemory imageMemory = nullptr;
