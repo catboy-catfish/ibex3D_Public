@@ -129,15 +129,15 @@ bool vkMeshObject::loadObjFromFile(const char* objFilePath)
 		}
 	}
 
-	auto numVertices = vertices.size();
-	auto numIndices = indices.size();
-
 	return true;
 }
 
-bool vkMeshObject::initVertexBuffer(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue)
+bool vkMeshObject::initVertexIndexBuffer(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue)
 {
-	VkDeviceSize bufferSize = vertices.size() * sizeof(vertices[0]);
+	vtxBufferSize = sizeof(vertices[0]) * vertices.size();
+	
+	VkDeviceSize idxBufferSize = sizeof(indices[0]) * indices.size();
+	VkDeviceSize combinedBufferSize = vtxBufferSize + idxBufferSize;
 
 	vkBufferObject stagingBuffer;
 
@@ -145,90 +145,40 @@ bool vkMeshObject::initVertexBuffer(VkDevice device, VkPhysicalDevice physDevice
 	(
 		device,
 		physDevice,
-		bufferSize,
+		combinedBufferSize,
 		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
 	))
 	{
-		vkUtils::printVkError("vkMeshObject::initVertexBuffer()", "Couldn't create the staging buffer.");
+		vkUtils::printVkError("vkMeshObject::initVertexIndexBuffer()", "Couldn't create the staging buffer.");
 		return false;
 	}
 
-	if (!stagingBuffer.updateBufferData(device, bufferSize, vertices.data()))
-	{
-		vkUtils::printVkError("vkMeshObject::initVertexBuffer()", "Couldn't set the staging buffer data.");
-		stagingBuffer.cleanup(device);
-		return false;
-	}
+	void* data;
+	vkMapMemory(device, stagingBuffer.bufferMemory, 0, combinedBufferSize, 0, &data);
 
-	if (!vertexBuffer.initialize
+	memcpy(data, vertices.data(), vtxBufferSize);
+	memcpy(static_cast<char*>(data) + vtxBufferSize, indices.data(), idxBufferSize);	// I'd love to learn more about this because it looks dodgy as hell
+
+	vkUnmapMemory(device, stagingBuffer.bufferMemory);
+
+	if (!vtxIdxBuffer.initialize
 	(
 		device,
 		physDevice,
-		bufferSize,
-		VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+		combinedBufferSize,
+		VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
 		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
 	))
 	{
-		vkUtils::printVkError("vkMeshObject::initVertexBuffer()", "Couldn't create the vertex buffer.");
+		vkUtils::printVkError("vkMeshObject::initVertexIndexBuffer()", "Couldn't create the combined vertex-index buffer.");
 		stagingBuffer.cleanup(device);
 		return false;
 	}
 
-	if (!vertexBuffer.cmdCopyBuffer(device, cmdPool, gfxQueue, bufferSize, stagingBuffer.buffer))
+	if (!vtxIdxBuffer.cmdCopyBuffer(device, cmdPool, gfxQueue, combinedBufferSize, stagingBuffer.buffer))
 	{
-		vkUtils::printVkError("vkMeshObject::initVertexBuffer()", "Couldn't copy the staging buffer memory to the vertex buffer.");
-		stagingBuffer.cleanup(device);
-		return false;
-	}
-
-	stagingBuffer.cleanup(device);
-	return true;
-}
-
-bool vkMeshObject::initIndexBuffer(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue)
-{
-	VkDeviceSize bufferSize = indices.size() * sizeof(indices[0]);
-
-	vkBufferObject stagingBuffer;
-
-	if (!stagingBuffer.initialize
-	(
-		device,
-		physDevice,
-		bufferSize,
-		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
-	))
-	{
-		vkUtils::printVkError("vkMeshObject::initIndexBuffer()", "Couldn't create the staging buffer.");
-		return false;
-	}
-
-	if (!stagingBuffer.updateBufferData(device, bufferSize, indices.data()))
-	{
-		vkUtils::printVkError("vkMeshObject::initIndexBuffer()", "Couldn't set the staging buffer data.");
-		stagingBuffer.cleanup(device);
-		return false;
-	}
-
-	if (!indexBuffer.initialize
-	(
-		device,
-		physDevice,
-		bufferSize,
-		VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
-	))
-	{
-		vkUtils::printVkError("vkMeshObject::initIndexBuffer()", "Couldn't create the index buffer.");
-		stagingBuffer.cleanup(device);
-		return false;
-	}
-
-	if (!indexBuffer.cmdCopyBuffer(device, cmdPool, gfxQueue, bufferSize, stagingBuffer.buffer))
-	{
-		vkUtils::printVkError("vkMeshObject::initIndexBuffer()", "Couldn't copy the staging buffer memory to the index buffer.");
+		vkUtils::printVkError("vkMeshObject::initVertexIndexBuffer()", "Couldn't copy the staging memory to the combined vertex-index buffer.");
 		stagingBuffer.cleanup(device);
 		return false;
 	}
@@ -239,17 +189,9 @@ bool vkMeshObject::initIndexBuffer(VkDevice device, VkPhysicalDevice physDevice,
 
 bool vkMeshObject::initialize(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue, const char* meshFilePath)
 {
-	if (!loadObjFromFile(meshFilePath))
-	{
-		return false;
-	}
+	initSimpleModel();
 	
-	if (!initVertexBuffer(device, physDevice, cmdPool, gfxQueue))
-	{
-		return false;
-	}
-
-	if (!initIndexBuffer(device, physDevice, cmdPool, gfxQueue))
+	if (!initVertexIndexBuffer(device, physDevice, cmdPool, gfxQueue))
 	{
 		return false;
 	}
@@ -259,11 +201,10 @@ bool vkMeshObject::initialize(VkDevice device, VkPhysicalDevice physDevice, VkCo
 
 void vkMeshObject::draw(VkCommandBuffer buffer, VkPipelineLayout pipelineLayout, VkDescriptorSet descriptorSet)
 {
-	VkBuffer vertexBuffers[] = { vertexBuffer.buffer };
 	VkDeviceSize offsets[] = { 0 };
 
-	vkCmdBindVertexBuffers(buffer, 0, 1, vertexBuffers, offsets);
-	vkCmdBindIndexBuffer(buffer, indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
+	vkCmdBindVertexBuffers(buffer, 0, 1, &vtxIdxBuffer.buffer, offsets);
+	vkCmdBindIndexBuffer(buffer, vtxIdxBuffer.buffer, vtxBufferSize, VK_INDEX_TYPE_UINT32);
 	vkCmdBindDescriptorSets(buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
 
 	vkCmdDrawIndexed(buffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
@@ -271,6 +212,5 @@ void vkMeshObject::draw(VkCommandBuffer buffer, VkPipelineLayout pipelineLayout,
 
 void vkMeshObject::cleanup(VkDevice device)
 {	
-	indexBuffer.cleanup(device);
-	vertexBuffer.cleanup(device);
+	vtxIdxBuffer.cleanup(device);
 }

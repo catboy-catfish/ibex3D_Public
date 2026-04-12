@@ -28,8 +28,8 @@ struct vkVertex
 
 struct vkMeshObject
 {	
-	vkBufferObject vertexBuffer;
-	vkBufferObject indexBuffer;
+	vkBufferObject vtxIdxBuffer;
+	VkDeviceSize vtxBufferSize = 0;
 
 	std::vector<vkVertex> vertices;
 	std::vector<uint32_t> indices;
@@ -39,8 +39,7 @@ struct vkMeshObject
 	void initSimpleModel();
 	bool loadObjFromFile(const char* objFilePath);
 
-	bool initVertexBuffer(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue);
-	bool initIndexBuffer(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue);
+	bool initVertexIndexBuffer(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue);
 
 	bool initialize(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue, const char* meshFilePath);
 	void draw(VkCommandBuffer buffer, VkPipelineLayout pipelineLayout, VkDescriptorSet descriptorSet);

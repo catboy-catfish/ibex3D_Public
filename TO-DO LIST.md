@@ -18,7 +18,6 @@ Vulkan:
 - Fix the validation layer error that occurs during render pass creation whenever MSAA is disabled (VUID-VkSubpassDescription-pResolveAttachments-00848)
 - Find a way to compile GLSL code to SPIR-V bytecode at runtime with something like glslang or shaderc
 - Find a way to allocate the vertex, index and uniform buffer memory with one allocation
-- Find a way to consolidate the vertex, index and uniform buffers into one buffer using offsets
 - Investigate push constants as a replacement for uniform buffers
 
 Math vector types:
