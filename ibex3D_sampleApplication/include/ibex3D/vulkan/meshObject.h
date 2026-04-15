@@ -9,21 +9,25 @@
 
 struct vkVertex
 {
-	glm::vec3 position;
-	glm::vec3 color;
-	glm::vec2 texCoord;
+	glm::vec3 vertexPosition;
+	glm::vec3 vertexColor;
+	glm::vec3 vertexNormal;
+	glm::vec2 textureCoord;
 
 	// ----------------------------------------------------------------------------------------------------
 	
 	bool operator == (const vkVertex& other) const
 	{
-		return (position == other.position) && (color == other.color) && (texCoord == other.texCoord);
+		return	(vertexPosition == other.vertexPosition) && 
+				(vertexColor == other.vertexColor) && 
+				(vertexNormal == other.vertexNormal) &&
+				(textureCoord == other.textureCoord);
 	}
 	
 	// ----------------------------------------------------------------------------------------------------
 
 	static VkVertexInputBindingDescription getBindingDesc();
-	static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescs();
+	static std::array<VkVertexInputAttributeDescription, 4> getAttributeDescs();
 };
 
 struct vkMeshObject

@@ -1,6 +1,6 @@
-ibex3D doesn't have any license of its own right now, but I feel like putting it under the MIT license when it's ready.
+ibex3D doesn't have any license of its own right now, but when it's ready, I want to put it under something like the MIT license. Whatever license I pick for it, it is free and open-source software and I hope that never changes.
 
-
+---
 
 ibex3D uses multiple third-party libraries with various licenses:
 

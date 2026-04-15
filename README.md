@@ -1,6 +1,6 @@
 ### Notice: assets/models/viking_room.obbj
 
-I renamed the model file `viking_room.obbj` to get around the .gitignore, which seems to ignore all .obj files no matter if they're from Visual Studio or 3D modeling software. Please rename it to `viking_room.obj` for the application to run properly.
+I renamed the model file `viking_room.obbj` to get around the .gitignore, which seems to ignore all .obj files no matter if they're from Visual Studio or 3D modeling software. Please rename it to `viking_room.obj` for the application to work correctly. This also applies to `testcube.obbj`.
 
 ### Readme
 

@@ -477,10 +477,10 @@ bool vkRenderingContext::initDescriptorSetLayout()
 bool vkRenderingContext::initGraphicsPipeline()
 {
 	// TODO: Figure out how to compile the GLSL shaders into SPIR-V at runtime using libshaderc
-	auto vtxShaderBytecode = ibex3D_utilFunctions::readFile("assets/shaders/shader.vert.spv");
+	auto vtxShaderBytecode = ibex3D_utilFunctions::readFile("assets/shaders/shader_vert.spv");
 	if (vtxShaderBytecode.empty()) return false;
 
-	auto frgShaderBytecode = ibex3D_utilFunctions::readFile("assets/shaders/shader.frag.spv");
+	auto frgShaderBytecode = ibex3D_utilFunctions::readFile("assets/shaders/shader_frag.spv");
 	if (frgShaderBytecode.empty()) return false;
 
 	VkShaderModule vtxShaderModule = vkUtils::createShaderModuleFromSPIRV(m_logicalDevice, vtxShaderBytecode);
