@@ -46,6 +46,9 @@
     <ClInclude Include="include\ibex3D\vulkan\persistentBufferObject.h">
       <Filter>ibex3D\vulkan\persistentBufferObject</Filter>
     </ClInclude>
+    <ClInclude Include="include\ibex3D\vulkan\swapchainObject.h">
+      <Filter>ibex3D\vulkan\swapchainObject</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\ibex3D\core\appRuntime_win32.cpp">
@@ -89,6 +92,9 @@
     </ClCompile>
     <ClCompile Include="source\ibex3D\vulkan\persistentBufferObject.cpp">
       <Filter>ibex3D\vulkan\persistentBufferObject</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ibex3D\vulkan\swapchainObject.cpp">
+      <Filter>ibex3D\vulkan\swapchainObject</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -166,6 +172,9 @@
     </Filter>
     <Filter Include="ibex3D\vulkan\persistentBufferObject">
       <UniqueIdentifier>{b6a67694-3fa3-47a9-9c14-75d672694516}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\vulkan\swapchainObject">
+      <UniqueIdentifier>{e71addf2-50eb-417e-9540-18ae4f6c94fa}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

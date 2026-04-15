@@ -158,7 +158,7 @@ bool vkMeshObject::initVertexIndexBuffer(VkDevice device, VkPhysicalDevice physD
 	vkMapMemory(device, stagingBuffer.bufferMemory, 0, combinedBufferSize, 0, &data);
 
 	memcpy(data, vertices.data(), vtxBufferSize);
-	memcpy(static_cast<char*>(data) + vtxBufferSize, indices.data(), idxBufferSize);	// I'd love to learn more about this because it looks dodgy as hell
+	memcpy(static_cast<char*>(data) + vtxBufferSize, indices.data(), idxBufferSize);	// "static_cast<char*>(data) + vtxBufferSize" is pointer arithmetic, right?
 
 	vkUnmapMemory(device, stagingBuffer.bufferMemory);
 
@@ -189,7 +189,10 @@ bool vkMeshObject::initVertexIndexBuffer(VkDevice device, VkPhysicalDevice physD
 
 bool vkMeshObject::initialize(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue, const char* meshFilePath)
 {
-	initSimpleModel();
+	if (!loadObjFromFile(meshFilePath))
+	{
+		return false;
+	}
 	
 	if (!initVertexIndexBuffer(device, physDevice, cmdPool, gfxQueue))
 	{

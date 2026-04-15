@@ -45,8 +45,7 @@ bool vkRenderingContext::initialize(void* wndMemory)
 	IBEX3D_BASSERT(initDescriptorSetLayout());
 	IBEX3D_BASSERT(initGraphicsPipeline());
 	IBEX3D_BASSERT(initCommandPool());
-	IBEX3D_BASSERT(initColorResources());
-	IBEX3D_BASSERT(initDepthResources());
+	IBEX3D_BASSERT(initSwapchainResources());
 	IBEX3D_BASSERT(initFramebuffers());
 	IBEX3D_BASSERT(initModelAndTexture());
 	IBEX3D_BASSERT(initUniformBuffers());
@@ -67,7 +66,7 @@ bool vkRenderingContext::drawFrame()
 	vkWaitForFences(m_logicalDevice, 1, &m_frameFences[m_currentFrame], VK_TRUE, UINT64_MAX);
 
 	uint32_t imageIndex = 0;
-	VkResult result = vkAcquireNextImageKHR(m_logicalDevice, m_swapchain, UINT64_MAX, m_frameSemaphores[m_currentFrame], nullptr, &imageIndex);
+	VkResult result = vkAcquireNextImageKHR(m_logicalDevice, m_swapchain.swapchain, UINT64_MAX, m_frameSemaphores[m_currentFrame], nullptr, &imageIndex);
 
 	if (result == VK_ERROR_OUT_OF_DATE_KHR)
 	{	
@@ -115,7 +114,7 @@ bool vkRenderingContext::drawFrame()
 	presentInfo.waitSemaphoreCount = 1;
 	presentInfo.swapchainCount = 1;
 	presentInfo.pWaitSemaphores = &m_swapchainSemaphores[imageIndex];
-	presentInfo.pSwapchains = &m_swapchain;
+	presentInfo.pSwapchains = &m_swapchain.swapchain;
 	presentInfo.pImageIndices = &imageIndex;
 	presentInfo.pResults = nullptr;
 
@@ -338,113 +337,18 @@ bool vkRenderingContext::initLogicalDevice()
 
 bool vkRenderingContext::initSwapchain(int wndWidth, int wndHeight)
 {	
-	vkSwapchainSupportInfo scSupport = vkUtils::querySwapchainSupport(m_physicalDevice, m_surface);
-
-	VkSurfaceFormatKHR format = vkUtils::chooseSurfaceFormat(scSupport.formats);
-	VkPresentModeKHR presentMode = vkUtils::choosePresentMode(scSupport.presentModes, m_useVsync);
-	VkExtent2D extent = vkUtils::chooseExtent(scSupport.capabilities, wndWidth, wndHeight);
-
-	m_swapchainImageCount = scSupport.capabilities.minImageCount + 1;
-
-	if ((scSupport.capabilities.maxImageCount > 0) && (m_swapchainImageCount > scSupport.capabilities.maxImageCount))
+	if (!m_swapchain.initSwapchain(m_logicalDevice, m_physicalDevice, m_surface, wndWidth, wndHeight, m_useVsync))
 	{
-		m_swapchainImageCount = scSupport.capabilities.maxImageCount;
-	}
-
-	VkSwapchainCreateInfoKHR swapchainInfo = {};
-	swapchainInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-	swapchainInfo.surface = m_surface;
-	swapchainInfo.minImageCount = m_swapchainImageCount;
-	swapchainInfo.imageFormat = format.format;
-	swapchainInfo.imageColorSpace = format.colorSpace;
-	swapchainInfo.imageExtent = extent;
-	swapchainInfo.imageArrayLayers = 1;
-	swapchainInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-
-	vkQueueFamilyIndices indices = vkUtils::findQueueFamilies(m_physicalDevice, m_surface);
-
-	if (!indices.isComplete())
-	{
-		vkUtils::printVkError("vkRenderingContext::initSwapchain()", "One or more of the required queue families are missing.");
 		return false;
 	}
-
-	uint32_t queueFamilyIndices[] =
-	{
-		static_cast<uint32_t>(indices.graphicsFamily),
-		static_cast<uint32_t>(indices.presentFamily),
-	};
-
-	if (indices.graphicsFamily != indices.presentFamily)
-	{
-		swapchainInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
-		swapchainInfo.queueFamilyIndexCount = 2;
-		swapchainInfo.pQueueFamilyIndices = queueFamilyIndices;
-	}
-	else
-	{
-		swapchainInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		swapchainInfo.queueFamilyIndexCount = 0;
-		swapchainInfo.pQueueFamilyIndices = nullptr;
-	}
-
-	swapchainInfo.preTransform = scSupport.capabilities.currentTransform;
-	swapchainInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-	swapchainInfo.presentMode = presentMode;
-	swapchainInfo.clipped = VK_TRUE;
-	swapchainInfo.oldSwapchain = VK_NULL_HANDLE;
-
-	VkResult result = vkCreateSwapchainKHR(m_logicalDevice, &swapchainInfo, nullptr, &m_swapchain);
-
-	if (result != VK_SUCCESS)
-	{
-		vkUtils::printVkResultError(result, "vkRenderingContext::initSwapchain()", "Couldn't create the swapchain.");
-		return false;
-	}
-
-	result = vkGetSwapchainImagesKHR(m_logicalDevice, m_swapchain, &m_swapchainImageCount, nullptr);
 	
-	if (result != VK_SUCCESS)
-	{
-		vkUtils::printVkResultError(result, "vkRenderingContext::initSwapchain()", "Couldn't get the number of swapchain images.");
-		return false;
-	}
-
-	m_swapchainImages.resize(m_swapchainImageCount);
-	
-	result = vkGetSwapchainImagesKHR(m_logicalDevice, m_swapchain, &m_swapchainImageCount, m_swapchainImages.data());
-
-	if (result != VK_SUCCESS)
-	{
-		vkUtils::printVkResultError(result, "vkRenderingContext::initSwapchain()", "Couldn't retrieve the images from the swapchain.");
-		return false;
-	}
-
-	m_swapchainImageFormat = format.format;
-	m_swapchainExtent = extent;
-
-	// ----------------------------------------------------------------------------------------------------
-
-	m_swapchainImageViews.resize(m_swapchainImages.size());
-
-	for (size_t i = 0; i < m_swapchainImages.size(); i++)
-	{
-		m_swapchainImageViews[i] = vkUtils::createImageView(m_logicalDevice, m_swapchainImages[i], 1, m_swapchainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
-
-		if (m_swapchainImageViews[i] == nullptr)
-		{
-			vkUtils::printVkError("vkRenderingContext::initSwapchain()", "Couldn't create one or more of the swapchain image views.");
-			return false;
-		}
-	}
-
 	return true;
 }
 
 bool vkRenderingContext::initRenderPass()
 {
 	VkAttachmentDescription colorAttachment = {};
-	colorAttachment.format = m_swapchainImageFormat;
+	colorAttachment.format = m_swapchain.imageFormat;
 	colorAttachment.samples = m_msaaSamples;
 	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -459,10 +363,7 @@ bool vkRenderingContext::initRenderPass()
 
 	VkAttachmentDescription depthAttachment = {};
 
-	bool success = false;
-	depthAttachment.format = vkUtils::findDepthFormat(m_physicalDevice, success);
-
-	if (!success)
+	if (!vkUtils::findDepthFormat(m_physicalDevice, depthAttachment.format))
 	{
 		vkUtils::printVkError("vkRenderingContext::initRenderPass()", "Couldn't find a suitable depth attachment format.");
 		return false;
@@ -481,7 +382,7 @@ bool vkRenderingContext::initRenderPass()
 	depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
 	VkAttachmentDescription colorAttachmentResolve = {};
-	colorAttachmentResolve.format = m_swapchainImageFormat;
+	colorAttachmentResolve.format = m_swapchain.imageFormat;
 	colorAttachmentResolve.samples = VK_SAMPLE_COUNT_1_BIT;
 	colorAttachmentResolve.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 	colorAttachmentResolve.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -515,7 +416,7 @@ bool vkRenderingContext::initRenderPass()
 		depthAttachment,
 		colorAttachmentResolve
 	};
-	
+
 	VkRenderPassCreateInfo renderPassInfo = {};
 	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 	renderPassInfo.subpassCount = 1;
@@ -643,14 +544,14 @@ bool vkRenderingContext::initGraphicsPipeline()
 	VkViewport viewport = {};
 	viewport.x = 0.0f;
 	viewport.y = 0.0f;
-	viewport.width = static_cast<float>(m_swapchainExtent.width);
-	viewport.height = static_cast<float>(m_swapchainExtent.height);
+	viewport.width = static_cast<float>(m_swapchain.imageExtent.width);
+	viewport.height = static_cast<float>(m_swapchain.imageExtent.height);
 	viewport.minDepth = 0.0f;
 	viewport.maxDepth = 1.0f;
 
 	VkRect2D scissor = {};
 	scissor.offset = { 0, 0 };
-	scissor.extent = m_swapchainExtent;
+	scissor.extent = m_swapchain.imageExtent;
 
 	VkPipelineViewportStateCreateInfo viewportStateInfo = {};
 	viewportStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -833,100 +734,15 @@ bool vkRenderingContext::initCommandPool()
 	return true;
 }
 
-bool vkRenderingContext::initColorResources()
+bool vkRenderingContext::initSwapchainResources()
 {	
-	VkFormat colorFormat = m_swapchainImageFormat;
-
-	if (!vkUtils::createImage
-	(
-		m_logicalDevice,
-		m_physicalDevice,
-		m_swapchainExtent.width,
-		m_swapchainExtent.height,
-		1,
-		m_msaaSamples,
-		colorFormat,
-		VK_IMAGE_TILING_OPTIMAL,
-		VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-		m_colorImage,
-		m_colorImageMemory
-	))
+	if (!m_swapchain.initColorResources(m_logicalDevice, m_physicalDevice, m_msaaSamples))
 	{
-		vkUtils::printVkError("vkRenderingContext::initColorResources()", "Couldn't create the color image.");
 		return false;
 	}
-
-	m_colorImageView = vkUtils::createImageView
-	(
-		m_logicalDevice,
-		m_colorImage,
-		1,
-		colorFormat,
-		VK_IMAGE_ASPECT_COLOR_BIT
-	);
-
-	if (m_colorImageView == nullptr)
+	
+	if (!m_swapchain.initDepthResources(m_logicalDevice, m_physicalDevice, m_commandPool, m_graphicsQueue, m_msaaSamples))
 	{
-		vkUtils::printVkError("vkRenderingContext::initColorResources()", "Couldn't create the color image view.");
-		return false;
-	}
-
-	return true;
-}
-
-bool vkRenderingContext::initDepthResources()
-{
-	bool success = false;
-	VkFormat depthFormat = vkUtils::findDepthFormat(m_physicalDevice, success);
-
-	if (!success)
-	{
-		vkUtils::printVkError("vkRenderingContext::initDepthResources()", "Couldn't find a suitable format for the depth image.");
-		return false;
-	}
-
-	if (!vkUtils::createImage
-	(
-		m_logicalDevice,
-		m_physicalDevice,
-		m_swapchainExtent.width,
-		m_swapchainExtent.height,
-		1,
-		m_msaaSamples,
-		depthFormat,
-		VK_IMAGE_TILING_OPTIMAL,
-		VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-		m_depthImage,
-		m_depthImageMemory
-	))
-	{
-		vkUtils::printVkError("vkRenderingContext::initDepthResources()", "Couldn't create the depth image.");
-		return false;
-	}
-
-	m_depthImageView = vkUtils::createImageView(m_logicalDevice, m_depthImage, 1, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
-
-	if (m_depthImageView == nullptr)
-	{
-		vkUtils::printVkError("vkRenderingContext::initDepthResources()", "Couldn't create the depth image view.");
-		return false;
-	}
-
-	if (!vkUtils::transitionImageLayout
-	(
-		m_logicalDevice,
-		m_commandPool,
-		m_graphicsQueue,
-		m_depthImage,
-		1,
-		depthFormat,
-		VK_IMAGE_LAYOUT_UNDEFINED,
-		VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
-	))
-	{
-		vkUtils::printVkError("vkRenderingContext::initDepthResources()", "Couldn't transition the depth image layout.");
 		return false;
 	}
 
@@ -935,31 +751,31 @@ bool vkRenderingContext::initDepthResources()
 
 bool vkRenderingContext::initFramebuffers()
 {
-	m_swapchainFramebuffers.resize(m_swapchainImageViews.size());
+	m_swapchainFramebuffers.resize(m_swapchain.imageCount);
 
-	for (size_t i = 0; i < m_swapchainImageViews.size(); i++)
+	for (size_t i = 0; i < m_swapchain.imageCount; i++)
 	{
 		std::array<VkImageView, 3> attachments =
 		{
-			m_colorImageView,
-			m_depthImageView,
-			m_swapchainImageViews[i]
+			m_swapchain.colorImageView,
+			m_swapchain.depthImageView,
+			m_swapchain.swapchainImageViews[i]
 		};
-		
+
 		VkFramebufferCreateInfo framebufferInfo = {};
 		framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 		framebufferInfo.renderPass = m_renderPass;
 		framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
 		framebufferInfo.pAttachments = attachments.data();
-		framebufferInfo.width = m_swapchainExtent.width;
-		framebufferInfo.height = m_swapchainExtent.height;
+		framebufferInfo.width = m_swapchain.imageExtent.width;
+		framebufferInfo.height = m_swapchain.imageExtent.height;
 		framebufferInfo.layers = 1;
 
 		VkResult result = vkCreateFramebuffer(m_logicalDevice, &framebufferInfo, nullptr, &m_swapchainFramebuffers[i]);
 
 		if (result != VK_SUCCESS)
 		{
-			vkUtils::printVkResultError(result, "vkRenderingContext::initFramebuffers()", "Couldn't create one or more of the required framebuffers.");
+			vkUtils::printVkResultError(result, "vkSwapchainObject::initFramebuffers()", "Couldn't create one or more of the required framebuffers.");
 			return false;
 		}
 	}
@@ -1114,7 +930,7 @@ bool vkRenderingContext::initCommandBuffers()
 
 bool vkRenderingContext::initSyncObjects()
 {
-	m_swapchainSemaphores.resize(m_swapchainImageCount);
+	m_swapchainSemaphores.resize(m_swapchain.imageCount);
 	m_frameSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
 	m_frameFences.resize(MAX_FRAMES_IN_FLIGHT);
 	
@@ -1125,7 +941,7 @@ bool vkRenderingContext::initSyncObjects()
 	fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 	fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-	for (size_t i = 0; i < m_swapchainImageCount; i++)
+	for (size_t i = 0; i < m_swapchain.imageCount; i++)
 	{
 		VkResult result = vkCreateSemaphore(m_logicalDevice, &semaphoreInfo, nullptr, &m_swapchainSemaphores[i]);
 
@@ -1163,7 +979,7 @@ void vkRenderingContext::updateUniformBuffer(uint32_t currentImage)
 	vkUniformBufferData data = {};
 	data.modelMatrix = glm::rotate(glm::mat4(1.0f), m_currentMeshRotation, glm::vec3(0.0f, 0.0f, 1.0f));
 	data.viewMatrix = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	data.projMatrix = glm::perspective(glm::radians(45.0f), m_swapchainExtent.width / (float)m_swapchainExtent.height, 0.1f, 10.0f);
+	data.projMatrix = glm::perspective(glm::radians(45.0f), m_swapchain.imageExtent.width / static_cast<float>(m_swapchain.imageExtent.height), 0.1f, 10.0f);
 	data.projMatrix[1][1] *= -1.0f;
 
 	m_uniformBuffers[currentImage].setBufferData(sizeof(data), &data);
@@ -1193,7 +1009,7 @@ bool vkRenderingContext::recordCommandBuffer(VkCommandBuffer buffer, uint32_t im
 	renderPassInfo.renderPass = m_renderPass;
 	renderPassInfo.framebuffer = m_swapchainFramebuffers[imageIndex];
 	renderPassInfo.renderArea.offset = { 0, 0 };
-	renderPassInfo.renderArea.extent = m_swapchainExtent;
+	renderPassInfo.renderArea.extent = m_swapchain.imageExtent;
 	renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
 	renderPassInfo.pClearValues = clearValues.data();
 
@@ -1203,15 +1019,15 @@ bool vkRenderingContext::recordCommandBuffer(VkCommandBuffer buffer, uint32_t im
 	VkViewport viewport = {};
 	viewport.x = 0.0f;
 	viewport.y = 0.0f;
-	viewport.width = static_cast<float>(m_swapchainExtent.width);
-	viewport.height = static_cast<float>(m_swapchainExtent.height);
+	viewport.width = static_cast<float>(m_swapchain.imageExtent.width);
+	viewport.height = static_cast<float>(m_swapchain.imageExtent.height);
 	viewport.minDepth = 0.0f;
 	viewport.maxDepth = 1.0f;
 	vkCmdSetViewport(buffer, 0, 1, &viewport);
 
 	VkRect2D scissor = {};
 	scissor.offset = { 0, 0 };
-	scissor.extent = m_swapchainExtent;
+	scissor.extent = m_swapchain.imageExtent;
 	vkCmdSetScissor(buffer, 0, 1, &scissor);
 
 	m_meshClass.draw(buffer, m_pipelineLayout, m_descriptorSets[m_currentFrame]);
@@ -1238,110 +1054,49 @@ bool vkRenderingContext::recreateSwapchain()
 	{
 		return false;
 	}
-
-	if (wndWidth == 0 || wndHeight == 0)
+	
+	if ((wndWidth == 0) || (wndHeight == 0))
 	{
 		// Window is minimized
 		return true;
 	}
 
 	vkDeviceWaitIdle(m_logicalDevice);
-	cleanupSwapchain(m_logicalDevice);
+	cleanupSwapchain();
 
 	if (!initSwapchain(wndWidth, wndHeight))
 	{
-		vkUtils::printVkError("vkRenderingContext::recreateSwapchain()", "Couldn't recreate the swapchain.");
-		return false;
-	}
-	
-	if (!initColorResources())
-	{
-		vkUtils::printVkError("vkRenderingContext::recreateSwapchain()", "Couldn't recreate the color buffer resources.");
 		return false;
 	}
 
-	if (!initDepthResources())
+	if (!initSwapchainResources())
 	{
-		vkUtils::printVkError("vkRenderingContext::recreateSwapchain()", "Couldn't recreate the depth buffer resources.");
 		return false;
 	}
 
 	if (!initFramebuffers())
 	{
-		vkUtils::printVkError("vkRenderingContext::recreateSwapchain()", "Couldn't recreate the framebuffers.");
 		return false;
 	}
 
 	return true;
 }
 
-void vkRenderingContext::cleanupSwapchain(VkDevice device)
-{
-	if (m_depthImageView != nullptr)
-	{
-		vkDestroyImageView(m_logicalDevice, m_depthImageView, nullptr);
-		m_depthImageView = nullptr;
-	}
-	
-	if (m_depthImage != nullptr)
-	{
-		vkDestroyImage(m_logicalDevice, m_depthImage, nullptr);
-		m_depthImage = nullptr;
-	}
-
-	if (m_depthImageMemory != nullptr)
-	{
-		vkFreeMemory(m_logicalDevice, m_depthImageMemory, nullptr);
-		m_depthImageMemory = nullptr;
-	}
-
-	// ----------------------------------------------------------------------------------------------------
-
-	if (m_colorImageView != nullptr)
-	{
-		vkDestroyImageView(m_logicalDevice, m_colorImageView, nullptr);
-		m_colorImageView = nullptr;
-	}
-
-	if (m_colorImage != nullptr)
-	{
-		vkDestroyImage(m_logicalDevice, m_colorImage, nullptr);
-		m_colorImage = nullptr;
-	}
-
-	if (m_colorImageMemory != nullptr)
-	{
-		vkFreeMemory(m_logicalDevice, m_colorImageMemory, nullptr);
-		m_colorImageMemory = nullptr;
-	}
-
-	// ----------------------------------------------------------------------------------------------------
-
+void vkRenderingContext::cleanupSwapchain()
+{	
 	for (auto framebuffer : m_swapchainFramebuffers)
 	{
 		if (framebuffer != nullptr)
 		{
-			vkDestroyFramebuffer(device, framebuffer, nullptr);
+			vkDestroyFramebuffer(m_logicalDevice, framebuffer, nullptr);
 		}
 	}
 
 	m_swapchainFramebuffers.clear();
-
-	for (auto imageView : m_swapchainImageViews)
-	{
-		if (imageView != nullptr)
-		{
-			vkDestroyImageView(device, imageView, nullptr);
-		}
-	}
-
-	m_swapchainImageViews.clear();
-
-	if (m_swapchain != nullptr)
-	{
-		vkDestroySwapchainKHR(device, m_swapchain, nullptr);
-		m_swapchain = nullptr;
-	}
+	
+	m_swapchain.cleanupDepthResources(m_logicalDevice);
+	m_swapchain.cleanupColorResources(m_logicalDevice);
+	m_swapchain.cleanupSwapchain(m_logicalDevice);
 }
 
 void vkRenderingContext::cleanupLogicalDevice()
@@ -1349,7 +1104,8 @@ void vkRenderingContext::cleanupLogicalDevice()
 	if (m_logicalDevice != nullptr)
 	{
 		vkDeviceWaitIdle(m_logicalDevice);
-		cleanupSwapchain(m_logicalDevice);
+		
+		cleanupSwapchain();
 
 		for (auto& buffer : m_uniformBuffers)
 		{

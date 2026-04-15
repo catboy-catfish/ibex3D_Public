@@ -21,6 +21,7 @@
     <ClInclude Include="include\ibex3D\utility\miscellaneous.h" />
     <ClInclude Include="include\ibex3D\vulkan\persistentBufferObject.h" />
     <ClInclude Include="include\ibex3D\vulkan\renderingContext.h" />
+    <ClInclude Include="include\ibex3D\vulkan\swapchainObject.h" />
     <ClInclude Include="include\ibex3D\vulkan\textureObject.h" />
     <ClInclude Include="include\ibex3D\vulkan\utils.h" />
     <ClInclude Include="include\ibex3D\vulkan\meshObject.h" />
@@ -37,6 +38,7 @@
     <ClCompile Include="source\ibex3D\vulkan\bufferObject.cpp" />
     <ClCompile Include="source\ibex3D\vulkan\persistentBufferObject.cpp" />
     <ClCompile Include="source\ibex3D\vulkan\renderingContext_win32.cpp" />
+    <ClCompile Include="source\ibex3D\vulkan\swapchainObject.cpp" />
     <ClCompile Include="source\ibex3D\vulkan\textureObject.cpp" />
     <ClCompile Include="source\ibex3D\vulkan\utils.cpp" />
     <ClCompile Include="source\ibex3D\vulkan\meshObject.cpp" />

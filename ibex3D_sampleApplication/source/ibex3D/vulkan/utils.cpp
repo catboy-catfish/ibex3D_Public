@@ -418,93 +418,11 @@ bool vkUtils::findMemoryType(VkPhysicalDevice physDevice, uint32_t typeFilter, V
 	return false;
 }
 
-/*
-bool vkUtils::createBuffer(VkDevice device, VkPhysicalDevice physDevice, VkDeviceSize bufferSize, VkBufferUsageFlags bufferUsage, VkMemoryPropertyFlags memProperties, VkBuffer& buffer, VkDeviceMemory& bufferMem)
-{
-	VkBufferCreateInfo bufferInfo = {};
-	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-	bufferInfo.size = bufferSize;
-	bufferInfo.usage = bufferUsage;
-	bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-	VkResult result = vkCreateBuffer(device, &bufferInfo, nullptr, &buffer);
-
-	if (result != VK_SUCCESS)
-	{
-		printVkResultError(result, "vkUtils::createBuffer()", "Couldn't create the buffer.");
-		return false;
-	}
-
-	VkMemoryRequirements memRequirements = {};
-	vkGetBufferMemoryRequirements(device, buffer, &memRequirements);
-
-	uint32_t memoryType = 0;
-	if (!findMemoryType
-	(
-		physDevice,
-		memRequirements.memoryTypeBits,
-		memProperties,
-		memoryType
-	))
-	{
-		printVkResultError(result, "vkUtils::createBuffer()", "Couldn't find a suitable type for the buffer memory.");
-		return false;
-	}
-
-	VkMemoryAllocateInfo allocateInfo = {};
-	allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-	allocateInfo.allocationSize = memRequirements.size;
-	allocateInfo.memoryTypeIndex = memoryType;
-
-	result = vkAllocateMemory(device, &allocateInfo, nullptr, &bufferMem);
-
-	if (result != VK_SUCCESS)
-	{
-		vkUtils::printVkResultError(result, "vkUtils::createBuffer()", "Couldn't allocate the buffer memory.");
-		return false;
-	}
-
-	vkBindBufferMemory(device, buffer, bufferMem, 0);
-
-	return true;
-}
-
-bool vkUtils::copyBuffer(VkDevice device, VkCommandPool cmdPool, VkQueue gfxQueue, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize bufferSize)
-{
-	// TODO: Implement error checking?
-
-	VkCommandBuffer commandBuffer = beginSingleTimeCommands(device, cmdPool);
-
-	VkBufferCopy copyRegion = {};
-	copyRegion.size = bufferSize;
-	vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
-
-	endSingleTimeCommands(device, cmdPool, gfxQueue, commandBuffer);
-
-	return true;
-}
-
-void vkUtils::destroyBuffer(VkDevice device, VkBuffer& buffer, VkDeviceMemory& bufferMem)
-{
-	if (buffer != nullptr)
-	{
-		vkDestroyBuffer(device, buffer, nullptr);
-		buffer = nullptr;
-	}
-
-	if (bufferMem != nullptr)
-	{
-		vkFreeMemory(device, bufferMem, nullptr);
-		bufferMem = nullptr;
-	}
-}
-*/
-
 // ----------------------------------------------------------------------------------------------------
-// - Depth buffers ------------------------------------------------------------------------------------
+// - Formats ------------------------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------
 
-VkFormat vkUtils::findSupportedFormat(VkPhysicalDevice physDevice, const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features, bool& success)
+bool vkUtils::findSupportedFormat(VkPhysicalDevice physDevice, const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features, VkFormat& outFormat)
 {
 	for (VkFormat format : candidates)
 	{
@@ -513,23 +431,21 @@ VkFormat vkUtils::findSupportedFormat(VkPhysicalDevice physDevice, const std::ve
 
 		if ((tiling == VK_IMAGE_TILING_LINEAR) && ((props.linearTilingFeatures & features) == features))
 		{
-			success = true;
-			return format;
+			outFormat = format;
+			return true;
 		}
 		else if ((tiling == VK_IMAGE_TILING_OPTIMAL) && ((props.optimalTilingFeatures & features) == features))
 		{
-			success = true;
-			return format;
+			outFormat = format;
+			return true;
 		}
 	}
 
 	printVkError("vkUtils::findSupportedFormat()", "Couldn't find any suitable format.");
-	
-	success = false;
-	return VK_FORMAT_UNDEFINED;
+	return false;
 }
 
-VkFormat vkUtils::findDepthFormat(VkPhysicalDevice physDevice, bool& success)
+bool vkUtils::findDepthFormat(VkPhysicalDevice physDevice, VkFormat& outFormat)
 {
 	return findSupportedFormat
 	(
@@ -537,7 +453,7 @@ VkFormat vkUtils::findDepthFormat(VkPhysicalDevice physDevice, bool& success)
 		{ VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT },
 		VK_IMAGE_TILING_OPTIMAL,
 		VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT,
-		success
+		outFormat
 	);
 }
 
@@ -585,7 +501,7 @@ bool vkUtils::createImage(VkDevice device, VkPhysicalDevice physDevice, uint32_t
 	(
 		physDevice,
 		memRequirements.memoryTypeBits,
-		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+		memProperties,
 		memoryType
 	))
 	{

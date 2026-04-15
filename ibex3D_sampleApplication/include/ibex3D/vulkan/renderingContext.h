@@ -1,4 +1,5 @@
 #pragma once
+#include <ibex3D/vulkan/swapchainObject.h>
 #include <ibex3D/vulkan/meshObject.h>
 #include <ibex3D/vulkan/textureObject.h>
 #include <ibex3D/vulkan/persistentBufferObject.h>
@@ -22,8 +23,7 @@ private:
 	bool initDescriptorSetLayout();
 	bool initGraphicsPipeline();
 	bool initCommandPool();
-	bool initColorResources();
-	bool initDepthResources();
+	bool initSwapchainResources();
 	bool initFramebuffers();
 	bool initModelAndTexture();
 	bool initUniformBuffers();
@@ -35,7 +35,7 @@ private:
 	bool recordCommandBuffer(VkCommandBuffer buffer, uint32_t imageIndex);
 	bool recreateSwapchain();
 
-	void cleanupSwapchain(VkDevice device);
+	void cleanupSwapchain();
 	void cleanupLogicalDevice();
 	void cleanupInstance();
 
@@ -54,28 +54,17 @@ private:
 	VkDevice m_logicalDevice = nullptr;
 	VkQueue m_graphicsQueue = nullptr;
 	VkQueue m_presentQueue = nullptr;
-	VkSwapchainKHR m_swapchain = nullptr;
+	vkSwapchainObject m_swapchain;
 	VkRenderPass m_renderPass = nullptr;
 	VkDescriptorSetLayout m_descriptorSetLayout = nullptr;
 	VkPipelineLayout m_pipelineLayout = nullptr;
 	VkPipeline m_graphicsPipeline = nullptr;
 	VkCommandPool m_commandPool = nullptr;
-	VkImage m_colorImage = nullptr;
-	VkDeviceMemory m_colorImageMemory = nullptr;
-	VkImageView m_colorImageView = nullptr;
-	VkImage m_depthImage = nullptr;
-	VkDeviceMemory m_depthImageMemory = nullptr;
-	VkImageView m_depthImageView = nullptr;
 	VkDescriptorPool m_descriptorPool = nullptr;
 
 	VkSampleCountFlagBits m_msaaSamples = VK_SAMPLE_COUNT_1_BIT;
-	VkFormat m_swapchainImageFormat = VK_FORMAT_UNDEFINED;
-	VkExtent2D m_swapchainExtent = {};
 	uint32_t m_currentFrame = 0;
-	uint32_t m_swapchainImageCount = 0;
 	
-	std::vector<VkImage> m_swapchainImages;
-	std::vector<VkImageView> m_swapchainImageViews;
 	std::vector<VkFramebuffer> m_swapchainFramebuffers;
 	std::vector<vkPersistentBufferObject> m_uniformBuffers;
 	std::vector<VkDescriptorSet> m_descriptorSets;
