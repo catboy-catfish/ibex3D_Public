@@ -25,3 +25,9 @@ The shaders in the `ibex3D_sampleApplication/assets/shaders` folder have already
 1. Go to `ibex3D_sampleApplication/assets/shaders/` and edit the `compile.bat` file inside.
 2. Replace both occurences of `D:/VulkanSDK/1.4.341.1/Bin/glslc.exe` with the absolute path to glslc.exe in your Vulkan SDK installation (this would be `VulkanSDK/(version)/Bin/glslc.exe`).
 3. Run `compile.bat` and see if you don't get any errors in the command line.
+
+### Special Thanks
+
+These individuals have helped me fix issues with the engine, and it arguably wouldn't be where it is now without their assistance.
+
+alignment_police
