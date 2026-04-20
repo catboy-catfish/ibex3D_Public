@@ -2,24 +2,31 @@
 
 layout (binding = 0) uniform UniformBufferObject
 {
-	mat4 model;
-	mat4 view;
-	mat4 proj;
+	mat4 modelMatrix;
+	mat4 viewMatrix;
+	mat4 projectionMatrix;
+	vec3 cameraPosition;
+	float padding;
 } ubo;
 
 layout (location = 0) in vec3 inPosition;
-layout (location = 1) in vec3 inNormal;
+layout (location = 1) in vec3 inNormalDir;
 layout (location = 2) in vec2 inTexCoord;
 
-layout (location = 0) out vec3 fragNormal;
-layout (location = 1) out vec2 fragTexCoord;
+layout (location = 0) out vec3 fragPosition;
+layout (location = 1) out vec3 fragNormalDir;
+layout (location = 2) out vec2 fragTexCoord;
+layout (location = 3) out vec3 fragViewDir;
 
 void main()
 {	
-	mat4 modelViewMatrix = ubo.view * ubo.model;
-	
-	gl_Position = ubo.proj * modelViewMatrix * vec4(inPosition, 1.0);
+	vec4 worldSpacePosition = ubo.modelMatrix * vec4(inPosition, 1.0);
+	gl_Position = ubo.projectionMatrix * ubo.viewMatrix * worldSpacePosition;
 
-	fragNormal = mat3(modelViewMatrix) * inNormal;
+	fragPosition = worldSpacePosition.xyz;
+
+	fragNormalDir = inNormalDir;
 	fragTexCoord = inTexCoord;
+
+	fragViewDir = normalize(ubo.cameraPosition - worldSpacePosition.xyz);
 }

@@ -29,6 +29,8 @@ struct vkUniformBufferData
 	glm::mat4 modelMatrix;
 	glm::mat4 viewMatrix;
 	glm::mat4 projMatrix;
+	glm::vec3 cameraPosition;
+	float padding;
 };
 
 static glm::mat4 getCameraViewMatrix(glm::vec3 position, glm::vec3 rotation)
@@ -65,13 +67,12 @@ bool vkRenderingContext::initialize(void* wndMemory)
 	IBEX3D_BASSERT(initRenderPass());
 	IBEX3D_BASSERT(initDescriptorSetLayout());
 	IBEX3D_BASSERT(initGraphicsPipeline());
-	IBEX3D_BASSERT(initCommandPool());
+	IBEX3D_BASSERT(initCommandPoolAndBuffers());
 	IBEX3D_BASSERT(initSwapchainResources());
 	IBEX3D_BASSERT(initFramebuffers());
 	IBEX3D_BASSERT(initModelAndTexture());
 	IBEX3D_BASSERT(initUniformBuffers());
 	IBEX3D_BASSERT(initDescriptorPoolAndSets());
-	IBEX3D_BASSERT(initCommandBuffers());
 	IBEX3D_BASSERT(initSyncObjects());
 
 	return true;
@@ -728,13 +729,13 @@ bool vkRenderingContext::initGraphicsPipeline()
 	return true;
 }
 
-bool vkRenderingContext::initCommandPool()
+bool vkRenderingContext::initCommandPoolAndBuffers()
 {
 	vkQueueFamilyIndices indices = vkUtils::findQueueFamilies(m_physicalDevice, m_surface);
 
 	if (!indices.isComplete())
 	{
-		vkUtils::printVkError("vkRenderingContext::initCommandBuffers()", "One or more of the required queue families are missing.");
+		vkUtils::printVkError("vkRenderingContext::initCommandPoolAndBuffers()", "One or more of the required queue families are missing.");
 		return false;
 	}
 
@@ -747,7 +748,25 @@ bool vkRenderingContext::initCommandPool()
 
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::printVkResultError(result, "vkRenderingContext::initCommandBuffers()", "Couldn't create the command pool.");
+		vkUtils::printVkResultError(result, "vkRenderingContext::initCommandPoolAndBuffers()", "Couldn't create the command pool.");
+		return false;
+	}
+
+	// ----------------------------------------------------------------------------------------------------
+
+	m_commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+
+	VkCommandBufferAllocateInfo commandBufferInfo = {};
+	commandBufferInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	commandBufferInfo.commandPool = m_commandPool;
+	commandBufferInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	commandBufferInfo.commandBufferCount = static_cast<uint32_t>(m_commandBuffers.size());
+
+	result = vkAllocateCommandBuffers(m_logicalDevice, &commandBufferInfo, m_commandBuffers.data());
+
+	if (result != VK_SUCCESS)
+	{
+		vkUtils::printVkResultError(result, "vkRenderingContext::initCommandPoolAndBuffers()", "Couldn't allocate the command buffers.");
 		return false;
 	}
 
@@ -810,7 +829,7 @@ bool vkRenderingContext::initModelAndTexture()
 		return false;
 	}
 	
-	if (!m_meshClass.initialize(m_logicalDevice, m_physicalDevice, m_commandPool, m_graphicsQueue, "assets/models/testCube.obj"))
+	if (!m_meshClass.initialize(m_logicalDevice, m_physicalDevice, m_commandPool, m_graphicsQueue, "assets/models/testSphere.obj"))
 	{
 		return false;
 	}
@@ -927,27 +946,6 @@ bool vkRenderingContext::initDescriptorPoolAndSets()
 	return true;
 }
 
-bool vkRenderingContext::initCommandBuffers()
-{
-	m_commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
-
-	VkCommandBufferAllocateInfo commandBufferInfo = {};
-	commandBufferInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-	commandBufferInfo.commandPool = m_commandPool;
-	commandBufferInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	commandBufferInfo.commandBufferCount = static_cast<uint32_t>(m_commandBuffers.size());
-
-	VkResult result = vkAllocateCommandBuffers(m_logicalDevice, &commandBufferInfo, m_commandBuffers.data());
-
-	if (result != VK_SUCCESS)
-	{
-		vkUtils::printVkResultError(result, "vkRenderingContext::initCommandBuffers()", "Couldn't allocate the command buffers.");
-		return false;
-	}
-
-	return true;
-}
-
 bool vkRenderingContext::initSyncObjects()
 {
 	m_swapchainSemaphores.resize(m_swapchain.imageCount);
@@ -996,15 +994,18 @@ bool vkRenderingContext::initSyncObjects()
 
 void vkRenderingContext::updateUniformBuffer(uint32_t currentImage)
 {	
-	glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, -6.0f);
-	glm::vec3 cameraRot = glm::vec3(0.0f, m_currentMeshRotation, 0.0f);
+	glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, -3.0f);
+	glm::vec3 cameraRot = glm::vec3(0.0f, 0.0f, 0.0f);
 
 	vkUniformBufferData data = {};
-	data.modelMatrix = glm::mat4(1.0f);
+	data.modelMatrix = glm::rotate(glm::mat4(1.0f), m_currentMeshRotation, glm::vec3(0.0f, 1.0f, 0.0f));
 	data.viewMatrix = getCameraViewMatrix(cameraPos, cameraRot);
 	
 	float aspectRatio = m_swapchain.imageExtent.width / static_cast<float>(m_swapchain.imageExtent.height);
-	data.projMatrix = getCameraProjMatrix(glm::radians(70.0f), aspectRatio);
+	data.projMatrix = getCameraProjMatrix(glm::radians(45.0f), aspectRatio);
+
+	data.cameraPosition = cameraPos;
+	data.padding = 0.0f;
 
 	m_uniformBuffers[currentImage].setBufferData(sizeof(data), &data);
 }

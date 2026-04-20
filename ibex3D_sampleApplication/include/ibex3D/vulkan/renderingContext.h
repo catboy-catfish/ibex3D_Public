@@ -22,13 +22,12 @@ private:
 	bool initRenderPass();
 	bool initDescriptorSetLayout();
 	bool initGraphicsPipeline();
-	bool initCommandPool();
+	bool initCommandPoolAndBuffers();
 	bool initSwapchainResources();
 	bool initFramebuffers();
 	bool initModelAndTexture();
 	bool initUniformBuffers();
 	bool initDescriptorPoolAndSets();
-	bool initCommandBuffers();
 	bool initSyncObjects();
 
 	void updateUniformBuffer(uint32_t currentImage);

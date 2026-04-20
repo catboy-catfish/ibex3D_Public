@@ -170,6 +170,9 @@
     <Filter Include="ibex3D\vulkan\swapchainObject">
       <UniqueIdentifier>{e71addf2-50eb-417e-9540-18ae4f6c94fa}</UniqueIdentifier>
     </Filter>
+    <Filter Include="assets\shaders\include">
+      <UniqueIdentifier>{575aed2d-599f-428f-a939-7c3aa468f130}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\shaders\compile.bat">
@@ -180,6 +183,9 @@
     </None>
     <None Include="assets\shaders\shader.vert">
       <Filter>assets\shaders</Filter>
+    </None>
+    <None Include="assets\shaders\include\basicLighting.glsl">
+      <Filter>assets\shaders\include</Filter>
     </None>
   </ItemGroup>
 </Project>
