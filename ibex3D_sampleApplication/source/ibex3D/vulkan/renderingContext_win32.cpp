@@ -1,5 +1,6 @@
 #include <ibex3D/vulkan/renderingContext.h>
 #include <ibex3D/vulkan/utils.h>
+
 #include <ibex3D/utility/miscellaneous.h>
 
 #include <map>
@@ -12,7 +13,8 @@
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+#include <glm/ext/matrix_transform.hpp>
+#include <glm/ext/matrix_clip_space.hpp>
 
 // ----------------------------------------------------------------------------------------------------
 
@@ -28,6 +30,25 @@ struct vkUniformBufferData
 	glm::mat4 viewMatrix;
 	glm::mat4 projMatrix;
 };
+
+static glm::mat4 getCameraViewMatrix(glm::vec3 position, glm::vec3 rotation)
+{
+	glm::mat4 viewMatrix	= glm::rotate(glm::mat4(1.0f), rotation.y, glm::vec3(0.0f, 0.0f, 1.0f));	// Roll
+	viewMatrix				= glm::rotate(viewMatrix, rotation.z, glm::vec3(1.0f, 0.0f, 0.0f));			// Pitch
+	viewMatrix				= glm::rotate(viewMatrix, rotation.x, glm::vec3(0.0f, 1.0f, 0.0f));			// Yaw
+
+	viewMatrix = glm::translate(viewMatrix, position);
+
+	return viewMatrix;
+}
+
+static glm::mat4 getCameraProjMatrix(float fovRadians, float aspectRatio)
+{
+	glm::mat4 projMatrix = glm::perspective(fovRadians, aspectRatio, 0.1f, 10.0f);
+	projMatrix[1][1] *= -1.0f;
+
+	return projMatrix;
+}
 
 // ----------------------------------------------------------------------------------------------------
 
@@ -439,6 +460,7 @@ bool vkRenderingContext::initRenderPass()
 
 bool vkRenderingContext::initDescriptorSetLayout()
 {
+	// shader.vert: layout (binding = 0) uniform UniformBufferObject{} ubo;
 	VkDescriptorSetLayoutBinding uboLayoutBinding = {};
 	uboLayoutBinding.binding = 0;
 	uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -446,6 +468,7 @@ bool vkRenderingContext::initDescriptorSetLayout()
 	uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 	uboLayoutBinding.pImmutableSamplers = nullptr;
 
+	// shader.frag: layout (binding = 1) uniform sampler2D texSampler;
 	VkDescriptorSetLayoutBinding samplerLayoutBinding = {};
 	samplerLayoutBinding.binding = 1;
 	samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -453,10 +476,7 @@ bool vkRenderingContext::initDescriptorSetLayout()
 	samplerLayoutBinding.pImmutableSamplers = nullptr;
 	samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-	std::array<VkDescriptorSetLayoutBinding, 2> bindings =
-	{
-		uboLayoutBinding, samplerLayoutBinding
-	};
+	std::array<VkDescriptorSetLayoutBinding, 2> bindings = { uboLayoutBinding, samplerLayoutBinding };
 
 	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
 	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -785,12 +805,12 @@ bool vkRenderingContext::initFramebuffers()
 
 bool vkRenderingContext::initModelAndTexture()
 {	
-	if (!m_textureClass.initialize(m_logicalDevice, m_physicalDevice, m_commandPool, m_graphicsQueue, "assets/images/viking_room.png"))
+	if (!m_textureClass.initialize(m_logicalDevice, m_physicalDevice, m_commandPool, m_graphicsQueue, "assets/images/testCube.png"))
 	{
 		return false;
 	}
 	
-	if (!m_meshClass.initialize(m_logicalDevice, m_physicalDevice, m_commandPool, m_graphicsQueue, "assets/models/viking_room.obj"))
+	if (!m_meshClass.initialize(m_logicalDevice, m_physicalDevice, m_commandPool, m_graphicsQueue, "assets/models/testCube.obj"))
 	{
 		return false;
 	}
@@ -975,12 +995,16 @@ bool vkRenderingContext::initSyncObjects()
 }
 
 void vkRenderingContext::updateUniformBuffer(uint32_t currentImage)
-{
+{	
+	glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, -6.0f);
+	glm::vec3 cameraRot = glm::vec3(0.0f, m_currentMeshRotation, 0.0f);
+
 	vkUniformBufferData data = {};
-	data.modelMatrix = glm::rotate(glm::mat4(1.0f), m_currentMeshRotation, glm::vec3(0.0f, 0.0f, 1.0f));
-	data.viewMatrix = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	data.projMatrix = glm::perspective(glm::radians(45.0f), m_swapchain.imageExtent.width / static_cast<float>(m_swapchain.imageExtent.height), 0.1f, 10.0f);
-	data.projMatrix[1][1] *= -1.0f;
+	data.modelMatrix = glm::mat4(1.0f);
+	data.viewMatrix = getCameraViewMatrix(cameraPos, cameraRot);
+	
+	float aspectRatio = m_swapchain.imageExtent.width / static_cast<float>(m_swapchain.imageExtent.height);
+	data.projMatrix = getCameraProjMatrix(glm::radians(70.0f), aspectRatio);
 
 	m_uniformBuffers[currentImage].setBufferData(sizeof(data), &data);
 }

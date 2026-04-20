@@ -51,13 +51,24 @@ void appInterface::update(float deltaTime)
 
 	// ----------------------------------------------------------------------------------------------------
 
-	m_meshRotVel = (input_isKeyDown(KEY_A) ? -m_meshRotSpd : 0.0f);
-	if (input_isKeyDown(KEY_D)) m_meshRotVel += m_meshRotSpd;
+	if (input_isKeyDown(KEY_A))
+	{
+		m_meshRotVel = -m_meshRotSpd;
+	}
+	else
+	{
+		m_meshRotVel = 0.0f;
+	}
+
+	if (input_isKeyDown(KEY_D))
+	{
+		m_meshRotVel += m_meshRotSpd;
+	}
 
 	m_meshRot += m_meshRotVel * deltaTime;
 
-	if (m_meshRot >= 6.283f)
-		m_meshRot -= 6.283f;
+	if (m_meshRot >= 6.283f) m_meshRot -= 6.283f;
+	if (m_meshRot < 0.0f) m_meshRot += 6.283f;
 }
 
 void appInterface::render(float deltaTime)

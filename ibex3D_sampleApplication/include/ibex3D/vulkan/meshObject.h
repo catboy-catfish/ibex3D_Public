@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ibex3D/vulkan/bufferObject.h>
+#include "bufferObject.h"
 
 #include <array>
 #include <vector>
@@ -10,7 +10,6 @@
 struct vkVertex
 {
 	glm::vec3 vertexPosition;
-	glm::vec3 vertexColor;
 	glm::vec3 vertexNormal;
 	glm::vec2 textureCoord;
 
@@ -18,16 +17,16 @@ struct vkVertex
 	
 	bool operator == (const vkVertex& other) const
 	{
-		return	(vertexPosition == other.vertexPosition) && 
-				(vertexColor == other.vertexColor) && 
-				(vertexNormal == other.vertexNormal) &&
-				(textureCoord == other.textureCoord);
+		return
+		(vertexPosition == other.vertexPosition) && 
+		(vertexNormal == other.vertexNormal) &&
+		(textureCoord == other.textureCoord);
 	}
 	
 	// ----------------------------------------------------------------------------------------------------
 
 	static VkVertexInputBindingDescription getBindingDesc();
-	static std::array<VkVertexInputAttributeDescription, 4> getAttributeDescs();
+	static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescs();
 };
 
 struct vkMeshObject

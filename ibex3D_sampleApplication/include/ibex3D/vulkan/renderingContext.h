@@ -1,8 +1,8 @@
 #pragma once
-#include <ibex3D/vulkan/swapchainObject.h>
-#include <ibex3D/vulkan/meshObject.h>
-#include <ibex3D/vulkan/textureObject.h>
-#include <ibex3D/vulkan/persistentBufferObject.h>
+#include "swapchainObject.h"
+#include "meshObject.h"
+#include "textureObject.h"
+#include "persistentBufferObject.h"
 
 class vkRenderingContext
 {

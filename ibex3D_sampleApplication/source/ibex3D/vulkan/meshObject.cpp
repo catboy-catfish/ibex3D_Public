@@ -18,10 +18,12 @@ namespace std
 		{
 			// The ^ is the bitwise XOR operator
 			// TODO: Look into hashing to better understand this bullshit
+			// https://en.cppreference.com/cpp/utility/hash
 
-			return	((hash<glm::vec3>()(vertex.vertexPosition) ^ 
-					(hash<glm::vec3>()(vertex.vertexColor) << 1)) >> 1) ^ 
-					(hash<glm::vec2>()(vertex.textureCoord) << 1);
+			return 
+				((hash<glm::vec3>()(vertex.vertexPosition) ^ 
+				(hash<glm::vec3>()(vertex.vertexNormal) << 1)) >> 1) ^ 
+				(hash<glm::vec2>()(vertex.textureCoord) << 1);
 		}
 	};
 }
@@ -37,9 +39,9 @@ VkVertexInputBindingDescription vkVertex::getBindingDesc()
 	return bindingDesc;
 }
 
-std::array<VkVertexInputAttributeDescription, 4> vkVertex::getAttributeDescs()
+std::array<VkVertexInputAttributeDescription, 3> vkVertex::getAttributeDescs()
 {
-	std::array<VkVertexInputAttributeDescription, 4> attribDescs = {};
+	std::array<VkVertexInputAttributeDescription, 3> attribDescs = {};
 	
 	// Position
 	attribDescs[0].binding = 0;
@@ -47,23 +49,17 @@ std::array<VkVertexInputAttributeDescription, 4> vkVertex::getAttributeDescs()
 	attribDescs[0].format = VK_FORMAT_R32G32B32_SFLOAT;
 	attribDescs[0].offset = offsetof(vkVertex, vertexPosition);
 
-	// Color
+	// Normals
 	attribDescs[1].binding = 0;
 	attribDescs[1].location = 1;
 	attribDescs[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-	attribDescs[1].offset = offsetof(vkVertex, vertexColor);
-
-	// Normals
-	attribDescs[2].binding = 0;
-	attribDescs[2].location = 2;
-	attribDescs[2].format = VK_FORMAT_R32G32B32_SFLOAT;
-	attribDescs[2].offset = offsetof(vkVertex, vertexNormal);
+	attribDescs[1].offset = offsetof(vkVertex, vertexNormal);
 
 	// Texture cordinates
-	attribDescs[3].binding = 0;
-	attribDescs[3].location = 3;
-	attribDescs[3].format = VK_FORMAT_R32G32_SFLOAT;
-	attribDescs[3].offset = offsetof(vkVertex, textureCoord);
+	attribDescs[2].binding = 0;
+	attribDescs[2].location = 2;
+	attribDescs[2].format = VK_FORMAT_R32G32_SFLOAT;
+	attribDescs[2].offset = offsetof(vkVertex, textureCoord);
 
 	return attribDescs;
 }
@@ -74,10 +70,10 @@ void vkMeshObject::initSimpleModel()
 {
 	vertices =
 	{
-		{{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}},
-		{{ 0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}},
-		{{ 0.5f,  0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},
-		{{-0.5f,  0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}
+		{{-0.5f, -0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}},
+		{{ 0.5f, -0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}},
+		{{ 0.5f,  0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},
+		{{-0.5f,  0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}
 	};
 
 	indices =
@@ -130,8 +126,6 @@ bool vkMeshObject::loadObjFromFile(const char* objFilePath)
 				attrib.texcoords[startTexCoordIdx],
 				1.0f - attrib.texcoords[startTexCoordIdx + 1],
 			};
-
-			vertex.vertexColor = { 1.0f, 1.0f, 1.0f };
 
 			if (uniqueVertices.count(vertex) == 0)
 			{

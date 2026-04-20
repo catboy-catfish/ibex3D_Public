@@ -122,12 +122,6 @@
     <Filter Include="assets\shaders">
       <UniqueIdentifier>{a784c131-f5e8-4b63-9b16-0cf1e07ea21e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="assets\images">
-      <UniqueIdentifier>{c8710c5f-51e9-42b9-9b2b-00d190359dbb}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="assets\models">
-      <UniqueIdentifier>{a51a472c-ab7f-4138-ae9d-39ba12a1e3d5}</UniqueIdentifier>
-    </Filter>
     <Filter Include="ibex3D\math">
       <UniqueIdentifier>{54ede78e-50bb-47c9-afd3-00271ba91a76}</UniqueIdentifier>
     </Filter>
@@ -187,16 +181,5 @@
     <None Include="assets\shaders\shader.vert">
       <Filter>assets\shaders</Filter>
     </None>
-    <None Include="assets\images\texture.jpg">
-      <Filter>assets\images</Filter>
-    </None>
-    <None Include="assets\models\viking_room.obj">
-      <Filter>assets\models</Filter>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="assets\images\viking_room.png">
-      <Filter>assets\images</Filter>
-    </Image>
   </ItemGroup>
 </Project>
