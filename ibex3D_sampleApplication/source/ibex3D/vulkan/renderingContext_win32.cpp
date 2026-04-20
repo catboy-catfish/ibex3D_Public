@@ -829,7 +829,7 @@ bool vkRenderingContext::initModelAndTexture()
 		return false;
 	}
 	
-	if (!m_meshClass.initialize(m_logicalDevice, m_physicalDevice, m_commandPool, m_graphicsQueue, "assets/models/testSphere.obj"))
+	if (!m_meshClass.initialize(m_logicalDevice, m_physicalDevice, m_commandPool, m_graphicsQueue, "assets/models/export3dcoat.obj"))
 	{
 		return false;
 	}
@@ -1002,7 +1002,7 @@ void vkRenderingContext::updateUniformBuffer(uint32_t currentImage)
 	data.viewMatrix = getCameraViewMatrix(cameraPos, cameraRot);
 	
 	float aspectRatio = m_swapchain.imageExtent.width / static_cast<float>(m_swapchain.imageExtent.height);
-	data.projMatrix = getCameraProjMatrix(glm::radians(45.0f), aspectRatio);
+	data.projMatrix = getCameraProjMatrix(glm::radians(60.0f), aspectRatio);
 
 	data.cameraPosition = cameraPos;
 	data.padding = 0.0f;

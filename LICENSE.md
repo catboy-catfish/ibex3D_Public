@@ -12,6 +12,10 @@ ibex3D uses multiple third-party libraries with various licenses:
 
 - tinyobjloader by Syoyo Fujita - licensed under the MIT license
 
+and the following assets:
+
+- [Material ball in 3D-Coat](https://skfb.ly/FrVp) by 3d-coat licensed under [Creative Commons Attribution 4.0](http://creativecommons.org/licenses/by/4.0/).
+
 ---
 
 Vulkan SDK 1.4.341.0 - Various licenses (view the below link for more info)

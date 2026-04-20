@@ -1,6 +1,6 @@
-### Notice: assets/models/viking_room.obbj
+### Notice: assets/models/export3dcoat.obbj
 
-I renamed the model file `viking_room.obbj` to get around the .gitignore, which seems to ignore all .obj files no matter if they're from Visual Studio or 3D modeling software. Please rename it to `viking_room.obj` for the application to work correctly. This also applies to `testcube.obbj`.
+I renamed the model file to `export3dcoat.obbj` to get around the .gitignore, which seems to ignore all .obj files no matter if they're from Visual Studio or 3D modeling software. Please rename it to `export3dcoat.obj` for the application to work correctly. This also applies to `testcube.obbj` and `testSphere.obbj`.
 
 ### Readme
 
