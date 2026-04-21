@@ -15,14 +15,15 @@ layout (binding = 0) uniform UniformBufferObject
 
 // ----------------------------------------------------------------------------------------------------
 
-layout (location = 0) in vec3 inPosition;
-layout (location = 1) in vec3 inNormalDir;
-layout (location = 2) in vec2 inTexCoord;
+layout (location = 0) in vec3 msVertexPosition;
+layout (location = 1) in vec3 msNormalDirection;
+layout (location = 2) in vec2 vertexUvCoordinates;
 
-layout (location = 0) out vec3 fragPosition;
-layout (location = 1) out vec3 fragNormalDir;
-layout (location = 2) out vec2 fragTexCoord;
-layout (location = 3) out vec3 fragCameraPosition;
+layout (location = 0) out vec3 wsFragPosition;
+layout (location = 1) out vec3 wsNormalDirection;
+layout (location = 2) out vec2 uvCoordinates;
+layout (location = 3) out vec3 wsCameraPosition;
+
 layout (location = 4) out pointLightInfo light0;
 layout (location = 6) out pointLightInfo light1;
 
@@ -30,13 +31,13 @@ layout (location = 6) out pointLightInfo light1;
 
 void main()
 {	
-	vec4 worldSpacePosition = ubo.modelMatrix * vec4(inPosition, 1.0);
-	gl_Position = ubo.projectionMatrix * ubo.viewMatrix * worldSpacePosition;
+	vec4 wsFragPos = ubo.modelMatrix * vec4(msVertexPosition, 1.0);
+	gl_Position = ubo.projectionMatrix * ubo.viewMatrix * wsFragPos;
 
-	fragPosition = worldSpacePosition.xyz;
-	fragNormalDir = mat3(ubo.modelMatrix) * inNormalDir;
-	fragTexCoord = inTexCoord;
-	fragCameraPosition = ubo.cameraPosition;
+	wsFragPosition = wsFragPos.xyz;
+	wsNormalDirection = mat3(ubo.modelMatrix) * msNormalDirection;
+	uvCoordinates = vertexUvCoordinates;
+	wsCameraPosition = ubo.cameraPosition;
 
 	light0.position = (ubo.modelMatrix * vec4(-3.0, 0.0, 3.0, 1.0)).xyz;
 	light0.color = vec4(0.95, 1.0, 0.95, 1.0);
