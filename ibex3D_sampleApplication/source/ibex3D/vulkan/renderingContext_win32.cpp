@@ -33,7 +33,7 @@ struct vkUniformBufferData
 	float padding;
 };
 
-static glm::mat4 getCameraViewMatrix(glm::vec3 position, glm::vec3 rotation)
+static glm::mat4 getCameraViewMatrix_old(glm::vec3 position, glm::vec3 rotation)
 {
 	glm::mat4 viewMatrix	= glm::rotate(glm::mat4(1.0f), rotation.y, glm::vec3(0.0f, 0.0f, 1.0f));	// Roll
 	viewMatrix				= glm::rotate(viewMatrix, rotation.z, glm::vec3(1.0f, 0.0f, 0.0f));			// Pitch
@@ -44,8 +44,18 @@ static glm::mat4 getCameraViewMatrix(glm::vec3 position, glm::vec3 rotation)
 	return viewMatrix;
 }
 
-static glm::mat4 getCameraProjMatrix(float fovRadians, float aspectRatio)
+static glm::mat4 getCameraViewMatrix(glm::vec3 position, glm::vec3 rotation)
 {
+	glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, 1.0f);
+	glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+	glm::mat4 viewMatrix = glm::lookAt(position, position + cameraFront, cameraUp);
+
+	return viewMatrix;
+}
+
+static glm::mat4 getCameraProjMatrix(float fovRadians, uint32_t imgWidth, uint32_t imgHeight)
+{
+	float aspectRatio = imgWidth / static_cast<float>(imgHeight);
 	glm::mat4 projMatrix = glm::perspective(fovRadians, aspectRatio, 0.1f, 10.0f);
 	projMatrix[1][1] *= -1.0f;
 
@@ -103,7 +113,6 @@ bool vkRenderingContext::drawFrame()
 
 	vkResetFences(m_logicalDevice, 1, &m_frameFences[m_currentFrame]);
 	vkResetCommandBuffer(m_commandBuffers[m_currentFrame], 0);
-
 	updateUniformBuffer(m_currentFrame);
 	recordCommandBuffer(m_commandBuffers[m_currentFrame], imageIndex);
 
@@ -178,6 +187,7 @@ bool vkRenderingContext::initInstance()
 		vkUtils::printVkError("vkRenderingContext::initInstance()", "Requested validation layers unavailable on this device.");
 		return false;
 	}
+
 #endif
 
 	VkApplicationInfo applicationInfo = {};
@@ -200,7 +210,7 @@ bool vkRenderingContext::initInstance()
 
 	instanceInfo.ppEnabledLayerNames = instanceLayers.data();
 	instanceInfo.enabledLayerCount = static_cast<uint32_t>(instanceLayers.size());
-	instanceInfo.pNext = static_cast<void*>(&messengerInfo);
+	instanceInfo.pNext = &messengerInfo;
 #else
 	instanceInfo.enabledLayerCount = 0;
 	instanceInfo.pNext = nullptr;
@@ -824,7 +834,7 @@ bool vkRenderingContext::initFramebuffers()
 
 bool vkRenderingContext::initModelAndTexture()
 {	
-	if (!m_textureClass.initialize(m_logicalDevice, m_physicalDevice, m_commandPool, m_graphicsQueue, "assets/images/testCube.png"))
+	if (!m_textureClass.initialize(m_logicalDevice, m_physicalDevice, m_commandPool, m_graphicsQueue, "assets/images/texture.jpg"))
 	{
 		return false;
 	}
@@ -993,16 +1003,14 @@ bool vkRenderingContext::initSyncObjects()
 }
 
 void vkRenderingContext::updateUniformBuffer(uint32_t currentImage)
-{	
-	glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, -3.0f);
+{
+	glm::vec3 cameraPos = glm::vec3(m_currentMeshRotation, 0.0f, -3.0f);
 	glm::vec3 cameraRot = glm::vec3(0.0f, 0.0f, 0.0f);
 
 	vkUniformBufferData data = {};
-	data.modelMatrix = glm::rotate(glm::mat4(1.0f), m_currentMeshRotation, glm::vec3(0.0f, 1.0f, 0.0f));
-	data.viewMatrix = getCameraViewMatrix(cameraPos, cameraRot);
-	
-	float aspectRatio = m_swapchain.imageExtent.width / static_cast<float>(m_swapchain.imageExtent.height);
-	data.projMatrix = getCameraProjMatrix(glm::radians(60.0f), aspectRatio);
+	data.modelMatrix = glm::rotate(glm::mat4(1.0f), 0.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+	data.viewMatrix = getCameraViewMatrix_old(cameraPos, cameraRot);
+	data.projMatrix = getCameraProjMatrix(glm::radians(60.0f), m_swapchain.imageExtent.width, m_swapchain.imageExtent.height);
 
 	data.cameraPosition = cameraPos;
 	data.padding = 0.0f;

@@ -28,6 +28,6 @@ The shaders in the `ibex3D_sampleApplication/assets/shaders` folder have already
 
 ### Special Thanks
 
-These individuals have helped me fix issues with the engine, and it arguably wouldn't be where it is now without their assistance.
+alignment_police, Drillgon200
 
-alignment_police
+These individuals have helped me fix issues with the engine, and it arguably wouldn't be where it is now without their assistance.

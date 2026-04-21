@@ -67,8 +67,8 @@ void appInterface::update(float deltaTime)
 
 	m_meshRot += m_meshRotVel * deltaTime;
 
-	if (m_meshRot >= 6.283f) m_meshRot -= 6.283f;
-	if (m_meshRot < 0.0f) m_meshRot += 6.283f;
+	// if (m_meshRot >= 6.283f) m_meshRot -= 6.283f;
+	// if (m_meshRot < 0.0f) m_meshRot += 6.283f;
 }
 
 void appInterface::render(float deltaTime)

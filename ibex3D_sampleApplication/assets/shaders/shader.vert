@@ -1,5 +1,7 @@
 #version 450
 
+// ----------------------------------------------------------------------------------------------------
+
 layout (binding = 0) uniform UniformBufferObject
 {
 	mat4 modelMatrix;
@@ -9,6 +11,8 @@ layout (binding = 0) uniform UniformBufferObject
 	float padding;
 } ubo;
 
+// ----------------------------------------------------------------------------------------------------
+
 layout (location = 0) in vec3 inPosition;
 layout (location = 1) in vec3 inNormalDir;
 layout (location = 2) in vec2 inTexCoord;
@@ -16,7 +20,9 @@ layout (location = 2) in vec2 inTexCoord;
 layout (location = 0) out vec3 fragPosition;
 layout (location = 1) out vec3 fragNormalDir;
 layout (location = 2) out vec2 fragTexCoord;
-layout (location = 3) out vec3 fragViewDir;
+layout (location = 3) out vec3 fragCameraPosition;
+
+// ----------------------------------------------------------------------------------------------------
 
 void main()
 {	
@@ -28,5 +34,5 @@ void main()
 	fragNormalDir = inNormalDir;
 	fragTexCoord = inTexCoord;
 
-	fragViewDir = normalize(ubo.cameraPosition - worldSpacePosition.xyz);
+	fragCameraPosition = ubo.cameraPosition;
 }
