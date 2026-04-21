@@ -33,22 +33,13 @@ struct vkUniformBufferData
 	float padding;
 };
 
-static glm::mat4 getCameraViewMatrix_old(glm::vec3 position, glm::vec3 rotation)
+static glm::mat4 getCameraViewMatrix(glm::vec3 position, glm::vec3 rotation)
 {
 	glm::mat4 viewMatrix	= glm::rotate(glm::mat4(1.0f), rotation.y, glm::vec3(0.0f, 0.0f, 1.0f));	// Roll
 	viewMatrix				= glm::rotate(viewMatrix, rotation.z, glm::vec3(1.0f, 0.0f, 0.0f));			// Pitch
 	viewMatrix				= glm::rotate(viewMatrix, rotation.x, glm::vec3(0.0f, 1.0f, 0.0f));			// Yaw
 
-	viewMatrix = glm::translate(viewMatrix, position);
-
-	return viewMatrix;
-}
-
-static glm::mat4 getCameraViewMatrix(glm::vec3 position, glm::vec3 rotation)
-{
-	glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, 1.0f);
-	glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-	glm::mat4 viewMatrix = glm::lookAt(position, position + cameraFront, cameraUp);
+	viewMatrix = glm::translate(viewMatrix, -position);
 
 	return viewMatrix;
 }
@@ -1004,12 +995,12 @@ bool vkRenderingContext::initSyncObjects()
 
 void vkRenderingContext::updateUniformBuffer(uint32_t currentImage)
 {
-	glm::vec3 cameraPos = glm::vec3(m_currentMeshRotation, 0.0f, -3.0f);
-	glm::vec3 cameraRot = glm::vec3(0.0f, 0.0f, 0.0f);
+	glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+	glm::vec3 cameraRot = glm::vec3(0.0f);
 
 	vkUniformBufferData data = {};
-	data.modelMatrix = glm::rotate(glm::mat4(1.0f), 0.0f, glm::vec3(0.0f, 1.0f, 0.0f));
-	data.viewMatrix = getCameraViewMatrix_old(cameraPos, cameraRot);
+	data.modelMatrix = glm::rotate(glm::mat4(1.0f), m_currentMeshRotation, glm::vec3(0.0f, 1.0f, 0.0f));
+	data.viewMatrix = getCameraViewMatrix(cameraPos, cameraRot);
 	data.projMatrix = getCameraProjMatrix(glm::radians(60.0f), m_swapchain.imageExtent.width, m_swapchain.imageExtent.height);
 
 	data.cameraPosition = cameraPos;

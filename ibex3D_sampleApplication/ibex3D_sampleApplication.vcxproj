@@ -48,6 +48,7 @@
   <ItemGroup>
     <None Include="assets\shaders\compile.bat" />
     <None Include="assets\shaders\include\basicLighting.glsl" />
+    <None Include="assets\shaders\include\commonStructs.glsl" />
     <None Include="assets\shaders\shader.frag" />
     <None Include="assets\shaders\shader.vert" />
   </ItemGroup>

@@ -15,9 +15,10 @@ C++:
 
 Vulkan:
 
-- Fix the validation layer error that occurs during render pass creation whenever MSAA is disabled (VUID-VkSubpassDescription-pResolveAttachments-00848)
+- Find a way to render multiple objects in one scene using Vulkan, preferably with different shaders for each object
 - Find a way to compile GLSL code to SPIR-V bytecode at runtime with something like glslang or shaderc
 - Find a way to allocate the vertex, index and uniform buffer memory with one allocation
+- Fix the validation layer error that occurs during render pass creation whenever MSAA is disabled (VUID-VkSubpassDescription-pResolveAttachments-00848)
 - Investigate push constants as a replacement for uniform buffers
 
 Math vector types:

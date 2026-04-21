@@ -187,5 +187,8 @@
     <None Include="assets\shaders\include\basicLighting.glsl">
       <Filter>assets\shaders\include</Filter>
     </None>
+    <None Include="assets\shaders\include\commonStructs.glsl">
+      <Filter>assets\shaders\include</Filter>
+    </None>
   </ItemGroup>
 </Project>

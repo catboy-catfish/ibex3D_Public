@@ -28,6 +28,8 @@ The shaders in the `ibex3D_sampleApplication/assets/shaders` folder have already
 
 ### Special Thanks
 
-alignment_police, Drillgon200
+- alignment_police - Helped me with figuring out a possible memory leak in early development, and also taught me some stuff about custom memory management (which isn't really used here, but still).
+
+- Drillgon200 - Helped me fix the view matrix and specular lighting implementation.
 
 These individuals have helped me fix issues with the engine, and it arguably wouldn't be where it is now without their assistance.
