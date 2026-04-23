@@ -10,7 +10,7 @@ This is not even close to finished. I'm pretty sure this codebase has multiple i
 
 ### Documentation
 
-Early work-in-progress documentation can be found in the [documentation folder](documentation/). I highly reccommend you start with the [START_HERE] 
+Early work-in-progress documentation can be found in the [documentation folder](documentation/). I highly reccommend you start with the [START_HERE](documentation/_START_HERE.md) file, and once you're ready, explore the other files in the folder.
 
 ### Requirements
 
