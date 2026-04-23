@@ -1,4 +1,4 @@
-# class appRuntime
+# appRuntime - Basic overview
 
 * Header file: `include/ibex3D/core/appRuntime.h`
 * Source file (Win32): `source/ibex3D/core/appRuntime\_win32.cpp`

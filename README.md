@@ -8,6 +8,10 @@ This is the repository for the game engine I'm trying to create, ibex3D. It is w
 
 This is not even close to finished. I'm pretty sure this codebase has multiple issues that I'm not seeing yet, aside from the frankly horrible architecture.
 
+### Documentation
+
+Work-in-progress documentation files can be found in the 
+
 ### Requirements
 
 - Windows 10 or 11 (x64) - Currently only supports the Windows operating system because it uses Win32-specific code. It's been tested on versions 10 and 11, but older/other versions might work as well. However, you NEED to run this with a machine with 64-bit support, as it does not have any 32-bit support.
