@@ -1,28 +1,38 @@
-### Notice: assets/models/export3dcoat.obbj
+### ibex3D
 
-I renamed the model file to `export3dcoat.obbj` to get around the .gitignore, which seems to ignore all .obj files no matter if they're from Visual Studio or 3D modeling software. Please rename it to `export3dcoat.obj` for the application to work correctly. This also applies to `testcube.obbj` and `testSphere.obbj`.
+![The current state of the engine's renderer - Blinn-Phong specular lighting.](documentation/media/the_engines_current_state.JPG)
 
-### Readme
+Welcome! This is the repository for the game engine I'm trying to create, ibex3D. It is written in C++, uses the Win32 API for windowing, and the Vulkan API for graphics. It was originally based off of the Vulkan Tutorial by Alexander Overvoorde, but I've introduced some new features like diffuse and specular lighting, and also made some architectural changes to make it more my style. I want to look into other tutorials and learn more so that I can eventually keep improving it until it's capable of what I want to make with it in the future.
 
-This is the repository for the game engine I'm trying to create, ibex3D. It is written in C++, uses the Win32 API for windowing, and the Vulkan API to render graphics. It's based off of the Vulkan Tutorial by Alexander Overvoorde, but I've made some architectural changes to make it more my style. I want to look into other tutorials and learn more, so that I can eventually keep improving it until it's capable of what I want to make with it in the future.
+ibex3D is not even close to finished. I'm pretty sure this codebase has multiple issues that I'm not seeing yet, aside from the frankly horrible architecture.
 
-This is not even close to finished. I'm pretty sure this codebase has multiple issues that I'm not seeing yet, aside from the frankly horrible architecture.
+### Table of Contents
 
-### Documentation
 
-Early work-in-progress documentation can be found in the [documentation folder](documentation/). I highly reccommend you start with the [START_HERE](documentation/_START_HERE.md) file, and once you're ready, explore the other files in the folder.
 
 ### Requirements
 
-- Windows 10 or 11 (x64) - Currently only supports the Windows operating system because it uses Win32-specific code. It's been tested on versions 10 and 11, but older/other versions might work as well. However, you NEED to run this with a machine with 64-bit support, as it does not have any 32-bit support.
+* Windows 10 or 11 (x64) - Currently only supports the Windows operating system because it uses Win32-specific code. It's been tested on versions 10 and 11, but older/other versions might work as well. However, you NEED to run this with a machine with 64-bit support, as it does not have any 32-bit support.
 
-- Vulkan - Exclusively uses the Vulkan API for graphics right now. You'll need a graphics card with Vulkan support in order to be able to run it. This should be pretty common as Vulkan is widely supported by most modern GPUs.
+* Vulkan Support - Exclusively uses the Vulkan graphics API. You'll need a graphics card with Vulkan support in order to be able to run it. This should be pretty common as Vulkan is widely supported by most modern GPUs.
 
-- Vulkan SDK - Uses the Vulkan SDK version 1.4.341.0. You might be able to run it on other versions (I've personally run it using version 1.3.296.0), but it's necessary that you have the Vulkan SDK installed on your machine.
+* LunarG Vulkan SDK 1.4.341.0 - Uses the Vulkan SDK version 1.4.341.0, which you can download and install from [LunarXchange](https://vulkan.lunarg.com/sdk/home). You might be able to run it on other versions (I've personally run it back when it used version 1.3.296.0), but it's necessary that you have the Vulkan SDK installed on your machine. Please make sure that you have an environment variable `VULKAN_SDK` pointing to the Vulkan SDK (this should automatically be managed for you by the Vulkan SDK installer) as the Visual Studio project relies on this variable.
 
-- Visual Studio 2022 - Uses Microsoft Visual Studio Community 2022 version 17.14.27 and the MSVC compiler, so you need those installed in order to be able to build and run it. I want to switch it to something like CMake one day, but I have no idea how to use it right now.
+* Microsoft Visual Studio 2022 - Uses Microsoft Visual Studio Community 2022 version 17.14.27 and the Microsoft Visual C++ compiler, which you can download and install from [this link](https://visualstudio.microsoft.com/downloads/) (I haven't tested Visual Studio 2026 yet). I want to switch to using something like CMake one day and support different compilers, but I have no idea how to use those right now.
 
-##### Shader Compilation
+### Documentation
+
+```
+NOTICE: The documentation is *painfully* unfinished right now, but I'm adding more.
+```
+
+Very early work-in-progress documentation can be found in the [documentation folder](documentation/). I highly reccommend you start with the [START_HERE](documentation/_START_HERE.md) file, and once you're ready, explore the other files in the folder. If you want to create your own documentation, I've personally created a templates folder in order to make your life easier.
+
+### Model file name notice
+
+I renamed the main model file to `export3dcoat.obbj` (with two b's in the file extension) to get around the .gitignore, which seems to ignore all .obj files no matter if they're from Visual Studio or 3D modeling software. Please rename it to `export3dcoat.obj` (with a single b in the file extension)for the application to work correctly. This also applies to `testCube` and `testSphere.obbj`.
+
+### Shader compilation notice
 
 The shaders in the `ibex3D_sampleApplication/assets/shaders` folder have already been compiled to SPIR-V, and those SPIR-V files worked for me on two machines, but I'm not sure if they would work for you (I don't know if SPIR-V compilation output depends on your hardware and graphics drivers or not). If it doesn't work for you, try following these steps:
 
@@ -36,4 +46,4 @@ The shaders in the `ibex3D_sampleApplication/assets/shaders` folder have already
 
 - Drillgon200 - Helped me fix the view matrix and specular lighting implementation.
 
-These individuals have helped me fix issues with the engine, and it arguably wouldn't be where it is now without their assistance.
+These individuals have helped me fix issues with the engine, and it arguably wouldn't be where it is now without their assistance. Thank you, mwah.

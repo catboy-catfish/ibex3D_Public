@@ -111,7 +111,7 @@ bool appInterface::input_isKeyDown(unsigned int key)
 // - Window events ------------------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------
 
-void appInterface::window_onResizeEvent(int wndWidth, int wndHeight)
+void appInterface::window_onResizeEvent(unsigned int wndWidth, unsigned int wndHeight)
 {
 	if (m_renderingContext != nullptr)
 	{

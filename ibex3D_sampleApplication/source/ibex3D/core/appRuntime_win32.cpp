@@ -45,7 +45,10 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 		}
 		case WM_SIZE:
 		{
-			rtHandle->window_onResizeEvent();
+			auto newWidth = static_cast<unsigned int>(LOWORD(lParam));
+			auto newHeight = static_cast<unsigned int>(HIWORD(lParam));
+			
+			rtHandle->window_onResizeEvent(newWidth, newHeight);
 			break;
 		}
 		case WM_SETFOCUS:
@@ -72,7 +75,7 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 // - Main public functions ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------
 
-bool appRuntime::initialize(int wndWidth, int wndHeight, const char* wndTitle)
+bool appRuntime::initialize(unsigned int wndWidth, unsigned int wndHeight, const char* wndTitle)
 {
 	if (!initWindow(wndWidth, wndHeight, wndTitle))
 	{
@@ -87,7 +90,7 @@ bool appRuntime::initialize(int wndWidth, int wndHeight, const char* wndTitle)
 	return true;
 }
 
-void appRuntime::startRunning()
+void appRuntime::run()
 {
 	if (!isSafeToStartRunning()) return;
 
@@ -99,10 +102,10 @@ void appRuntime::startRunning()
 
 void appRuntime::update()
 {	
-	m_endTime = std::chrono::high_resolution_clock::now();
+	auto endTime = std::chrono::high_resolution_clock::now();
 
-	float deltaTime = std::chrono::duration<float>(m_endTime - m_startTime).count();
-	m_startTime = m_endTime;
+	float deltaTime = std::chrono::duration<float>(endTime - m_startTime).count();
+	m_startTime = endTime;
 
 	if (m_appInterface != nullptr)
 	{
@@ -158,21 +161,15 @@ void appRuntime::window_onKeyUpEvent(unsigned int key)
 // - Window event functions ---------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------
 
-void appRuntime::window_onResizeEvent()
+void appRuntime::window_onResizeEvent(unsigned int newWidth, unsigned int newHeight)
 {	
+	fprintf(stdout, "Window resized to dimensions {%i, %i}\n", newWidth, newHeight);
+	
 	if (m_windowData != nullptr)
 	{
-		auto wndData = static_cast<windowData_t*>(m_windowData);
-
-		int wndWidth, wndHeight;
-		if (!win32Utils::getWindowDimensions(wndData->hWnd, wndWidth, wndHeight))
-		{
-			return;
-		}
-
 		if (m_appInterface != nullptr)
 		{
-			m_appInterface->window_onResizeEvent(wndWidth, wndHeight);
+			m_appInterface->window_onResizeEvent(newWidth, newHeight);
 		}
 	}
 }
@@ -207,7 +204,7 @@ void appRuntime::window_onCloseRequestedEvent()
 // - Window creation functions ------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------
 
-bool appRuntime::initWindow(int wndWidth, int wndHeight, const char* wndTitle)
+bool appRuntime::initWindow(unsigned int wndWidth, unsigned int wndHeight, const char* wndTitle)
 {
 	auto wndData = new windowData_t;
 	m_windowData = static_cast<void*>(wndData);
@@ -275,31 +272,32 @@ void appRuntime::updateWindow()
 
 void appRuntime::cleanupWindow()
 {
-	if (m_windowData == nullptr) return;
-
-	auto wndData = static_cast<windowData_t*>(m_windowData);
-
-	if (wndData->hWnd != nullptr)
+	if (m_windowData != nullptr)
 	{
-		DestroyWindow(wndData->hWnd);
-		wndData->hWnd = nullptr;
-	}
+		auto wndData = static_cast<windowData_t*>(m_windowData);
 
-	if (wndData->hInstance != nullptr)
-	{
-		UnregisterClassA(wndData->className, wndData->hInstance);
-		wndData->hInstance = nullptr;
-	}
+		if (wndData->hWnd != nullptr)
+		{
+			DestroyWindow(wndData->hWnd);
+			wndData->hWnd = nullptr;
+		}
 
-	delete wndData;
-	m_windowData = nullptr;
+		if (wndData->hInstance != nullptr)
+		{
+			UnregisterClassA(wndData->className, wndData->hInstance);
+			wndData->hInstance = nullptr;
+		}
+
+		delete wndData;
+		m_windowData = nullptr;
+	}
 }
 
 // ----------------------------------------------------------------------------------------------------
 // - Application functions ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------
 
-bool appRuntime::initApplication(int wndWidth, int wndHeight)
+bool appRuntime::initApplication(unsigned int wndWidth, unsigned int wndHeight)
 {
 	m_appInterface = new appInterface;
 

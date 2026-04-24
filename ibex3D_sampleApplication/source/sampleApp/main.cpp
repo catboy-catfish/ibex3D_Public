@@ -7,7 +7,7 @@ int ibex3D_entryPoint()
 
 	if (runtime->initialize(1280, 720, "Hello, ibex3D!"))
 	{
-		runtime->startRunning();
+		runtime->run();
 	}
 
 	runtime->cleanup();

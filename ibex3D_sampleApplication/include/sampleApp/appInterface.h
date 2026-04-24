@@ -15,7 +15,7 @@ public:
 	void input_onKeyUpEvent(unsigned int key);
 	bool input_isKeyDown(unsigned int key);
 
-	void window_onResizeEvent(int wndWidth, int wndHeight);
+	void window_onResizeEvent(unsigned int wndWidth, unsigned int wndHeight);
 	void window_onFocusEvent();
 	void window_onUnfocusEvent();
 	void window_onCloseRequestedEvent();
