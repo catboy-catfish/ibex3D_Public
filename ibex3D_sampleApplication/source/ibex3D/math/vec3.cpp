@@ -220,11 +220,3 @@ void vec3::unsafeNormalize()
 	y /= len;
 	z /= len;
 }
-
-// ----------------------------------------------------------------------------------------------------
-
-size_t vec3::getSize()
-{
-	size_t size = sizeof(float);
-	return size + (size << 1);
-}

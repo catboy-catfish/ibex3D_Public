@@ -51,8 +51,4 @@ struct vec2
 
 	vec2 unsafeNormalized() const;
 	void unsafeNormalize();
-
-	// ----------------------------------------------------------------------------------------------------
-
-	static size_t getSize();
 };

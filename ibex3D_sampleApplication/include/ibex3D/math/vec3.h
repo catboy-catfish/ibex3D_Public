@@ -52,8 +52,4 @@ struct vec3
 
 	vec3 unsafeNormalized() const;
 	void unsafeNormalize();
-
-	// ----------------------------------------------------------------------------------------------------
-
-	static size_t getSize();
 };

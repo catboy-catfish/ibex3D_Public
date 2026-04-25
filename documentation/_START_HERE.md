@@ -13,12 +13,11 @@
 This is a to-do list for Sam and other developers (if any) to refer to.
 
 Documentation-specific:
-- Finalize documentation
+- Create and finalize the vec2 and vec3 documentation
 - Try to keep up to date if you notice any discrepancies between this file and the source code/APIs!
 
 General/Miscellaneous:
-- Finalize the vec4 documentation
-- Remove the `getSize()` functions from the vec2, vec3 and vec4 structs. Actually, I'll do this one myself, but not today because it's the end of the day.<br><br>These are absolutely worthless; they have no performance or convenience benefit over simply saying `sizeof(vec2)`, `sizeof(vec3)` or `sizeof(vec4)`, and to my knowledge, are also never used anywhere in ibex3D. I don't know why I implemented these in the first place since they already use `sizeof(float)`, but I just learned something: `sizeof(type)` is replaced with the size of `type` at compile time, which means it has no runtime overhead.
+- Finalize documentation for the rest of the engine
 - Figure out how to render multiple objects in one scene, preferrably with different shaders for each
 - Focus on pimping the engine code and architecture until you have the balls to make actual progress
 - Investigate GLFW as a more stable, cross-platform replacement for the manual Win32 windowing code
@@ -30,7 +29,7 @@ C/++ Specific:
 - Look into custom memory allocation/allocators and data alignment
 
 Vulkan-Specific:
-- Find a way to compile GLSL code to SPIR-V bytecode at runtime using something like glslang or shaderc (may need to be compiled with static runtime library?)
+- Find a way to compile GLSL code to SPIR-V bytecode at runtime using something like glslang or shaderc (may need to be recompiled with static runtime library?)
 - Find a way to allocate the vertex, index and uniform buffer memory with one allocation
 - Fix the validation layer error that occurs during render pass creation whenever MSAA is disabled (VUID-VkSubpassDescription-pResolveAttachments-00848)
 - Investigate push constants as a replacement for uniform buffers
