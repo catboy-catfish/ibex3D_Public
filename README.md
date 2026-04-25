@@ -6,9 +6,14 @@ Welcome! This is the repository for the game engine I'm trying to create, ibex3D
 
 ibex3D is not even close to finished. I'm pretty sure this codebase has multiple issues that I'm not seeing yet, aside from the frankly horrible architecture.
 
-### Table of Contents
+### Table of contents
 
-
+- [ibex3D](#ibex3d)
+- [Requirements](#requirements)
+- [Documentation](#documentation)
+- [Model file name notice](#model-file-name-notice)
+- [Shader compilation notice](#shader-compilation-notice)
+- [Special thanks](#special-thanks)
 
 ### Requirements
 
@@ -40,7 +45,7 @@ The shaders in the `ibex3D_sampleApplication/assets/shaders` folder have already
 2. Replace both occurences of `D:/VulkanSDK/1.4.341.1/Bin/glslc.exe` with the absolute path to glslc.exe in your Vulkan SDK installation (this would be `VulkanSDK/(version)/Bin/glslc.exe`).
 3. Run `compile.bat` and see if you don't get any errors in the command line.
 
-### Special Thanks
+### Special thanks
 
 - alignment_police - Helped me with figuring out a possible memory leak in early development, and also taught me some stuff about custom memory management (which isn't really used here, but still).
 
