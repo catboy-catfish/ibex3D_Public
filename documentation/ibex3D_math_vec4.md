@@ -1,7 +1,7 @@
-# className - Basic overview
+# vec4 - Basic overview
 
 * Header file: `include/ibex3D/math/vec4.h`
-* Source file: `source/ibex3D/math/vec4.h`
+* Source file: `source/ibex3D/math/vec4.cpp`
 
 ### Table of Contents
 
@@ -174,7 +174,7 @@ DISCLAIMER: These functions do not contain the safety checks seen in the / and /
 
 Pay close attention to the difference in naming between `multipliedByFloat()` and `multiplyByFloat()`, and other functions like this. The former creates a new vec4 from the current one, while the latter directly modifies the current vec4.
 
-The non-assigning arithmetic operators (`+ - * /`), don't have SIMD implemented right now. The reason why is pretty strange: when I tried to implement non-assignment functions using the SSE instruction set and benchmarked them against SISD equivalent functions, the SIMD functions ended up being _slower_ than the SISD functions. However, when I implemented assigning arithmetic functions (`+= -= *= /=`) using SSE and compared them with the SISD equivalents, they ended up being faster, easier to implement, and the logic remains in the vec4 code to this day. I'm not yet sure why this is, although I've only tested it using the MSVC compiler - I should try doing this again using Clang and GCC to see if it's not a compiler-specific issue. I very much want to speed these operators up using SIMD, but I don't know how to do so yet, if it's even possible.
+The non-assigning arithmetic operators (`+ - * /`), don't have SIMD implemented right now. The reason why is pretty strange: when I tried to implement non-assignment functions using the SSE instruction set and benchmarked them against SISD equivalent functions, the SIMD functions ended up being _slower_ than the SISD functions. However, when I implemented assigning arithmetic functions (`+= -= *= /=`) using SSE and compared them with the SISD equivalents, they ended up being faster, easier to implement, and the logic remains in the vec4 code to this day. I'm not yet sure why this is, although I've only tested it using the MSVC compiler - I should try doing this again using Clang and GCC to see if it's not a compiler-specific issue. I very much want to speed these operators up using SIMD, but I don't know how to do so yet, if it's even possible. On a related note, this is the only type with SIMD manually implemented. vec2 and vec3 don't have any manual SIMD implementation, although they may undergo autovectorization at compile time.
 
 Historically, the vec4 struct (along with vec2 and vec3) had a helper function called `getSize()`. This was a static function (this means that it behaved like a global function while only being accessible from the class namespace) which returned the size of two, three or four floats by using the `sizeof()` operator and bit shifting. For vec2, it returned `sizeof(float) << 1`, for vec3 it returned `(sizeof(float) << 1) + sizeof(float)`, and for vec4 it returned `sizeof(float) << 2`. I don't remember why I implemented it, maybe I was just using it as an excuse to try out bit shifting as opposed to regular multiplication by 2/3/4, but these functions were removed once I found out that `sizeof()` is a _COMPILE-TIME_ OPERATOR! Calls to `sizeof(structureType)` are replaced with the size of `structureType` by the compiler, which means that it has literally zero runtime overhead. The good-for-nothing `getSize()` functions added a tiny amount of unnecessary overhead which I thought I was avoiding, and they were also used nowhere in ibex3D anyway, so I removed them as a result. This entire paragraph might not be necessary (it's more like a rant), but I felt like putting it here as a note-to-self that `sizeof()` is a compile-time operator and that it has no runtime cost or performance penalty.
 
@@ -272,7 +272,7 @@ Advanced math functions:
 // Linear interpolation (non-assigning) - values: { 0.0f, 0.5f, 1.0f, 1.5f }
 vec4 myVec4 = vec4(0.0f, 1.0f, 2.0f, 3.0f).lerpedTo(vec4(0.0f), 0.5f);
 
-// Linear interpolation (assigning) - values: { 0.5f, 0.75f. 1.0f, 1.25f }
+// Linear interpolation (assigning) - values: { 0.5f, 0.75f, 1.0f, 1.25f }
 myVec4.lerpTo(vec4(1.0f), 0.5f);
 
 // Length and normalization (non-assigning)
