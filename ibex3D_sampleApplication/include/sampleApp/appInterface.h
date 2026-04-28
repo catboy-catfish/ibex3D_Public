@@ -6,6 +6,9 @@ class vkRenderingContext;
 class appInterface
 {
 public:
+	
+	/* Required setup functions */
+
 	bool initialize(appRuntime* pRuntime, void* pWindow);
 	void update(float deltaTime);
 	void render(float deltaTime);
@@ -22,16 +25,25 @@ public:
 
 	bool isSafeToStartRunning();
 
-private:
-	bool m_keyStates[256] = { false };
+	/* Examples of some functions you could create yourself for your own ibex3D project */
 
+	void updateFpsCounter(float deltaTime);
+	void updateMeshRotation(float deltaTime);
+
+private:
+
+	/* Required setup variables */
+	
+	bool m_keyStates[256] = { false };
 	appRuntime* m_appRuntime = nullptr;
 	vkRenderingContext* m_renderingContext = nullptr;
 
-	float m_elapsedTime = 0.0f;
-	size_t m_elapsedFrames = 0;
+	/* Example variables - add or remove as needed */
 
 	float m_meshRot = 0.0f;
 	float m_meshRotVel = 0.0f;
 	float m_meshRotSpd = 1.0f;
+
+	float m_elapsedTime = 0.0f;
+	size_t m_elapsedFrames = 0;
 };

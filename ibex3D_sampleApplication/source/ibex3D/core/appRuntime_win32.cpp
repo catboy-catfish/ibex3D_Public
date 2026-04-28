@@ -226,7 +226,7 @@ bool appRuntime::initWindow(unsigned int wndWidth, unsigned int wndHeight, const
 
 	DWORD wndStyle = WS_OVERLAPPEDWINDOW;
 
-	RECT wndRect = { 0, 0, wndWidth, wndHeight };
+	RECT wndRect = { 0, 0, static_cast<LONG>(wndWidth), static_cast<LONG>(wndHeight)};
 	AdjustWindowRect(&wndRect, wndStyle, FALSE);
 
 	wndData->hWnd = CreateWindowExA
