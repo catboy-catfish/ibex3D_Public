@@ -17,13 +17,15 @@ ibex3D is not even close to finished. I'm pretty sure this codebase has multiple
 
 ### Requirements
 
-* Windows 10 or 11 (x64) - Currently only supports the Windows operating system because it uses Win32-specific code. It's been tested on versions 10 and 11, but older/other versions might work as well. However, you NEED to run this with a machine with 64-bit support, as it does not have any 32-bit support.
+- Windows 10 or 11 (x64) - Currently only supports the Windows operating system because it uses Win32-specific code. It's been tested on versions 10 and 11, but older/other versions might work as well. However, you NEED to run this with a machine with 64-bit support, as it does not have any 32-bit support.
 
-* Vulkan Support - Exclusively uses the Vulkan graphics API. You'll need a graphics card with Vulkan support in order to be able to run it. This should be pretty common as Vulkan is widely supported by most modern GPUs.
+- Vulkan Support - Exclusively uses the Vulkan graphics API. You'll need a graphics card with Vulkan support in order to be able to run it. This should be pretty common as Vulkan is widely supported by most modern GPUs.
 
-* LunarG Vulkan SDK 1.4.341.0 - Uses the Vulkan SDK version 1.4.341.0, which you can download and install from [LunarXchange](https://vulkan.lunarg.com/sdk/home). You might be able to run it on other versions (I've personally run it back when it used version 1.3.296.0), but it's necessary that you have the Vulkan SDK installed on your machine. Please make sure that you have an environment variable `VULKAN_SDK` pointing to the Vulkan SDK (this should automatically be managed for you by the Vulkan SDK installer) as the Visual Studio project relies on this variable.
+- LunarG Vulkan SDK 1.4.341.0 - Uses the Vulkan SDK version 1.4.341.0, which you can download and install from [LunarXchange](https://vulkan.lunarg.com/sdk/home). You might be able to run it on other versions (I've personally run it back when it used version 1.3.296.0), but it's necessary that you have the Vulkan SDK installed on your machine. Please make sure that you have an environment variable `VULKAN_SDK` pointing to the Vulkan SDK (this should automatically be managed for you by the Vulkan SDK installer) as the Visual Studio project relies on this variable.
 
-* Microsoft Visual Studio 2022 - Uses Microsoft Visual Studio Community 2022 version 17.14.27 and the Microsoft Visual C++ compiler, which you can download and install from [this link](https://visualstudio.microsoft.com/downloads/) (I haven't tested Visual Studio 2026 yet). I want to switch to using something like CMake one day and support different compilers, but I have no idea how to use those right now.
+- Microsoft Visual Studio 2022 - Uses Microsoft Visual Studio Community 2022 version 17.14.27 and the Microsoft Visual C++ compiler, which you can download and install from [this link](https://visualstudio.microsoft.com/downloads/) (I haven't tested Visual Studio 2026 yet). I want to switch to using something like CMake one day and support different compilers, but I have no idea how to use those right now.
+
+- Knowledge of C++, Vulkan and graphics programming - Makes extensive use of all of these, so if you don't have any prior experience with them before working with it, you may quickly become confused and frustrated. In which case, I suggest you check out the Assumptions section in the [_START_HERE.md](documentation/_START_HERE.md) file for ideas on educational resources on working with C++, Vulkan and graphics programming.
 
 ### Documentation
 

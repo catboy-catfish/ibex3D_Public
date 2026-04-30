@@ -2,6 +2,7 @@
 
 ### Table of Contents
 
+- [Assumptions of Prior Experience](#assumptions-of-prior-experience)
 - [Program Execution Flow](#program-execution-flow)
 - - [Entry Point File](#entry-point-file)
     - [Testbed](#testbed)
@@ -10,11 +11,55 @@
 - [Preprocessor Definitions](#preprocessor-definitions)
 - [To-Do List](#to-do-list)
 
+### Assumptions of Prior Experience
+
+If you work with ibex3D, you are assumed to have basic knowledge of programming in C++ and GLSL, and if you want to implement advanced features, you'll also need intermediate/advanced C++ knowledge as well as graphics programming using the Vulkan API. The ibex3D documentation doesn't go into depth about these very often, and if you have no prior experience with any of them, you might become lost and confused. In which case, I suggest you use the following resources to get started.
+
+If you have any ideas for better resources, please consider suggesting or adding them here!
+
+For C++, look into:
+- [cppreference.com](https://cppreference.com/)
+- [cplusplus.com - C++ Language Tutorial](https://cplusplus.com/doc/tutorial/)
+- [Learn C++](https://www.learncpp.com/)
+- [The Cherno - C++ (YouTube playlist)](https://www.youtube.com/playlist?list=PLlrATfBNZ98dudnM48yfGUldqGD0S4FFb)
+- [CodeBeauty - C++ FULL COURSE For Beginners (Learn C++ in 10 hours) (YouTube video)](https://www.youtube.com/watch?v=GQp1zzTwrIg)
+- [Mike Shah - The C++ Programming Language (YouTube playlist)](https://www.youtube.com/playlist?list=PLvv0ScY6vfd8j-tlhYVPYgiIyXduu6m-L)
+- [Tech With Tim - Learn C++ With Me (YouTube playlist)](https://www.youtube.com/playlist?list=PLzMcBGfZo4-lmGC8VW0iu6qfMHjy7gLQ3)
+
+For Vulkan, look into:
+- [Vulkan.org - Learn](https://vulkan.org/learn)
+- [Khronos Group - Vulkan Documentation](https://docs.vulkan.org/spec/latest/index.html)
+- [Khronos Group - Vulkan Tutorial: Building a Simple Engine](https://docs.vulkan.org/tutorial/latest/Building_a_Simple_Engine/introduction.html)
+- [Alexander Overvoorde - Vulkan Tutorial](https://vulkan-tutorial.com/)
+- [Khronos Vulkan Tutorial - Introduction](https://docs.vulkan.org/tutorial/latest/00_Introduction.html)
+- [Sascha Willems - How to Vulkan in 2026](https://howtovulkan.com/)
+- [vblanco20-1 - VkGuide.dev](https://vkguide.dev/)
+- [Brendan Galea - Vulkan (c++) Game Engine Tutorials (YouTube playlist)](https://www.youtube.com/playlist?list=PL8327DO66nu9qYVKLDmdLW_84-yE4auCR)
+- [Cakez - Vulkan Engine - No Libs (YouTube playlist)](https://www.youtube.com/playlist?list=PLFAIgTeqcARkeHm-RimFyKET6IZPxlBSt)
+- [Travis Vroman - Vulkan Game Engine Series Written in C (Kohi Game Engine) (YouTube playlist)](https://www.youtube.com/playlist?list=PLv8Ddw9K0JPg1BEO-RS-0MYs423cvLVtj)
+- [OGLDEV - Vulkan For Beginners (YouTube playlist)](https://www.youtube.com/playlist?list=PLA0dXqQjCx0RntJy1pqje9uHRF1Z5vZgA)
+- [The Graphics Guy - Vulkan (YouTube playlist)](https://www.youtube.com/playlist?list=PLn3eTxaOtL2NH5nbPHMK7gE07SqhcAjmk)
+- [Codotaku - Vulkan Tutorial (YouTube playlist)](https://www.youtube.com/playlist?list=PLlKj-4rp1Gz0eBLIcq2wzd8uigFrJduJ-)
+
+For general graphics programming, look into:
+- [Joey de Vries - Learn OpenGL](https://learnopengl.com/)
+- [RasterTek - DirectX 11 on Windows 10 Tutorials](https://www.rastertek.com/tutdx11win10.html)
+- [RasterTek - OpenGL 4.0 on Linux Tutorials](https://www.rastertek.com/tutgl4linux.html)
+- [RasterTek - OpenGL 4.0 on Windows Tutorials (historical tutorial)](https://www.rastertek.com/tutgl40.html)
+- [OGLDEV - All OpenGL Tutorials (YouTube playlist)](https://www.youtube.com/playlist?list=PLA0dXqQjCx0S04ntJKUftl6OaOgsiwHjA)
+- [Victor Gordan - OpenGL Tutorials (YouTube playlist)](https://www.youtube.com/playlist?list=PLPaoO-vpZnumdcb4tZc4x5Q-v7CkrQ6M-)
+- [ChiliTomatoNoodle - C++ 3D DirectX Programming](https://www.youtube.com/playlist?list=PLqCJpWy5Fohd3S7ICFXwUomYW0Wv67pDD)
+- [PardCode - Game Engine Tutorial Series (YouTube playlist)](https://www.youtube.com/playlist?list=PLv8DnRaQOs5-MR-zbP1QUdq5FL0FWqVzg)
+- [PardCode - C++ OpenGL 3D Game Tutorial Series From Scratch (YouTube playlist)](https://www.youtube.com/playlist?list=PLv8DnRaQOs5-TyYnF56YghOxQBNr1VVmF)
+
+I _strongly_ recommend that you don't restrict yourself to just these links and resources. Instead, please feel free to look for other C++/Vulkan/graphics programming tutorials - do a quick google search for "C++ tutorial", "Vulkan tutorial" or "Graphics programming tutorial" - to solidify your knowledge or if you get confused.
+
 ### Program Execution
 
 The execution for the entire application and game proceeds as follows:
-
 main.cpp -> [appRuntime](ibex3D_core_appRuntime.md) -> [appInterface](sampleApp_appInterface.md)
+
+In addition to that, the execution of the `appRuntime` and `appInterface` classes are split up into three stages: initialization, runtime, and cleanup. The [appRuntime source file](ibex3D_core_appRuntime.md) contains a detailed explanation of what this means and what the various stages are responsible for.
 
 ##### The Entry Point File
 
