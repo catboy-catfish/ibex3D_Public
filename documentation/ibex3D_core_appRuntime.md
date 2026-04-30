@@ -6,37 +6,51 @@
 ### Table of Contents
 
 - [Description](#description)
+  - [Execution stages](#execution-stages)
 - [Functions](#functions)
-	- [Public functions](#public-functions)
-	- [Window procedure functions](#window-procedure-functions)
-	- [Private functions](#private-functions)
+  - [Public functions](#public-functions)
+  - [Window procedure functions](#window-procedure-functions)
+  - [Private functions](#private-functions)
 - [Member variables](#member-variables)
 - [Examples](#examples)
 
 ### Description
 
-The `appRuntime` class represents the outermost execution layer of the application developed with ibex3D. This class is responsible for window creation and message handling, input processing and delta time calculation, and it also owns an instance of `appInterface`, being responsible for calling its main functions.
+`appRuntime` is the class responsible for window creation and message handling, input processing, delta time calculation, and also owns an instance of the `appInterface` and is responsible for calling its main functions. It represents the outermost execution layer of the application developed with ibex3D.
+
+The entire execution of the ibex3D application consists of the following three stages: `initialization` -> `runtime` -> `cleanup`. Below is an explanation of the three stages and a diagram summing them up.
+
+##### Execution stages
+
+The initialization stage is used to set up the window, `appInterface` and other main resources for the ibex3D application. It begins when the executable launches, and ends when all initialization succeeds or fails.
+
+The runtime stage is used as a container for the entire period where the application is running. It should begin right after the initialization stage succeeds and end when the application should stop running (such as when the user clicks the window close button or the game exits automatically). Note that if the initialization stage is unsuccessful, this stage will be skipped and the program will skip directly to the cleanup stage.
+
+The cleanup stage is used to free all allocated memory for the window, `appInterface` and other main resources, as well as doing any other cleanup/procedures before exiting if needed. It begins right after the end of the runtime stage (or the initialization stage if it fails) and ends when all cleanup proceeds, right before the executable closes.
+
+Here is a diagram displaying all execution stages in order, as well as a simplified overview of what the stages entail:
+![appRuntime_stages](media/appRuntime_stages.jpg)
 
 ### Functions
 
 ##### Public functions
 
 `bool initialize(int wndWidth, int wndHeight, const char* wndTitle)`
-- Attempts to initialize the window and `appInterface` instance, taking in the target window width, height and title. This is technically just a helper function which calls `initWindow()` and `initApplication()` in the correct order.
+- Attempts to initialize the window and `appInterface` instance, taking in the target width and height of the window as well as the title.
+- Calls the `initWindow()` and `initApplication()` helper functions, and represents the entire length of the initialization stage mentioned in the description above.
 - Returns true if both are successful and false otherwise.
 
-`void startRunning()`
-- Checks if it is safe to begin the application processing loop.
-- If it is safe to do so, begins the processing loop. If not, immediately exits without doing anything.
-- This function continues executing and blocks further execution until the application runtime ends.
+`void run()`
+- Begins the application update loop after checking that it is safe to do so, or immediately exits otherwise.
+- This function represents the entire length of the runtime stage mentioned in the description. It continues executing and blocks further execution until the runtime stage ends.
 
 `void forceClose()`
-- Forcibly ends the processing loop and destroys the window, immediately closing the application.
+- Forcibly ends the processing loop and destroys the window, immediately ending the runtime stage and exiting the ibex3D application.
 - This is not to be confused with `cleanup()`, which frees all memory allocated by the window and appInterface after the application runtime ends.
 
 `void cleanup()`
-- Frees all memory allocated by the window and appInterface.
-- This function is meant to be called after the application runtime ends. Please see the example below for an example of how this should be done.
+- Frees all memory allocated by the window and appInterface. This function represents the entire length of the cleanup stage mentioned in the description above.
+- This function is meant to be called after the runtime stage ends. Please see the example below for an example of how this should be done.
 
 ##### Window procedure functions
 
@@ -111,23 +125,30 @@ The `appRuntime` class represents the outermost execution layer of the applicati
 ### Examples
 
 How to initialize, run and cleanup an appRuntime instance (as used in the entry point file, `source/sampleApp/main.cpp`)
+
 ```cpp
 #include <ibex3D/core/entryPoint.h>
 #include <ibex3D/core/appRuntime.h>
 
 int ibex3D_entryPoint()
 {
-	auto pRuntime = new appRuntime;
-	
-	if (pRuntime->initialize(1280, 720, "Hello, ibex3D!")
-	{
-		pRuntime->startRunning();
-	}
-	
-	pRuntime->cleanup();
-	delete pRuntime;
-	pRuntime = nullptr;
-	
-	return 0;
+    // Start of program execution and initialization stage
+
+    auto pRuntime = new appRuntime;
+    if (pRuntime->initialize(1280, 720, "Hello, ibex3D!")
+    {
+        // End of initialization stage, start of runtime stage
+        pRuntime->run();
+        // End of runtime stage, start of cleanup stage
+    }
+
+    pRuntime->cleanup();
+    // End of cleanup stage
+
+    delete pRuntime;
+    pRuntime = nullptr;
+
+    // End of program execution
+    return 0;
 }
 ```
