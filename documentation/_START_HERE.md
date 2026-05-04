@@ -3,6 +3,7 @@
 ### Table of Contents
 
 - [Assumptions of Prior Experience](#assumptions-of-prior-experience)
+  - [Learning resources](#learning-resources)
 - [Program Execution Flow](#program-execution-flow)
 - - [Entry Point File](#entry-point-file)
     - [Testbed](#testbed)
@@ -16,6 +17,8 @@
 If you work with ibex3D, you are assumed to have basic knowledge of programming in C++ and GLSL, and if you want to implement advanced features, you'll also need intermediate/advanced C++ knowledge as well as graphics programming using the Vulkan API. The ibex3D documentation doesn't go into depth about these very often, and if you have no prior experience with any of them, you might become lost and confused. In which case, I suggest you use the following resources to get started.
 
 If you have any ideas for better resources, please consider suggesting or adding them here!
+
+##### Learning Resources
 
 For C++, look into:
 - [cppreference.com](https://cppreference.com/)
@@ -34,6 +37,8 @@ For Vulkan, look into:
 - [Khronos Vulkan Tutorial - Introduction](https://docs.vulkan.org/tutorial/latest/00_Introduction.html)
 - [Sascha Willems - How to Vulkan in 2026](https://howtovulkan.com/)
 - [vblanco20-1 - VkGuide.dev](https://vkguide.dev/)
+- [VkGuide.dev - Great resources](https://vkguide.dev/docs/great_resources)
+- [zeux.io - Writing an efficient Vulkan renderer](https://zeux.io/2020/02/27/writing-an-efficient-vulkan-renderer/)
 - [Brendan Galea - Vulkan (c++) Game Engine Tutorials (YouTube playlist)](https://www.youtube.com/playlist?list=PL8327DO66nu9qYVKLDmdLW_84-yE4auCR)
 - [Cakez - Vulkan Engine - No Libs (YouTube playlist)](https://www.youtube.com/playlist?list=PLFAIgTeqcARkeHm-RimFyKET6IZPxlBSt)
 - [Travis Vroman - Vulkan Game Engine Series Written in C (Kohi Game Engine) (YouTube playlist)](https://www.youtube.com/playlist?list=PLv8Ddw9K0JPg1BEO-RS-0MYs423cvLVtj)
@@ -107,9 +112,9 @@ The symbol `ibex3D_entryPoint` is a preprocessor macro in `ibex3D_sampleApplicat
 
 ##### Testbed
 
-In addition to the main entry point file, `source/sampleApp/main.cpp`, the project also has another entry point file, `source/sampleApp/testbed_0.cpp`. This file is used for testing functions, classes and stuff in isolation from the main game without making changes to the main file. Note that this entry point isn't meant to be included in the final executable.
+In addition to the main entry point file, `source/sampleApp/main.cpp`, the project also has another entry point .cpp file whose name starts with `testbed_`. It might be named something like `testbed_simd.cpp` or `testbed_fastgltf.cpp` or `testbed_`whatever`.cpp`. Anyways, this file is used for testing functions, classes and stuff in isolation from the main game without making changes to the main.cpp file. Note that this file isn't meant to be used in the final executable.
 
-To switch to using the testbed_0.cpp file in the Visual Studio project, make sure the `Show All Files` option is enabled in the Solution Explorer to see the real folders. Then, right click on testbed.cpp and select `Include In Project`, then right click on the main.cpp file and select `Exclude From Project`. To switch back, include the main.cpp file and then exclude the testbed_0.cpp file. If you disable `Show All Files` to see the virtual folders, also known as "filters", you'll notice that the entry point file has been moved out of the sampleApp filter, so please make sure to move it back in whenever you do this!
+To switch to using the `testbed_`.cpp file in the Visual Studio project, make sure the `Show All Files` option is enabled in the Solution Explorer to see the real folders. Then, right click on `testbed_`.cpp and select `Include In Project`, then right click on the main.cpp file and select `Exclude From Project`. To switch back, include the main.cpp file and then exclude the `testbed_`.cpp file. If you disable `Show All Files` to see the virtual folders, also known as "filters", you'll notice that the entry point file has been moved out of the sampleApp filter, so please make sure to move it back in whenever you do this!
 
 ### Code Conventions
 
