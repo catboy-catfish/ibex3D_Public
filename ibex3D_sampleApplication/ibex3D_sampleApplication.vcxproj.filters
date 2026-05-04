@@ -1,13 +1,39 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="source\sampleApp\testbed_fastgltf.cpp">
+    <ClCompile Include="source\sampleApp\testbed_simd.cpp">
       <Filter>sampleApp</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ibex3D\math\vec4.cpp">
+      <Filter>ibex3D\math\vec4</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="sampleApp">
       <UniqueIdentifier>{0815c615-db27-42f7-8e9f-190d0685f0e7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ibex3D">
+      <UniqueIdentifier>{fa3133e7-eb6a-43e7-a8e4-81047d00bd75}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\math">
+      <UniqueIdentifier>{eb442263-1dbc-4d6f-a63a-8af80de50b25}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\core">
+      <UniqueIdentifier>{93b52017-c268-46b1-9a2d-290577040abf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\math\vec4">
+      <UniqueIdentifier>{0c0c8e9c-ad00-4688-8f00-cca6d76ae48e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\math\vec4_simd">
+      <UniqueIdentifier>{7f37e92b-ef2e-48e9-b851-e9d7345fbc16}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\ibex3D\math\vec4.h">
+      <Filter>ibex3D\math\vec4</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ibex3D\math\vec4_simd.h">
+      <Filter>ibex3D\math\vec4_simd</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
