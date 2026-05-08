@@ -52,6 +52,9 @@
     <ClInclude Include="include\ibex3D\core\win32.h">
       <Filter>ibex3D\core\win32</Filter>
     </ClInclude>
+    <ClInclude Include="include\ibex3D\utility\logger.h">
+      <Filter>ibex3D\utility\logger</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\sampleApp\appInterface.cpp">
@@ -98,6 +101,9 @@
     </ClCompile>
     <ClCompile Include="source\sampleApp\main.cpp">
       <Filter>sampleApp</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ibex3D\utility\logger.cpp">
+      <Filter>ibex3D\utility\logger</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -178,6 +184,9 @@
     </Filter>
     <Filter Include="assets\shaders\include">
       <UniqueIdentifier>{8fc2c320-b6df-4123-b481-4cbea8d6e04c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\utility\logger">
+      <UniqueIdentifier>{c5392e6d-58bf-45e6-b27b-3998bd02f8f2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

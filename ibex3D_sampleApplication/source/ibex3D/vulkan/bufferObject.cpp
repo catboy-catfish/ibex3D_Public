@@ -15,9 +15,11 @@ bool vkBufferObject::initialize(VkDevice device, VkPhysicalDevice physDevice, Vk
 
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::printVkResultError(result, "vkBufferObject::initialize()", "Couldn't create the buffer.");
+		vkUtils::printVkResultMessage(result, "vkBufferObject::initialize()", "Couldn't create the buffer.", vkMessageType::FATAL);
 		return false;
 	}
+
+	bufferSize = size;
 
 	uint32_t memoryType = 0;
 	VkMemoryRequirements memRequirements = {};
@@ -26,7 +28,7 @@ bool vkBufferObject::initialize(VkDevice device, VkPhysicalDevice physDevice, Vk
 
 	if (!vkUtils::findMemoryType(physDevice, memRequirements.memoryTypeBits, memProps, memoryType))
 	{
-		vkUtils::printVkResultError(result, "vkBufferObject::initialize()", "Couldn't find a suitable type for the buffer memory.");
+		vkUtils::printVkResultMessage(result, "vkBufferObject::initialize()", "Couldn't find a suitable type for the buffer memory.", vkMessageType::FATAL);
 		return false;
 	}
 
@@ -39,7 +41,7 @@ bool vkBufferObject::initialize(VkDevice device, VkPhysicalDevice physDevice, Vk
 
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::printVkResultError(result, "vkBufferObject::initialize()", "Couldn't allocate the buffer memory.");
+		vkUtils::printVkResultMessage(result, "vkBufferObject::initialize()", "Couldn't allocate the buffer memory.", vkMessageType::FATAL);
 		return false;
 	}
 
@@ -47,7 +49,7 @@ bool vkBufferObject::initialize(VkDevice device, VkPhysicalDevice physDevice, Vk
 
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::printVkResultError(result, "vkBufferObject::initialize()", "Couldn't bind the buffer memory.");
+		vkUtils::printVkResultMessage(result, "vkBufferObject::initialize()", "Couldn't bind the buffer memory.", vkMessageType::FATAL);
 		return false;
 	}
 
@@ -69,38 +71,43 @@ void vkBufferObject::cleanup(VkDevice device)
 	}
 }
 
-bool vkBufferObject::updateBufferData(VkDevice device, VkDeviceSize size, void* newData)
+bool vkBufferObject::updateBufferData(VkDevice device, void* newData)
 {
 	void* data;
 	
-	VkResult result = vkMapMemory(device, bufferMemory, 0, size, 0, &data);
+	VkResult result = vkMapMemory(device, bufferMemory, 0, bufferSize, 0, &data);
 	
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::printVkResultError(result, "vkBufferObject::updateBufferData()", "Couldn't map the buffer memory.");
+		vkUtils::printVkResultMessage(result, "vkBufferObject::updateBufferData()", "Couldn't map the buffer memory.", vkMessageType::FATAL);
 		return false;
 	}
 	
-	memcpy(data, newData, size);
+	memcpy(data, newData, bufferSize);
 
 	vkUnmapMemory(device, bufferMemory);
 
 	return true;
 }
 
-bool vkBufferObject::cmdCopyBuffer(VkDevice device, VkCommandPool cmdPool, VkQueue gfxQueue, VkDeviceSize size, VkBuffer srcBuffer)
+bool vkBufferObject::cmdCopyBuffer(VkDevice device, VkCommandPool cmdPool, VkQueue gfxQueue, VkBuffer srcBuffer, VkDeviceSize srcBufSize)
 {
+	if (srcBufSize != bufferSize)
+	{
+
+	}
+	
 	VkCommandBuffer commandBuffer = vkUtils::beginSingleTimeCommands(device, cmdPool);
 
 	if (commandBuffer == nullptr)
 	{
-		vkUtils::printVkError("vkBufferObject::cmdCopyBuffer()", "Couldn't begin the single-time commands.");
+		vkUtils::printMessage("vkBufferObject::cmdCopyBuffer()", "Couldn't begin the single-time commands.", vkMessageType::FATAL);
 		vkUtils::endSingleTimeCommands(device, cmdPool, gfxQueue, commandBuffer);
 		return false;
 	}
 
 	VkBufferCopy copyRegion = {};
-	copyRegion.size = size;
+	copyRegion.size = srcBufSize;
 	vkCmdCopyBuffer(commandBuffer, srcBuffer, buffer, 1, &copyRegion);
 
 	vkUtils::endSingleTimeCommands(device, cmdPool, gfxQueue, commandBuffer);

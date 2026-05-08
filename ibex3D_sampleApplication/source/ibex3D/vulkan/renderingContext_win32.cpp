@@ -98,7 +98,7 @@ bool vkRenderingContext::drawFrame()
 	}
 	else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
 	{
-		vkUtils::printVkResultError(result, "vkRenderingContext::drawFrame()", "Couldn't acquire the swapchain image.");
+		vkUtils::printVkResultMessage(result, "vkRenderingContext::drawFrame()", "Couldn't acquire the swapchain image.", vkMessageType::FATAL);
 		return false;
 	}
 
@@ -125,7 +125,7 @@ bool vkRenderingContext::drawFrame()
 
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::printVkResultError(result, "vkRenderingContext::drawFrame()", "Couldn't submit the draw command to the command buffer.");
+		vkUtils::printVkResultMessage(result, "vkRenderingContext::drawFrame()", "Couldn't submit the draw command to the command buffer.", vkMessageType::FATAL);
 		return false;
 	}
 
@@ -149,7 +149,7 @@ bool vkRenderingContext::drawFrame()
 	}
 	else if (result != VK_SUCCESS)
 	{
-		vkUtils::printVkResultError(result, "vkRenderingContext::drawFrame()", "Couldn't enqueue the image for presentation.");
+		vkUtils::printVkResultMessage(result, "vkRenderingContext::drawFrame()", "Couldn't enqueue the image for presentation.", vkMessageType::FATAL);
 		return false;
 	}
 
@@ -175,7 +175,7 @@ bool vkRenderingContext::initInstance()
 #ifdef IBEX3D_VULKAN_VALIDATION
 	if (!checkInstanceLayerSupport())
 	{
-		vkUtils::printVkError("vkRenderingContext::initInstance()", "Requested validation layers unavailable on this device.");
+		vkUtils::printMessage("vkRenderingContext::initInstance()", "Requested validation layers unavailable on this device.", vkMessageType::FATAL);
 		return false;
 	}
 
@@ -211,7 +211,7 @@ bool vkRenderingContext::initInstance()
 
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::printVkResultError(result, "vkRenderingContext::initInstance()", "Couldn't create the instance.");
+		vkUtils::printVkResultMessage(result, "vkRenderingContext::initInstance()", "Couldn't create the instance.", vkMessageType::FATAL);
 		return false;
 	}
 
@@ -220,7 +220,7 @@ bool vkRenderingContext::initInstance()
 
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::printVkResultError(result, "vkRenderingContext::initInstance()", "Couldn't create the debug utils messenger.");
+		vkUtils::printVkResultMessage(result, "vkRenderingContext::initInstance()", "Couldn't create the debug utils messenger.", vkMessageType::FATAL);
 		return false;
 	}
 #endif
@@ -232,7 +232,7 @@ bool vkRenderingContext::initSurface(void* wndMemory)
 {
 	if (wndMemory == nullptr)
 	{
-		vkUtils::printVkError("vkRenderingContext::initSurface()", "Argument \"void* wndMemory\" is nullptr.");
+		vkUtils::printMessage("vkRenderingContext::initSurface()", "Argument \"void* wndMemory\" is nullptr.", vkMessageType::FATAL);
 		return false;
 	}
 
@@ -247,7 +247,7 @@ bool vkRenderingContext::initSurface(void* wndMemory)
 
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::printVkResultError(result, "vkRenderingContext::initSurface()", "Couldn't create the Win32 window surface.");
+		vkUtils::printVkResultMessage(result, "vkRenderingContext::initSurface()", "Couldn't create the Win32 window surface.", vkMessageType::FATAL);
 		return false;
 	}
 	
@@ -261,7 +261,7 @@ bool vkRenderingContext::initPhysicalDevice(VkSampleCountFlagBits msaaSamplesUse
 
 	if (numDevices == 0)
 	{
-		vkUtils::printVkError("vkRenderingContext::initPhysicalDevice()", "Couldn't find any GPU(s) with Vulkan support.");
+		vkUtils::printMessage("vkRenderingContext::initPhysicalDevice()", "Couldn't find any GPU(s) with Vulkan support.", vkMessageType::FATAL);
 		return false;
 	}
 
@@ -287,7 +287,7 @@ bool vkRenderingContext::initPhysicalDevice(VkSampleCountFlagBits msaaSamplesUse
 	}
 	else
 	{
-		vkUtils::printVkError("vkRenderingContext::initPhysicalDevice()", "Couldn't find any suitable GPU.");
+		vkUtils::printMessage("vkRenderingContext::initPhysicalDevice()", "Couldn't find any suitable GPU.", vkMessageType::FATAL);
 		return false;
 	}
 
@@ -300,7 +300,7 @@ bool vkRenderingContext::initLogicalDevice()
 
 	if (!indices.isComplete())
 	{
-		vkUtils::printVkError("vkRenderingContext::initLogicalDevice()", "One or more of the required queue families are missing.");
+		vkUtils::printMessage("vkRenderingContext::initLogicalDevice()", "One or more of the required queue families are missing.", vkMessageType::FATAL);
 		return false;
 	}
 
@@ -348,7 +348,7 @@ bool vkRenderingContext::initLogicalDevice()
 
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::printVkResultError(result, "vkRenderingContext::initLogicalDevice()", "Couldn't create the logical device.");
+		vkUtils::printVkResultMessage(result, "vkRenderingContext::initLogicalDevice()", "Couldn't create the logical device.", vkMessageType::FATAL);
 		return false;
 	}
 
@@ -388,7 +388,7 @@ bool vkRenderingContext::initRenderPass()
 
 	if (!vkUtils::findDepthFormat(m_physicalDevice, depthAttachment.format))
 	{
-		vkUtils::printVkError("vkRenderingContext::initRenderPass()", "Couldn't find a suitable depth attachment format.");
+		vkUtils::printMessage("vkRenderingContext::initRenderPass()", "Couldn't find a suitable depth attachment format.", vkMessageType::FATAL);
 		return false;
 	}
 
@@ -453,7 +453,7 @@ bool vkRenderingContext::initRenderPass()
 
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::printVkResultError(result, "vkRenderingContext::initRenderPass()", "Couldn't create the render pass.");
+		vkUtils::printVkResultMessage(result, "vkRenderingContext::initRenderPass()", "Couldn't create the render pass.", vkMessageType::FATAL);
 		return false;
 	}
 
@@ -489,7 +489,7 @@ bool vkRenderingContext::initDescriptorSetLayout()
 
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::printVkResultError(result, "vkRenderingContext::initDescriptorSetLayout()", "Couldn't create the descriptor set layout for the uniform buffer.");
+		vkUtils::printVkResultMessage(result, "vkRenderingContext::initDescriptorSetLayout()", "Couldn't create the descriptor set layout for the uniform buffer.", vkMessageType::FATAL);
 		return false;
 	}
 
@@ -654,7 +654,7 @@ bool vkRenderingContext::initGraphicsPipeline()
 
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::printVkResultError(result, "vkRenderingContext::initGraphicsPipeline()", "Couldn't create the graphics pipeline layout.");
+		vkUtils::printVkResultMessage(result, "vkRenderingContext::initGraphicsPipeline()", "Couldn't create the graphics pipeline layout.", vkMessageType::FATAL);
 		
 		if (frgShaderModule != nullptr)
 		{
@@ -699,7 +699,7 @@ bool vkRenderingContext::initGraphicsPipeline()
 
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::printVkResultError(result, "vkRenderingContext::initGraphicsPipeline()", "Couldn't create the graphics pipeline.");
+		vkUtils::printVkResultMessage(result, "vkRenderingContext::initGraphicsPipeline()", "Couldn't create the graphics pipeline.", vkMessageType::FATAL);
 
 		if (frgShaderModule != nullptr)
 		{
@@ -736,7 +736,7 @@ bool vkRenderingContext::initCommandPoolAndBuffers()
 
 	if (!indices.isComplete())
 	{
-		vkUtils::printVkError("vkRenderingContext::initCommandPoolAndBuffers()", "One or more of the required queue families are missing.");
+		vkUtils::printMessage("vkRenderingContext::initCommandPoolAndBuffers()", "One or more of the required queue families are missing.", vkMessageType::FATAL);
 		return false;
 	}
 
@@ -749,7 +749,7 @@ bool vkRenderingContext::initCommandPoolAndBuffers()
 
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::printVkResultError(result, "vkRenderingContext::initCommandPoolAndBuffers()", "Couldn't create the command pool.");
+		vkUtils::printVkResultMessage(result, "vkRenderingContext::initCommandPoolAndBuffers()", "Couldn't create the command pool.", vkMessageType::FATAL);
 		return false;
 	}
 
@@ -767,7 +767,7 @@ bool vkRenderingContext::initCommandPoolAndBuffers()
 
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::printVkResultError(result, "vkRenderingContext::initCommandPoolAndBuffers()", "Couldn't allocate the command buffers.");
+		vkUtils::printVkResultMessage(result, "vkRenderingContext::initCommandPoolAndBuffers()", "Couldn't allocate the command buffers.", vkMessageType::FATAL);
 		return false;
 	}
 
@@ -815,7 +815,7 @@ bool vkRenderingContext::initFramebuffers()
 
 		if (result != VK_SUCCESS)
 		{
-			vkUtils::printVkResultError(result, "vkSwapchainObject::initFramebuffers()", "Couldn't create one or more of the required framebuffers.");
+			vkUtils::printVkResultMessage(result, "vkSwapchainObject::initFramebuffers()", "Couldn't create one or more of the required framebuffers.", vkMessageType::FATAL);
 			return false;
 		}
 	}
@@ -855,13 +855,13 @@ bool vkRenderingContext::initUniformBuffers()
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
 		))
 		{
-			vkUtils::printVkError("vkRenderingContext::initUniformBuffers()", "Couldn't initialize one or more uniform buffers.");
+			vkUtils::printMessage("vkRenderingContext::initUniformBuffers()", "Couldn't initialize one or more uniform buffers.", vkMessageType::FATAL);
 			return false;
 		}
 
 		if (!m_uniformBuffers[i].mapBufferData(m_logicalDevice, bufferSize))
 		{
-			vkUtils::printVkError("vkRenderingContext::initUniformBuffers()", "Couldn't map the memory for one or more uniform buffers.");
+			vkUtils::printMessage("vkRenderingContext::initUniformBuffers()", "Couldn't map the memory for one or more uniform buffers.", vkMessageType::FATAL);
 			return false;
 		}
 	}
@@ -887,7 +887,7 @@ bool vkRenderingContext::initDescriptorPoolAndSets()
 
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::printVkResultError(result, "vkRenderingContext::initDescriptorPoolAndSets()", "Couldn't create the descriptor pool.");
+		vkUtils::printVkResultMessage(result, "vkRenderingContext::initDescriptorPoolAndSets()", "Couldn't create the descriptor pool.", vkMessageType::FATAL);
 		return false;
 	}
 
@@ -907,7 +907,7 @@ bool vkRenderingContext::initDescriptorPoolAndSets()
 
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::printVkResultError(result, "vkRenderingContext::initDescriptorPoolAndSets()", "Couldn't allocate the descriptor sets.");
+		vkUtils::printVkResultMessage(result, "vkRenderingContext::initDescriptorPoolAndSets()", "Couldn't allocate the descriptor sets.", vkMessageType::FATAL);
 		return false;
 	}
 
@@ -966,7 +966,7 @@ bool vkRenderingContext::initSyncObjects()
 
 		if (result != VK_SUCCESS)
 		{
-			vkUtils::printVkResultError(result, "vkRenderingContext::initSyncObjects()", "Couldn't create the semaphore for one or more swapchain images.");
+			vkUtils::printVkResultMessage(result, "vkRenderingContext::initSyncObjects()", "Couldn't create the semaphore for one or more swapchain images.", vkMessageType::FATAL);
 			return false;
 		}
 	}
@@ -977,7 +977,7 @@ bool vkRenderingContext::initSyncObjects()
 
 		if (result != VK_SUCCESS)
 		{
-			vkUtils::printVkResultError(result, "vkRenderingContext::initSyncObjects()", "Couldn't create the semaphore for one or more frames in flight.");
+			vkUtils::printVkResultMessage(result, "vkRenderingContext::initSyncObjects()", "Couldn't create the semaphore for one or more frames in flight.", vkMessageType::FATAL);
 			return false;
 		}
 
@@ -985,7 +985,7 @@ bool vkRenderingContext::initSyncObjects()
 
 		if (result != VK_SUCCESS)
 		{
-			vkUtils::printVkResultError(result, "vkRenderingContext::initSyncObjects()", "Couldn't create the fence for one or more frames in flight.");
+			vkUtils::printVkResultMessage(result, "vkRenderingContext::initSyncObjects()", "Couldn't create the fence for one or more frames in flight.", vkMessageType::FATAL);
 			return false;
 		}
 	}
@@ -1020,7 +1020,7 @@ bool vkRenderingContext::recordCommandBuffer(VkCommandBuffer buffer, uint32_t im
 
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::printVkResultError(result, "vkRenderingContext::recordCommandBuffer()", "Couldn't begin recording the command buffer.");
+		vkUtils::printVkResultMessage(result, "vkRenderingContext::recordCommandBuffer()", "Couldn't begin recording the command buffer.", vkMessageType::FATAL);
 		return false;
 	}
 
@@ -1062,7 +1062,7 @@ bool vkRenderingContext::recordCommandBuffer(VkCommandBuffer buffer, uint32_t im
 
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::printVkResultError(result, "vkRenderingContext::recordCommandBuffer()", "Couldn't finish recording the command buffer.");
+		vkUtils::printVkResultMessage(result, "vkRenderingContext::recordCommandBuffer()", "Couldn't finish recording the command buffer.", vkMessageType::FATAL);
 		return false;
 	}
 

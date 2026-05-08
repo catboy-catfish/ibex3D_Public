@@ -15,7 +15,7 @@ bool vkTextureObject::initImageAndView(VkDevice device, VkPhysicalDevice physDev
 
 	if (pixels == nullptr)
 	{
-		vkUtils::printVkError("vkTextureObject::initImageAndView()", "Couldn't load the texture data.\n");
+		vkUtils::printMessage("vkTextureObject::initImageAndView()", "Couldn't load the texture data.\n", vkMessageType::FATAL);
 		return false;
 	}
 
@@ -31,14 +31,14 @@ bool vkTextureObject::initImageAndView(VkDevice device, VkPhysicalDevice physDev
 		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
 	))
 	{
-		vkUtils::printVkError("vkTextureObject::initImageAndView()", "Couldn't create the staging buffer and allocate memory.\n");
+		vkUtils::printMessage("vkTextureObject::initImageAndView()", "Couldn't create the staging buffer and allocate memory.\n", vkMessageType::FATAL);
 		stbi_image_free(pixels);
 		return false;
 	}
 
-	if (!stagingBuffer.updateBufferData(device, imageSize, pixels))
+	if (!stagingBuffer.updateBufferData(device, pixels))
 	{
-		vkUtils::printVkError("vkTextureObject::initImageAndView()", "Couldn't update the staging buffer data.\n");
+		vkUtils::printMessage("vkTextureObject::initImageAndView()", "Couldn't update the staging buffer data.\n", vkMessageType::FATAL);
 		stbi_image_free(pixels);
 		return false;
 	}
@@ -56,7 +56,7 @@ bool vkTextureObject::initImageAndView(VkDevice device, VkPhysicalDevice physDev
 		image, imageMemory
 	))
 	{
-		vkUtils::printVkError("vkTextureObject::initImageAndView()", "Couldn't create the image.\n");
+		vkUtils::printMessage("vkTextureObject::initImageAndView()", "Couldn't create the image.\n", vkMessageType::FATAL);
 		stagingBuffer.cleanup(device);
 		return false;
 	}
@@ -68,7 +68,7 @@ bool vkTextureObject::initImageAndView(VkDevice device, VkPhysicalDevice physDev
 		VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
 	))
 	{
-		vkUtils::printVkError("vkTextureObject::initImageAndView()", "Couldn't transition the image layout.\n");
+		vkUtils::printMessage("vkTextureObject::initImageAndView()", "Couldn't transition the image layout.\n", vkMessageType::FATAL);
 		stagingBuffer.cleanup(device);
 		return false;
 	}
@@ -80,7 +80,7 @@ bool vkTextureObject::initImageAndView(VkDevice device, VkPhysicalDevice physDev
 		static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight)
 	))
 	{
-		vkUtils::printVkError("vkTextureObject::initImageAndView()", "Couldn't copy the staging buffer to the image.\n");
+		vkUtils::printMessage("vkTextureObject::initImageAndView()", "Couldn't copy the staging buffer to the image.\n", vkMessageType::FATAL);
 		stagingBuffer.cleanup(device);
 		return false;
 	}
@@ -91,7 +91,7 @@ bool vkTextureObject::initImageAndView(VkDevice device, VkPhysicalDevice physDev
 		image, VK_FORMAT_R8G8B8A8_SRGB, texWidth, texHeight, mipLevels
 	))
 	{
-		vkUtils::printVkError("vkTextureObject::initImageAndView()", "Couldn't generate the image mipmaps.\n");
+		vkUtils::printMessage("vkTextureObject::initImageAndView()", "Couldn't generate the image mipmaps.\n", vkMessageType::FATAL);
 		stagingBuffer.cleanup(device);
 		return false;
 	}
@@ -104,7 +104,7 @@ bool vkTextureObject::initImageAndView(VkDevice device, VkPhysicalDevice physDev
 
 	if (imageView == nullptr)
 	{
-		vkUtils::printVkError("vkTextureObject::initImageView()", "Couldn't create the image view.\n");
+		vkUtils::printMessage("vkTextureObject::initImageView()", "Couldn't create the image view.\n", vkMessageType::FATAL);
 		return false;
 	}
 
@@ -136,7 +136,7 @@ bool vkTextureObject::initSampler(VkDevice device, VkPhysicalDevice physDevice)
 
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::printVkResultError(result, "vkRenderingContext::initTextureSampler()", "Couldn't create the texture sampler.");
+		vkUtils::printVkResultMessage(result, "vkRenderingContext::initTextureSampler()", "Couldn't create the texture sampler.", vkMessageType::FATAL);
 		return false;
 	}
 

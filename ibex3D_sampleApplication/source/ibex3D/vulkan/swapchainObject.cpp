@@ -34,7 +34,7 @@ bool vkSwapchainObject::initSwapchain(VkDevice device, VkPhysicalDevice physDevi
 
 	if (!indices.isComplete())
 	{
-		vkUtils::printVkError("vkSwapchainObject::initSwapchain()", "One or more of the required queue families are missing.");
+		vkUtils::printMessage("vkSwapchainObject::initSwapchain()", "One or more of the required queue families are missing.", vkMessageType::FATAL);
 		return false;
 	}
 
@@ -67,7 +67,7 @@ bool vkSwapchainObject::initSwapchain(VkDevice device, VkPhysicalDevice physDevi
 
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::printVkResultError(result, "vkSwapchainObject::initSwapchain()", "Couldn't create the swapchain.");
+		vkUtils::printVkResultMessage(result, "vkSwapchainObject::initSwapchain()", "Couldn't create the swapchain.", vkMessageType::FATAL);
 		return false;
 	}
 
@@ -75,7 +75,7 @@ bool vkSwapchainObject::initSwapchain(VkDevice device, VkPhysicalDevice physDevi
 
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::printVkResultError(result, "vkSwapchainObject::initSwapchain()", "Couldn't get the number of swapchain images.");
+		vkUtils::printVkResultMessage(result, "vkSwapchainObject::initSwapchain()", "Couldn't get the number of swapchain images.", vkMessageType::FATAL);
 		return false;
 	}
 
@@ -85,7 +85,7 @@ bool vkSwapchainObject::initSwapchain(VkDevice device, VkPhysicalDevice physDevi
 
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::printVkResultError(result, "vkSwapchainObject::initSwapchain()", "Couldn't retrieve the images from the swapchain.");
+		vkUtils::printVkResultMessage(result, "vkSwapchainObject::initSwapchain()", "Couldn't retrieve the images from the swapchain.", vkMessageType::FATAL);
 		return false;
 	}
 
@@ -102,7 +102,7 @@ bool vkSwapchainObject::initSwapchain(VkDevice device, VkPhysicalDevice physDevi
 
 		if (swapchainImageViews[i] == nullptr)
 		{
-			vkUtils::printVkError("vkSwapchainObject::initSwapchain()", "Couldn't create one or more of the swapchain image views.");
+			vkUtils::printMessage("vkSwapchainObject::initSwapchain()", "Couldn't create one or more of the swapchain image views.", vkMessageType::FATAL);
 			return false;
 		}
 	}
@@ -130,7 +130,7 @@ bool vkSwapchainObject::initColorResources(VkDevice device, VkPhysicalDevice phy
 		colorImageMemory
 	))
 	{
-		vkUtils::printVkError("vkSwapchainObject::initColorResources()", "Couldn't create the color image.");
+		vkUtils::printMessage("vkSwapchainObject::initColorResources()", "Couldn't create the color image.", vkMessageType::FATAL);
 		return false;
 	}
 
@@ -145,7 +145,7 @@ bool vkSwapchainObject::initColorResources(VkDevice device, VkPhysicalDevice phy
 
 	if (colorImageView == nullptr)
 	{
-		vkUtils::printVkError("vkSwapchainObject::initColorResources()", "Couldn't create the color image view.");
+		vkUtils::printMessage("vkSwapchainObject::initColorResources()", "Couldn't create the color image view.", vkMessageType::FATAL);
 		return false;
 	}
 
@@ -158,7 +158,7 @@ bool vkSwapchainObject::initDepthResources(VkDevice device, VkPhysicalDevice phy
 
 	if (!vkUtils::findDepthFormat(physDevice, depthFormat))
 	{
-		vkUtils::printVkError("vkSwapchainObject::initDepthResources()", "Couldn't find a suitable format for the depth image.");
+		vkUtils::printMessage("vkSwapchainObject::initDepthResources()", "Couldn't find a suitable format for the depth image.", vkMessageType::FATAL);
 		return false;
 	}
 
@@ -178,7 +178,7 @@ bool vkSwapchainObject::initDepthResources(VkDevice device, VkPhysicalDevice phy
 		depthImageMemory
 	))
 	{
-		vkUtils::printVkError("vkSwapchainObject::initDepthResources()", "Couldn't create the depth image.");
+		vkUtils::printMessage("vkSwapchainObject::initDepthResources()", "Couldn't create the depth image.", vkMessageType::FATAL);
 		return false;
 	}
 
@@ -186,7 +186,7 @@ bool vkSwapchainObject::initDepthResources(VkDevice device, VkPhysicalDevice phy
 
 	if (depthImageView == nullptr)
 	{
-		vkUtils::printVkError("vkSwapchainObject::initDepthResources()", "Couldn't create the depth image view.");
+		vkUtils::printMessage("vkSwapchainObject::initDepthResources()", "Couldn't create the depth image view.", vkMessageType::FATAL);
 		return false;
 	}
 
@@ -202,7 +202,7 @@ bool vkSwapchainObject::initDepthResources(VkDevice device, VkPhysicalDevice phy
 		VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
 	))
 	{
-		vkUtils::printVkError("vkSwapchainObject::initDepthResources()", "Couldn't transition the depth image layout.");
+		vkUtils::printMessage("vkSwapchainObject::initDepthResources()", "Couldn't transition the depth image layout.", vkMessageType::FATAL);
 		return false;
 	}
 

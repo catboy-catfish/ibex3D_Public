@@ -5,6 +5,13 @@
 
 // ----------------------------------------------------------------------------------------------------
 
+enum class vkMessageType
+{
+	INFO,
+	WARNING,
+	FATAL
+};
+
 struct vkQueueFamilyIndices
 {
 	int graphicsFamily = -1;
@@ -51,8 +58,8 @@ class vkUtils
 public:
 
 	// Logging
-	static void printVkError(const char* functionName, const char* message);
-	static void printVkResultError(VkResult result, const char* functionName, const char* message);
+	static void printMessage(const char* functionName, const char* message, vkMessageType type);
+	static void printVkResultMessage(VkResult result, const char* functionName, const char* message, vkMessageType type);
 
 	// Validation layers
 #ifdef IBEX3D_VULKAN_VALIDATION

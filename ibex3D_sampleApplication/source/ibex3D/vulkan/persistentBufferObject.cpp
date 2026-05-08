@@ -15,7 +15,7 @@ bool vkPersistentBufferObject::initialize(VkDevice device, VkPhysicalDevice phys
 
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::printVkResultError(result, "vkBufferObject::initialize()", "Couldn't create the buffer.");
+		vkUtils::printVkResultMessage(result, "vkBufferObject::initialize()", "Couldn't create the buffer.", vkMessageType::FATAL);
 		return false;
 	}
 
@@ -26,7 +26,7 @@ bool vkPersistentBufferObject::initialize(VkDevice device, VkPhysicalDevice phys
 
 	if (!vkUtils::findMemoryType(physDevice, memRequirements.memoryTypeBits, memProps, memoryType))
 	{
-		vkUtils::printVkResultError(result, "vkBufferObject::initialize()", "Couldn't find a suitable type for the buffer memory.");
+		vkUtils::printVkResultMessage(result, "vkBufferObject::initialize()", "Couldn't find a suitable type for the buffer memory.", vkMessageType::FATAL);
 		return false;
 	}
 
@@ -39,7 +39,7 @@ bool vkPersistentBufferObject::initialize(VkDevice device, VkPhysicalDevice phys
 
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::printVkResultError(result, "vkBufferObject::initialize()", "Couldn't allocate the buffer memory.");
+		vkUtils::printVkResultMessage(result, "vkBufferObject::initialize()", "Couldn't allocate the buffer memory.", vkMessageType::FATAL);
 		return false;
 	}
 
@@ -47,7 +47,7 @@ bool vkPersistentBufferObject::initialize(VkDevice device, VkPhysicalDevice phys
 
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::printVkResultError(result, "vkBufferObject::initialize()", "Couldn't bind the buffer memory.");
+		vkUtils::printVkResultMessage(result, "vkBufferObject::initialize()", "Couldn't bind the buffer memory.", vkMessageType::FATAL);
 		return false;
 	}
 
@@ -75,7 +75,7 @@ bool vkPersistentBufferObject::mapBufferData(VkDevice device, VkDeviceSize size)
 	
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::printVkResultError(result, "vkPersistentBufferObject::mapBufferData()", "Couldn't map the buffer memory.");
+		vkUtils::printVkResultMessage(result, "vkPersistentBufferObject::mapBufferData()", "Couldn't map the buffer memory.", vkMessageType::FATAL);
 		return false;
 	}
 
@@ -99,7 +99,7 @@ bool vkPersistentBufferObject::cmdCopyBuffer(VkDevice device, VkCommandPool cmdP
 
 	if (commandBuffer == nullptr)
 	{
-		vkUtils::printVkError("vkPersistentBufferObject::cmdCopyBuffer()", "Couldn't begin the single-time commands.");
+		vkUtils::printMessage("vkPersistentBufferObject::cmdCopyBuffer()", "Couldn't begin the single-time commands.", vkMessageType::FATAL);
 		return false;
 	}
 

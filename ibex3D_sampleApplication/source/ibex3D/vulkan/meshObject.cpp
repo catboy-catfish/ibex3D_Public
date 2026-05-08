@@ -91,7 +91,7 @@ bool vkMeshObject::loadObjFromFile(const char* objFilePath)
 
 	if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, objFilePath))
 	{
-		vkUtils::printVkError("vkMeshObject::loadObjFromFile()", "Couldn't load the model file.");
+		vkUtils::printMessage("vkMeshObject::loadObjFromFile()", "Couldn't load the model file.", vkMessageType::FATAL);
 		return false;
 	}
 
@@ -158,7 +158,7 @@ bool vkMeshObject::initVertexIndexBuffer(VkDevice device, VkPhysicalDevice physD
 		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
 	))
 	{
-		vkUtils::printVkError("vkMeshObject::initVertexIndexBuffer()", "Couldn't create the staging buffer.");
+		vkUtils::printMessage("vkMeshObject::initVertexIndexBuffer()", "Couldn't create the staging buffer.", vkMessageType::FATAL);
 		return false;
 	}
 
@@ -179,14 +179,14 @@ bool vkMeshObject::initVertexIndexBuffer(VkDevice device, VkPhysicalDevice physD
 		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
 	))
 	{
-		vkUtils::printVkError("vkMeshObject::initVertexIndexBuffer()", "Couldn't create the combined vertex-index buffer.");
+		vkUtils::printMessage("vkMeshObject::initVertexIndexBuffer()", "Couldn't create the combined vertex-index buffer.", vkMessageType::FATAL);
 		stagingBuffer.cleanup(device);
 		return false;
 	}
 
-	if (!vtxIdxBuffer.cmdCopyBuffer(device, cmdPool, gfxQueue, combinedBufferSize, stagingBuffer.buffer))
+	if (!vtxIdxBuffer.cmdCopyBuffer(device, cmdPool, gfxQueue, stagingBuffer.buffer, combinedBufferSize))
 	{
-		vkUtils::printVkError("vkMeshObject::initVertexIndexBuffer()", "Couldn't copy the staging memory to the combined vertex-index buffer.");
+		vkUtils::printMessage("vkMeshObject::initVertexIndexBuffer()", "Couldn't copy the staging memory to the combined vertex-index buffer.", vkMessageType::FATAL);
 		stagingBuffer.cleanup(device);
 		return false;
 	}

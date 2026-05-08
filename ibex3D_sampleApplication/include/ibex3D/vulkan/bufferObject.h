@@ -5,13 +5,14 @@ struct vkBufferObject
 {
 	VkBuffer buffer = nullptr;
 	VkDeviceMemory bufferMemory = nullptr;
+	VkDeviceSize bufferSize = 0;
 
 	// ----------------------------------------------------------------------------------------------------
 
 	bool initialize(VkDevice device, VkPhysicalDevice physDevice, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags memProps);
 	void cleanup(VkDevice device);
 
-	bool updateBufferData(VkDevice device, VkDeviceSize size, void* newData);
+	bool updateBufferData(VkDevice device, void* newData);
 
-	bool cmdCopyBuffer(VkDevice device, VkCommandPool cmdPool, VkQueue gfxQueue, VkDeviceSize size, VkBuffer srcBuffer);
+	bool cmdCopyBuffer(VkDevice device, VkCommandPool cmdPool, VkQueue gfxQueue, VkBuffer srcBuffer, VkDeviceSize srcBufSize);
 };

@@ -55,12 +55,12 @@ void vkExtFunctions::DestroyDebugUtilsMessengerEXT
 // - Logging ------------------------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------
 
-void vkUtils::printVkError(const char* functionName, const char* message)
+void vkUtils::printMessage(const char* functionName, const char* message, vkMessageType type)
 {
 	printf("VULKAN ERROR - %s: %s\n\n", functionName, message);
 }
 
-void vkUtils::printVkResultError(VkResult result, const char* functionName, const char* message)
+void vkUtils::printVkResultMessage(VkResult result, const char* functionName, const char* message, vkMessageType type)
 {
 	printf("VULKAN ERROR (VkResult: %d) - %s: %s\n\n", (int)result, functionName, message);
 }
@@ -219,19 +219,19 @@ int vkUtils::ratePhysicalDeviceSuitability(VkPhysicalDevice physDevice, VkSurfac
 
 	if (!deviceFeatures.geometryShader)
 	{
-		printVkError("vkUtils::ratePhysicalDeviceSuitability()", "This physical device is unsuitable because it doesn't support geometry shaders.");
+		printMessage("vkUtils::ratePhysicalDeviceSuitability()", "This physical device is unsuitable because it doesn't support geometry shaders.", vkMessageType::FATAL);
 		return 0;
 	}
 
 	if (!deviceFeatures.samplerAnisotropy)
 	{
-		printVkError("vkUtils::ratePhysicalDeviceSuitability()", "This physical device is unsuitable because it doesn't support anisotropic texture filtering.");
+		printMessage("vkUtils::ratePhysicalDeviceSuitability()", "This physical device is unsuitable because it doesn't support anisotropic texture filtering.", vkMessageType::FATAL);
 		return 0;
 	}
 
 	if (!extSupport)
 	{
-		printVkError("vkUtils::ratePhysicalDeviceSuitability()", "This physical device is unsuitable because it doesn't support the required extensions.");
+		printMessage("vkUtils::ratePhysicalDeviceSuitability()", "This physical device is unsuitable because it doesn't support the required extensions.", vkMessageType::FATAL);
 		return 0;
 	}
 
@@ -239,7 +239,7 @@ int vkUtils::ratePhysicalDeviceSuitability(VkPhysicalDevice physDevice, VkSurfac
 
 	if ((info.formats.empty() || info.presentModes.empty()))
 	{
-		printVkError("vkUtils::ratePhysicalDeviceSuitability()", "This physical device is unsuitable because it doesn't have adequate swapchain support.");
+		printMessage("vkUtils::ratePhysicalDeviceSuitability()", "This physical device is unsuitable because it doesn't have adequate swapchain support.", vkMessageType::FATAL);
 		return 0;
 	}
 
@@ -247,7 +247,7 @@ int vkUtils::ratePhysicalDeviceSuitability(VkPhysicalDevice physDevice, VkSurfac
 
 	if (!indices.isComplete())
 	{
-		printVkError("vkUtils::ratePhysicalDeviceSuitability()", "This physical device is unsuitable because one or more of the required queue families are missing.");
+		printMessage("vkUtils::ratePhysicalDeviceSuitability()", "This physical device is unsuitable because one or more of the required queue families are missing.", vkMessageType::FATAL);
 		return 0;
 	}
 
@@ -318,7 +318,7 @@ VkShaderModule vkUtils::createShaderModuleFromSPIRV(VkDevice device, const std::
 {
 	if (spirvBytecode.empty())
 	{
-		printVkError("vkUtils::createShaderModuleFromSPIRV()", "Argument \"spirvBytecode\" is empty.");
+		printMessage("vkUtils::createShaderModuleFromSPIRV()", "Argument \"spirvBytecode\" is empty.", vkMessageType::FATAL);
 		return nullptr;
 	}
 
@@ -332,7 +332,7 @@ VkShaderModule vkUtils::createShaderModuleFromSPIRV(VkDevice device, const std::
 
 	if (result != VK_SUCCESS)
 	{
-		printVkResultError(result, "vkUtils::createShaderModuleFromSPIRV()", "Couldn't create the shader module.");
+		printVkResultMessage(result, "vkUtils::createShaderModuleFromSPIRV()", "Couldn't create the shader module.", vkMessageType::FATAL);
 		return nullptr;
 	}
 
@@ -366,7 +366,7 @@ VkCommandBuffer vkUtils::beginSingleTimeCommands(VkDevice device, VkCommandPool 
 
 	if (result != VK_SUCCESS)
 	{
-		printVkResultError(result, "vkUtils::beginSingleTimeCommands()", "Couldn't allocate the command buffer.");
+		printVkResultMessage(result, "vkUtils::beginSingleTimeCommands()", "Couldn't allocate the command buffer.", vkMessageType::FATAL);
 		return nullptr;
 	}
 
@@ -414,7 +414,7 @@ bool vkUtils::findMemoryType(VkPhysicalDevice physDevice, uint32_t typeFilter, V
 		}
 	}
 
-	vkUtils::printVkError("vkUtils::findMemoryType()", "Couldn't find any suitable memory type.");
+	vkUtils::printMessage("vkUtils::findMemoryType()", "Couldn't find any suitable memory type.", vkMessageType::FATAL);
 	return false;
 }
 
@@ -441,7 +441,7 @@ bool vkUtils::findSupportedFormat(VkPhysicalDevice physDevice, const std::vector
 		}
 	}
 
-	printVkError("vkUtils::findSupportedFormat()", "Couldn't find any suitable format.");
+	printMessage("vkUtils::findSupportedFormat()", "Couldn't find any suitable format.", vkMessageType::FATAL);
 	return false;
 }
 
@@ -488,7 +488,7 @@ bool vkUtils::createImage(VkDevice device, VkPhysicalDevice physDevice, uint32_t
 
 	if (result != VK_SUCCESS)
 	{
-		printVkResultError(result, "vkUtils::createImage()", "Couldn't create the image.");
+		printVkResultMessage(result, "vkUtils::createImage()", "Couldn't create the image.", vkMessageType::FATAL);
 		return false;
 	}
 
@@ -505,7 +505,7 @@ bool vkUtils::createImage(VkDevice device, VkPhysicalDevice physDevice, uint32_t
 		memoryType
 	))
 	{
-		printVkError("vkUtils::createImage()", "Couldn't find the memory type for the image memory.");
+		printMessage("vkUtils::createImage()", "Couldn't find the memory type for the image memory.", vkMessageType::FATAL);
 		return false;
 	}
 
@@ -518,7 +518,7 @@ bool vkUtils::createImage(VkDevice device, VkPhysicalDevice physDevice, uint32_t
 
 	if (result != VK_SUCCESS)
 	{
-		printVkResultError(result, "vkUtils::createImage()", "Couldn't allocate the image memory.");
+		printVkResultMessage(result, "vkUtils::createImage()", "Couldn't allocate the image memory.", vkMessageType::FATAL);
 		return false;
 	}
 
@@ -545,7 +545,7 @@ VkImageView vkUtils::createImageView(VkDevice device, VkImage image, uint32_t mi
 
 	if (result != VK_SUCCESS)
 	{
-		printVkResultError(result, "vkUtils::createImageView()", "Couldn't create the image view.");
+		printVkResultMessage(result, "vkUtils::createImageView()", "Couldn't create the image view.", vkMessageType::FATAL);
 		return nullptr;
 	}
 
@@ -637,7 +637,7 @@ bool vkUtils::transitionImageLayout(VkDevice device, VkCommandPool cmdPool, VkQu
 	}
 	else
 	{
-		printVkError("vkUtils::transitionImageLayout()", "Unsupported transition. Supported transitions include \"UNDEFINED -> TRANSFER_DST_OPTIMAL\" and \"TRANSFER_DST_OPTIMAL -> SHADER_READ_ONLY_OPTIMAL\".");
+		printMessage("vkUtils::transitionImageLayout()", "Unsupported transition. Supported transitions include \"UNDEFINED -> TRANSFER_DST_OPTIMAL\" and \"TRANSFER_DST_OPTIMAL -> SHADER_READ_ONLY_OPTIMAL\".", vkMessageType::FATAL);
 
 		vkEndCommandBuffer(commandBuffer);
 		vkFreeCommandBuffers(device, cmdPool, 1, &commandBuffer);
@@ -668,7 +668,7 @@ bool vkUtils::generateMipmaps(VkDevice device, VkPhysicalDevice physDevice, VkCo
 
 	if (!(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT))
 	{
-		printVkError("vkUtils::generateMipmaps()", "Image format is required to support linear blitting, but it does not.");
+		printMessage("vkUtils::generateMipmaps()", "Image format is required to support linear blitting, but it does not.", vkMessageType::FATAL);
 		return false;
 	}
 
