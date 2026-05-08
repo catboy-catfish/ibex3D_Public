@@ -1,39 +1,200 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="source\sampleApp\testbed_simd.cpp">
-      <Filter>sampleApp</Filter>
-    </ClCompile>
-    <ClCompile Include="source\ibex3D\math\vec4.cpp">
-      <Filter>ibex3D\math\vec4</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Filter Include="sampleApp">
-      <UniqueIdentifier>{0815c615-db27-42f7-8e9f-190d0685f0e7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ibex3D">
-      <UniqueIdentifier>{fa3133e7-eb6a-43e7-a8e4-81047d00bd75}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ibex3D\math">
-      <UniqueIdentifier>{eb442263-1dbc-4d6f-a63a-8af80de50b25}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ibex3D\core">
-      <UniqueIdentifier>{93b52017-c268-46b1-9a2d-290577040abf}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ibex3D\math\vec4">
-      <UniqueIdentifier>{0c0c8e9c-ad00-4688-8f00-cca6d76ae48e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ibex3D\math\vec4_simd">
-      <UniqueIdentifier>{7f37e92b-ef2e-48e9-b851-e9d7345fbc16}</UniqueIdentifier>
-    </Filter>
-  </ItemGroup>
-  <ItemGroup>
+    <ClInclude Include="include\sampleApp\appInterface.h">
+      <Filter>sampleApp\appInterface</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ibex3D\core\appRuntime.h">
+      <Filter>ibex3D\core\appRuntime</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ibex3D\vulkan\bufferObject.h">
+      <Filter>ibex3D\vulkan\bufferObject</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ibex3D\core\entryPoint.h">
+      <Filter>ibex3D\core\entryPoint</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ibex3D\utility\memory.h">
+      <Filter>ibex3D\utility\memory</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ibex3D\vulkan\meshObject.h">
+      <Filter>ibex3D\vulkan\meshObject</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ibex3D\utility\miscellaneous.h">
+      <Filter>ibex3D\utility\miscellaneous</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ibex3D\vulkan\persistentBufferObject.h">
+      <Filter>ibex3D\vulkan\persistentBufferObject</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ibex3D\vulkan\renderingContext.h">
+      <Filter>ibex3D\vulkan\renderingContext</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ibex3D\vulkan\swapchainObject.h">
+      <Filter>ibex3D\vulkan\swapchainObject</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ibex3D\vulkan\textureObject.h">
+      <Filter>ibex3D\vulkan\textureObject</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ibex3D\vulkan\utils.h">
+      <Filter>ibex3D\vulkan\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ibex3D\math\vec2.h">
+      <Filter>ibex3D\math\vec2</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ibex3D\math\vec3.h">
+      <Filter>ibex3D\math\vec3</Filter>
+    </ClInclude>
     <ClInclude Include="include\ibex3D\math\vec4.h">
       <Filter>ibex3D\math\vec4</Filter>
     </ClInclude>
     <ClInclude Include="include\ibex3D\math\vec4_simd.h">
       <Filter>ibex3D\math\vec4_simd</Filter>
     </ClInclude>
+    <ClInclude Include="include\ibex3D\core\win32.h">
+      <Filter>ibex3D\core\win32</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="source\sampleApp\appInterface.cpp">
+      <Filter>sampleApp\appInterface</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ibex3D\core\appRuntime_win32.cpp">
+      <Filter>ibex3D\core\appRuntime</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ibex3D\vulkan\bufferObject.cpp">
+      <Filter>ibex3D\vulkan\bufferObject</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ibex3D\vulkan\meshObject.cpp">
+      <Filter>ibex3D\vulkan\meshObject</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ibex3D\utility\miscellaneous.cpp">
+      <Filter>ibex3D\utility\miscellaneous</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ibex3D\vulkan\persistentBufferObject.cpp">
+      <Filter>ibex3D\vulkan\persistentBufferObject</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ibex3D\vulkan\renderingContext_win32.cpp">
+      <Filter>ibex3D\vulkan\renderingContext</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ibex3D\vulkan\swapchainObject.cpp">
+      <Filter>ibex3D\vulkan\swapchainObject</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ibex3D\vulkan\textureObject.cpp">
+      <Filter>ibex3D\vulkan\textureObject</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ibex3D\vulkan\utils.cpp">
+      <Filter>ibex3D\vulkan\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ibex3D\math\vec2.cpp">
+      <Filter>ibex3D\math\vec2</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ibex3D\math\vec3.cpp">
+      <Filter>ibex3D\math\vec3</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ibex3D\math\vec4.cpp">
+      <Filter>ibex3D\math\vec4</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ibex3D\core\win32.cpp">
+      <Filter>ibex3D\core\win32</Filter>
+    </ClCompile>
+    <ClCompile Include="source\sampleApp\main.cpp">
+      <Filter>sampleApp</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="sampleApp">
+      <UniqueIdentifier>{74a12a20-480e-46b3-aa47-721406568039}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sampleApp\appInterface">
+      <UniqueIdentifier>{cb344a5b-7751-4a9b-8496-0b36e854557b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D">
+      <UniqueIdentifier>{cb863526-b27e-476d-8042-0a64315fde5d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\core">
+      <UniqueIdentifier>{a022e727-1164-4ba6-8707-c30e32a623ad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\core\appRuntime">
+      <UniqueIdentifier>{22ab9be6-8ecc-4103-9d25-a16602fb5306}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\core\entryPoint">
+      <UniqueIdentifier>{72d1f6a3-58ce-4213-8675-cade4220991a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\core\win32">
+      <UniqueIdentifier>{8040b7d1-c50b-4479-9044-e6c563321fe2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\math">
+      <UniqueIdentifier>{152557e3-b13a-46a7-ab5d-1ea327fd8d8e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\math\vec2">
+      <UniqueIdentifier>{6a0cd873-45b4-4dea-a348-b163d16bb71c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\math\vec3">
+      <UniqueIdentifier>{dfb149b7-00f7-4349-920c-48b61d526c1f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\math\vec4">
+      <UniqueIdentifier>{02714221-aa18-4da3-9d8a-fe5bbe30063f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\math\vec4_simd">
+      <UniqueIdentifier>{c1983a1f-d743-4213-b8bb-a7286964c079}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\utility">
+      <UniqueIdentifier>{76441df9-c22d-498c-a797-6981a7d4ca9d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\utility\memory">
+      <UniqueIdentifier>{3705bff3-d57b-44c5-bcb0-bde8db5e3d02}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\utility\miscellaneous">
+      <UniqueIdentifier>{833d363c-93da-422d-b42f-eae938220e7b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\vulkan">
+      <UniqueIdentifier>{775354c9-aac6-4e75-8dd0-11b6a450d4f6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\vulkan\bufferObject">
+      <UniqueIdentifier>{f80742b0-729d-47d5-ac4c-4293ee84a8cc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\vulkan\meshObject">
+      <UniqueIdentifier>{5b7aba76-4577-478e-a6d1-927562a45c10}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\vulkan\persistentBufferObject">
+      <UniqueIdentifier>{c6583f61-789d-4bbc-a2d2-7dd0b4dccda8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\vulkan\renderingContext">
+      <UniqueIdentifier>{0f580266-c677-47c3-af2f-97ec7b5e41bf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\vulkan\swapchainObject">
+      <UniqueIdentifier>{a529a1ec-ddd7-4adb-8912-4dd5db16380b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\vulkan\textureObject">
+      <UniqueIdentifier>{5f1a8713-19dc-4795-8353-9fb822c8bc70}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\vulkan\utils">
+      <UniqueIdentifier>{63e2719d-79b0-43bd-b90b-909d89ec8a59}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="assets">
+      <UniqueIdentifier>{ebe87b31-c1eb-4f7e-a8a6-51b6f5dd7954}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="assets\shaders">
+      <UniqueIdentifier>{0cb855b9-fda1-4387-89b3-50c3cd9d52d6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="assets\shaders\include">
+      <UniqueIdentifier>{8fc2c320-b6df-4123-b481-4cbea8d6e04c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="assets\shaders\compile.bat">
+      <Filter>assets\shaders</Filter>
+    </None>
+    <None Include="assets\shaders\shader.frag">
+      <Filter>assets\shaders</Filter>
+    </None>
+    <None Include="assets\shaders\shader.vert">
+      <Filter>assets\shaders</Filter>
+    </None>
+    <None Include="assets\shaders\include\basicLighting.glsl">
+      <Filter>assets\shaders\include</Filter>
+    </None>
+    <None Include="assets\shaders\include\commonStructs.glsl">
+      <Filter>assets\shaders\include</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -7,16 +7,15 @@
 - [Program Execution Flow](#program-execution-flow)
 - - [Entry Point File](#entry-point-file)
     - [Testbed](#testbed)
-  - [App Interface](#app-interface)
 - [Code Conventions](#code-conventions)
 - [Preprocessor Definitions](#preprocessor-definitions)
 - [To-Do List](#to-do-list)
 
 ### Assumptions of Prior Experience
 
-If you work with ibex3D, you are assumed to have basic knowledge of programming in C++ and GLSL, and if you want to implement advanced features, you'll also need intermediate/advanced C++ knowledge as well as graphics programming using the Vulkan API. The ibex3D documentation doesn't go into depth about these very often, and if you have no prior experience with any of them, you might become lost and confused. In which case, I suggest you use the following resources to get started.
+If you work with ibex3D, you are assumed to have basic knowledge of programming in C++ and GLSL, and if you want to implement advanced features, you'll also need intermediate/advanced C++ knowledge as well as graphics programming using the Vulkan API. The ibex3D documentation doesn't go into depth about these very often, and if you have no prior experience with any of them, you might become lost and confused.
 
-If you have any ideas for better resources, please consider suggesting or adding them here!
+In which case, I suggest you use the resources linked in the below section to get started. If you have any ideas for better resources, please consider suggesting or adding them in the Learning Resources section!
 
 ##### Learning Resources
 
@@ -57,7 +56,7 @@ For general graphics programming, look into:
 - [PardCode - Game Engine Tutorial Series (YouTube playlist)](https://www.youtube.com/playlist?list=PLv8DnRaQOs5-MR-zbP1QUdq5FL0FWqVzg)
 - [PardCode - C++ OpenGL 3D Game Tutorial Series From Scratch (YouTube playlist)](https://www.youtube.com/playlist?list=PLv8DnRaQOs5-TyYnF56YghOxQBNr1VVmF)
 
-I _strongly_ recommend that you don't restrict yourself to just these links and resources. Instead, please feel free to look for other C++/Vulkan/graphics programming tutorials - do a quick google search for "C++ tutorial", "Vulkan tutorial" or "Graphics programming tutorial" - to solidify your knowledge or if you get confused.
+I _strongly_ recommend that you don't restrict yourself to just these links and resources. Please feel free to look for other C++/Vulkan/graphics programming tutorials - do a quick google search for "C++ tutorial", "Vulkan tutorial" or "Graphics programming tutorial" - if you get confused or want to solidify your existing knowledge.
 
 ### Program Execution
 
@@ -195,5 +194,4 @@ Model importing:
 - Better yet, start using a custom intermediate format for assets that is quickly loadable, efficient and customizable - [vkguide.dev has a tutorial for this](https://vkguide.dev/docs/extra-chapter/asset_system/).
 
 Math vector types:
-- Figure out how to implement SIMD into the vec4 +, -, * and / operators without it being *slower* than using SISD
-- Figure out how to implement SIMD into the vec2 and vec3 types as well
+- Figure out how to implement SIMD into the vec2 and vec3 types

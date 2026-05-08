@@ -1,7 +1,7 @@
 # appInterface - Basic overview
 
-* Header file: `include/sampleApp/appInterface.h`
-* Source file (Win32): `source/sampleApp/appInterface.cpp`
+- Header file: `include/sampleApp/appInterface.h`
+- Source file: `source/sampleApp/appInterface.cpp`
 
 ### Table of Contents
 
@@ -57,7 +57,7 @@ The sample application currently only features a simple mesh which can be rotate
 - Called by the `appRuntime` in the event where a keyboard key, with the code `key`, is released.
 
 `bool input_isKeyDown(unsigned int key)`
-- Returns true if the keyboard key with the code `key` is pressed right now, and false if it is released right now.
+- Returns true if the keyboard key with the code `key` is detected to be pressed right now, and false otherwise.
 
 `void window_onResizeEvent(unsigned int wndWidth, unsigned int wndHeight)`
 - Called by the `appRuntime` in the event where the window is resized.
@@ -130,7 +130,7 @@ DISCLAIMER: These are examples of functions you could implement yourself for you
 
 How to initialize, cleanup and update/render using an appInterface instance (as used in the file `source/ibex3D/core/appRuntime_win32.cpp`)
 ```cpp
-// Initialization - called once in initialization stage
+// Initialization - called once in the initialization stage
 bool appRuntime::initApplication(unsigned int wndWidth, unsigned int wndHeight)
 {
     // Declaration in header: appInterface* m_appInterface = nullptr;
@@ -149,7 +149,7 @@ bool appRuntime::initApplication(unsigned int wndWidth, unsigned int wndHeight)
     return true;
 }
 
-// Cleanup - called once in cleanup stage
+// Cleanup - called once in the cleanup stage
 void appRuntime::cleanupApplication()
 {
     if (m_appInterface != nullptr)
@@ -160,7 +160,7 @@ void appRuntime::cleanupApplication()
     }
 }
 
-// Update - called every time the window is updated
+// Updating and rendering - called every time the window events are processed
 void appRuntime::update()
 {
     // Calculate deltaTime, the time (in seconds) elapsed between the start of the previous frame and this one
@@ -181,4 +181,4 @@ void appRuntime::update()
 
 ### To-do list
 
-- `appInterface` creates and owns an instance of `vkRenderingContext`, which is a Vulkan-specific type. If ibex3D is to support multiple graphics APIs in the future, there should be a better abstraction for this (for example, a wrapper class named `renderingFrontend`) that can be used by `appInterface` instead of using `vkRenderingContext` directly.
+- `appInterface` creates and owns an instance of `vkRenderingContext`, which is a Vulkan-specific type. If ibex3D is to support multiple graphics APIs in the future, there should be a better abstraction for this (for example, a wrapper class named `renderingFrontend` which hides the `vkRenderingContext`) that the `appInterface`  can use instead of directly using `vkRenderingContext`.

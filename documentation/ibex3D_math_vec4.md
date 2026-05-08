@@ -1,20 +1,20 @@
 # vec4 - Basic overview
 
-* Header file: `include/ibex3D/math/vec4.h`
-* Source file: `source/ibex3D/math/vec4.cpp`
+- Header file: `include/ibex3D/math/vec4.h`
+- Source file: `source/ibex3D/math/vec4.cpp`
 
 ### Table of Contents
 
 - [Description](#description)
 - [Constructors](#constructors)
 - [Operators](#operators)
-	- [Arithmetic](#arithmetic)
-	- [Arithmetic-assignment](#arithmetic-assignment)
-	- [Logical](logical)
+  - [Arithmetic](#arithmetic)
+  - [Arithmetic-assignment](#arithmetic-assignment)
+  - [Logical](logical)
 - [Functions](#functions)
-	- [Scalar](#scalar)
-	- [Advanced math](#advanced-math)
-	- [Unsafe division](#unsafe-division)
+  - [Scalar](#scalar)
+  - [Advanced math](#advanced-math)
+  - [Unsafe division](#unsafe-division)
 - [Member variables](#member-variables)
 - [Remarks](#remarks)
 - [Examples](#examples)
@@ -22,7 +22,7 @@
 
 ### Description
 
-A simple struct which contains four single-precision floats bundled together, and also includes overrides/functions for various mathematical operations.
+`vec4` is a simple struct which contains four single-precision floats bundled together, and also includes overrides/functions for various mathematical operations.
 
 ### Constructors
 

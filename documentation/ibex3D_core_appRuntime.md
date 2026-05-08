@@ -1,7 +1,7 @@
 # appRuntime - Basic overview
 
-* Header file: `include/ibex3D/core/appRuntime.h`
-* Source file (Win32): `source/ibex3D/core/appRuntime\_win32.cpp`
+- Header file: `include/ibex3D/core/appRuntime.h`
+- Source file (Win32): `source/ibex3D/core/appRuntime\_win32.cpp`
 
 ### Table of Contents
 
@@ -36,38 +36,41 @@ Here is a diagram displaying all execution stages in order, as well as a simplif
 ##### Public functions
 
 `bool initialize(int wndWidth, int wndHeight, const char* wndTitle)`
+- **Note: If this function fails, the window resources and appInterface won't be freed automatically. You'll have to manually call the `cleanup()` function to do this.**
 - Attempts to initialize the window and `appInterface` instance, taking in the target width and height of the window as well as the title.
 - Calls the `initWindow()` and `initApplication()` helper functions, and represents the entire length of the initialization stage mentioned in the description above.
 - Returns true if both are successful and false otherwise.
 
 `void run()`
 - Begins the application update loop after checking that it is safe to do so, or immediately exits otherwise.
-- This function represents the entire length of the runtime stage mentioned in the description. It continues executing and blocks further execution until the runtime stage ends.
+- Represents the entire length of the runtime stage mentioned in the description above.
+- Continues executing for as long as the variable `m_keepRunningFlag` is true, and blocks further execution until `m_keepRunningFlag` is set to false.
 
 `void forceClose()`
 - Forcibly ends the processing loop and destroys the window, immediately ending the runtime stage and exiting the ibex3D application.
 - This is not to be confused with `cleanup()`, which frees all memory allocated by the window and appInterface after the application runtime ends.
 
 `void cleanup()`
-- Frees all memory allocated by the window and appInterface. This function represents the entire length of the cleanup stage mentioned in the description above.
-- This function is meant to be called after the runtime stage ends. Please see the example below for an example of how this should be done.
+- Attempts to free any memory which may be allocated by the window and appInterface.
+- Calls the `cleanupApplication()` and `cleanupWindow()` helper functions, and represents the entire length of the cleanup stage mentioned in the description above.
+- This is meant to be called after the runtime stage ends. Please see the example below for an example of how this should be done.
 
 ##### Window procedure functions
 
-> DISCLAIMER: These functions are meant to be called by the window procedure or the `appRuntime` itself, not the user. The reason why they are public is because it would otherwise be difficult for the window procedure to access them in a platform-agnostic way. I highly recommend you don't touch these functions or their call sites unless necessary.
+> DISCLAIMER: These functions are meant to be called by the window procedure or the `appRuntime` itself, not the user. The reason why they are public is because it would otherwise be difficult for the window procedure to access them in a platform-agnostic way. Aside from `void update()`, I highly recommend you don't touch these functions or their call sites unless necessary.
 
 `void update()`
 - Calculates the delta time, which is the time elapsed between the start and end of the previous frame, and uses it to call the `appInterface`'s `update()` and `render()` functions.
-- If the escape key is detected to be pressed, it immediately ends the process/update loop and exits the application. Feel free to remove this piece of code if you like (I know that this is an exception to the disclaimer above, but still).
+- If the escape key is detected to be pressed, it immediately ends the runtime stage and exits the application. You can remove this piece of code if you want and replace it with your own pause menu or quitting functionality.
 
 `void window_onKeyDownEvent(unsigned int key)`
-- Sends an event to the `appInterface` signaling that a specific `key` was just pressed.
+- Sends an event to the `appInterface` signaling that a specific keyboard key was just pressed by the user.
 
 `void window_onKeyUpEvent(unsigned int key)`
-- Sends an event to the `appInterface` signaling that a specific `key` was just released.
+- Sends an event to the `appInterface` signaling that a specific keyboard key was just released by the user.
 
 `void window_onResizeEvent()`
-- Sends an event to the `appInterface` signaling that the window was just resized, with the dimensions of the window after resizing passed in as arguments.
+- Sends an event to the `appInterface` signaling that the window was just resized by the user, with the new dimensions of the window passed in as arguments.
 
 `void window_onFocusEvent()`
 - Sends an event to the `appInterface` signaling that the window has just gained user focus.
@@ -76,14 +79,15 @@ Here is a diagram displaying all execution stages in order, as well as a simplif
 - Sends an event to the `appInterface` signaling that the window has just lost user focus.
 
 `void window_onCloseRequestedEvent()`
-- Sends an event to the `appInterface` signaling that the user has just clicked the close button on the window.
-- This is not to be confused with the "cleanup" functions, which are meant to free the allocated memory after the runtime ends, although the onCloseRequested event can also be used to free memory.
+- Sends an event to the `appInterface` signaling that the user has just clicked the window close button.
+- This is not to be confused with the "cleanup" functions, which are meant to free most allocated memory in the cleanup stage, although the onCloseRequested event can also be used to free memory in the appInterface.
 
 ##### Private functions
 
 `bool initWindow(int wndWidth, int wndHeight, const char* wndTitle)`
+- **Note: If this function fails, the window resources won't be freed automatically. You'll have to manually call the `cleanupWindow()` function to do this.**
 - Attempts to create the window used for displaying the application's graphics and shows it to the screen.
-- The parameters `wndWidth` and `wndHeight` specify the window's dimensions upon creation, and `wndTitle` specifies the text displayed on the title bar.
+- Takes the target initial width and height of the window, as well as the text that should be displayed on the title bar.
 - Returns true if all stages of the window initialization were successful, and false otherwise.
 
 `void updateWindow()`
@@ -94,6 +98,7 @@ Here is a diagram displaying all execution stages in order, as well as a simplif
 - Frees all memory allocated by the window.
 
 `bool initApplication(int wndWidth, int wndHeight)`
+- **Note: If this function fails, the appInterface won't be freed automatically. You'll have to manually call the `cleanupApplication()` function to do this.**
 - Attempts to create and initialize the `appInterface` instance.
 - Returns true if successful and false otherwise.
 
@@ -125,7 +130,6 @@ Here is a diagram displaying all execution stages in order, as well as a simplif
 ### Examples
 
 How to initialize, run and cleanup an appRuntime instance (as used in the entry point file, `source/sampleApp/main.cpp`)
-
 ```cpp
 #include <ibex3D/core/entryPoint.h>
 #include <ibex3D/core/appRuntime.h>

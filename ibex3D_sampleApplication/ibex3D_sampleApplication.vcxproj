@@ -11,12 +11,47 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\ibex3D\math\vec4.cpp" />
-    <ClCompile Include="source\sampleApp\testbed_simd.cpp" />
-  </ItemGroup>
-  <ItemGroup>
+    <ClInclude Include="include\ibex3D\core\appRuntime.h" />
+    <ClInclude Include="include\ibex3D\core\entryPoint.h" />
+    <ClInclude Include="include\ibex3D\core\win32.h" />
+    <ClInclude Include="include\ibex3D\math\vec2.h" />
+    <ClInclude Include="include\ibex3D\math\vec3.h" />
     <ClInclude Include="include\ibex3D\math\vec4.h" />
     <ClInclude Include="include\ibex3D\math\vec4_simd.h" />
+    <ClInclude Include="include\ibex3D\utility\memory.h" />
+    <ClInclude Include="include\ibex3D\utility\miscellaneous.h" />
+    <ClInclude Include="include\ibex3D\vulkan\bufferObject.h" />
+    <ClInclude Include="include\ibex3D\vulkan\meshObject.h" />
+    <ClInclude Include="include\ibex3D\vulkan\persistentBufferObject.h" />
+    <ClInclude Include="include\ibex3D\vulkan\renderingContext.h" />
+    <ClInclude Include="include\ibex3D\vulkan\swapchainObject.h" />
+    <ClInclude Include="include\ibex3D\vulkan\textureObject.h" />
+    <ClInclude Include="include\ibex3D\vulkan\utils.h" />
+    <ClInclude Include="include\sampleApp\appInterface.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="source\ibex3D\core\appRuntime_win32.cpp" />
+    <ClCompile Include="source\ibex3D\core\win32.cpp" />
+    <ClCompile Include="source\ibex3D\math\vec2.cpp" />
+    <ClCompile Include="source\ibex3D\math\vec3.cpp" />
+    <ClCompile Include="source\ibex3D\math\vec4.cpp" />
+    <ClCompile Include="source\ibex3D\utility\miscellaneous.cpp" />
+    <ClCompile Include="source\ibex3D\vulkan\bufferObject.cpp" />
+    <ClCompile Include="source\ibex3D\vulkan\meshObject.cpp" />
+    <ClCompile Include="source\ibex3D\vulkan\persistentBufferObject.cpp" />
+    <ClCompile Include="source\ibex3D\vulkan\renderingContext_win32.cpp" />
+    <ClCompile Include="source\ibex3D\vulkan\swapchainObject.cpp" />
+    <ClCompile Include="source\ibex3D\vulkan\textureObject.cpp" />
+    <ClCompile Include="source\ibex3D\vulkan\utils.cpp" />
+    <ClCompile Include="source\sampleApp\appInterface.cpp" />
+    <ClCompile Include="source\sampleApp\main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="assets\shaders\compile.bat" />
+    <None Include="assets\shaders\include\basicLighting.glsl" />
+    <None Include="assets\shaders\include\commonStructs.glsl" />
+    <None Include="assets\shaders\shader.frag" />
+    <None Include="assets\shaders\shader.vert" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

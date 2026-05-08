@@ -95,6 +95,7 @@ bool vkBufferObject::cmdCopyBuffer(VkDevice device, VkCommandPool cmdPool, VkQue
 	if (commandBuffer == nullptr)
 	{
 		vkUtils::printVkError("vkBufferObject::cmdCopyBuffer()", "Couldn't begin the single-time commands.");
+		vkUtils::endSingleTimeCommands(device, cmdPool, gfxQueue, commandBuffer);
 		return false;
 	}
 

@@ -1,7 +1,7 @@
 # className - Basic overview
 
-* Header file: `path/to/file.h`
-* Source file: `path/to/source.cpp`
+- Header file: `path/to/file.h`
+- Source file: `path/to/source.cpp`
 
 ### Table of Contents
 

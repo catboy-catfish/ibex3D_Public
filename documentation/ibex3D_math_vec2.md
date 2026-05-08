@@ -1,7 +1,7 @@
 # vec2 - Basic overview
 
-* Header file: `include/ibex3D/math/vec2.h`
-* Source file: `source/ibex3D/math/vec2.cpp`
+- Header file: `include/ibex3D/math/vec2.h`
+- Source file: `source/ibex3D/math/vec2.cpp`
 
 ### Table of Contents
 
@@ -22,7 +22,7 @@
 
 ### Description
 
-A simple struct which contains two single-precision floats bundled together, and also includes overrides/functions for various mathematical operations.
+`vec2` is a simple struct which contains two single-precision floats bundled together, and also includes overrides/functions for various mathematical operations.
 
 ### Constructors
 
@@ -147,10 +147,12 @@ DISCLAIMER: These functions do not contain the safety checks seen in the / and /
 - This is the assigning version; for the non-assigning version, see `unsafeDividedByFloat()`.
 
 `vec2 unsafeNormalized() const`
-- The unsafe equivalent of `normalized()`. Returns a new vec2 created by dividing this vec2's components by its length, converting it to a unit vector. This is the non-assigning version; for the assigning version, see `unsafeNormalize()`.
+- The unsafe equivalent of `normalized()`. Returns a new vec2 created by dividing this vec2's components by its length, converting it to a unit vector, while skipping the safety checks seen in `normalized()`.
+- This is the non-assigning version; for the assigning version, see `unsafeNormalize()`.
 
 `void unsafeNormalize()`
-- The unsafe equivalent of `normalize()`. Divides this vec2's components by its length, converting it to a unit vector. This is the assigning version; for the non-assigning version, see `unsafeNormalized()`.
+- The unsafe equivalent of `normalize()`. Divides this vec2's components by its length, converting it to a unit vector, while skipping the safety checks seen in `normalize()`.
+- This is the assigning version; for the non-assigning version, see `unsafeNormalized()`.
 
 ### Member variables
 
@@ -171,7 +173,6 @@ Historically, the vec2 struct (along with vec3 and vec4) had a helper function c
 ### Examples
 
 Using the vec2 constructors and accessing its components:
-
 ```cpp
 // Init-on-declaration
 vec2 myVec2_noConstructor;                              // values: { 0.0f, 0.0f }
@@ -194,7 +195,6 @@ myFloat = myVec2_singleConstructor.y;                   // value: 3.0f
 ```
 
 Arithmetic, arithmetic-assignment and logical operators:
-
 ```cpp
 // Addition - values: { 4.0f, 6.0f }
 vec2 myVec2 = vec2(0.0f, 1.0f) + vec2(4.0f, 5.0f);
@@ -234,7 +234,6 @@ myBool = myVec2 != myVec2;
 ```
 
 Scalar functions:
-
 ```cpp
 // Multiplication by float - values: { 2.0f, 0.0f }
 vec2 myVec2 = vec2(1.0f, 0.0f).multipliedByFloat(2.0f);
@@ -256,7 +255,6 @@ myVec2.divideByFloat(0.0f);
 ```
 
 Advanced math functions:
-
 ```cpp
 // Linear interpolation (non-assigning) - values: { 0.0f, 0.5f }
 vec2 myVec2 = vec2(0.0f, 1.0f).lerpedTo(vec2(0.0f), 0.5f);

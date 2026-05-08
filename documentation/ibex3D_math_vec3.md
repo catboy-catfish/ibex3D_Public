@@ -1,7 +1,7 @@
 # vec3 - Basic overview
 
-* Header file: `include/ibex3D/math/vec3.h`
-* Source file: `source/ibex3D/math/vec3.cpp`
+- Header file: `include/ibex3D/math/vec3.h`
+- Source file: `source/ibex3D/math/vec3.cpp`
 
 ### Table of Contents
 
@@ -22,7 +22,7 @@
 
 ### Description
 
-A simple struct which contains three single-precision floats bundled together, and also includes overrides/functions for various mathematical operations.
+`vec3` is a simple struct which contains three single-precision floats bundled together, and also includes overrides/functions for various mathematical operations.
 
 ### Constructors
 
@@ -174,7 +174,6 @@ Historically, the vec3 struct (along with vec2 and vec4) had a helper function c
 ### Examples
 
 Using the vec3 constructors and accessing its components:
-
 ```cpp
 // Init-on-declaration
 vec3 myVec3_noConstructor;                              // values: { 0.0f, 0.0f, 0.0f }
@@ -200,7 +199,6 @@ myFloat = myVec3_singleConstructor.z;                   // value: 6.0f
 ```
 
 Arithmetic, arithmetic-assignment and logical operators:
-
 ```cpp
 // Addition - values: { 4.0f, 6.0f, 8.0f }
 vec3 myVec3 = vec3(0.0f, 1.0f, 2.0f) + vec3(4.0f, 5.0f, 6.0f);
@@ -240,7 +238,6 @@ myBool = myVec3 != myVec3;
 ```
 
 Scalar functions:
-
 ```cpp
 // Multiplication by float - values: { 2.0f, 0.0f, 2.0f }
 vec3 myVec3 = vec3(1.0f, 0.0f, 1.0f).multipliedByFloat(2.0f);
@@ -262,7 +259,6 @@ myVec3.divideByFloat(0.0f);
 ```
 
 Advanced math functions:
-
 ```cpp
 // Linear interpolation (non-assigning) - values: { 0.0f, 0.5f, 1.0f }
 vec3 myVec3 = vec3(0.0f, 1.0f, 2.0f).lerpedTo(vec3(0.0f), 0.5f);
