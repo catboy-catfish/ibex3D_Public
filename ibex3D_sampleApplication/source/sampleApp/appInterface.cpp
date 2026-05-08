@@ -3,6 +3,8 @@
 #include <ibex3D/core/appRuntime.h>
 #include <ibex3D/vulkan/renderingContext.h>
 
+#include <ibex3D/utility/logger.h>
+
 // ----------------------------------------------------------------------------------------------------
 
 /*
@@ -28,7 +30,7 @@ bool appInterface::initialize(appRuntime* pRuntime, void* pWindow)
 	}
 	else
 	{
-		printf("APPLICATION ERROR - appInterface::initialize(): Argument \"appRuntime* pRuntime\" is nullptr. You must pass a valid appRuntime pointer for the appInterface to interface with.\n");
+		logger::logError("appInterface::initialize(): Couldn't initialize the appInterface because argument \"appRuntime* pRuntime\" is nullptr. You must pass a valid appRuntime pointer for the appInterface to communicate with.", __FILE__, __LINE__ - 2);
 		return false;
 	}
 	

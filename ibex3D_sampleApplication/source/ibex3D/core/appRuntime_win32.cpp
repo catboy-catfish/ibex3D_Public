@@ -1,6 +1,8 @@
 #include <ibex3D/core/appRuntime.h>
 #include <ibex3D/core/win32.h>
 
+#include <ibex3D/utility/logger.h>
+
 #include <sampleApp/appInterface.h>
 
 #include <stdio.h>
@@ -163,7 +165,7 @@ void appRuntime::window_onKeyUpEvent(unsigned int key)
 
 void appRuntime::window_onResizeEvent(unsigned int newWidth, unsigned int newHeight)
 {	
-	fprintf(stdout, "Window resized to dimensions {%i, %i}\n", newWidth, newHeight);
+	fprintf(stdout, "Window resized to dimensions { %i, %i }\n", newWidth, newHeight);
 	
 	if (m_windowData != nullptr)
 	{
@@ -220,7 +222,7 @@ bool appRuntime::initWindow(unsigned int wndWidth, unsigned int wndHeight, const
 
 	if (RegisterClassExA(&wndClass) == 0)
 	{
-		printf("RUNTIME ERROR - appRuntime::initWindow(): RegisterClassExA() failed.\n");
+		logger::logError("appRuntime::initWindow(): An error occurred while trying to register the window class.", __FILE__, __LINE__ - 2);
 		return false;
 	}
 
@@ -247,7 +249,7 @@ bool appRuntime::initWindow(unsigned int wndWidth, unsigned int wndHeight, const
 
 	if (wndData->hWnd == nullptr)
 	{
-		printf("RUNTIME ERROR - appRuntime::initWindow(): CreateWindowExA() failed.\n");
+		logger::logError("appRuntime::initWindow(): An error occurred while trying to create the window.", __FILE__, __LINE__ - 18);
 		return false;
 	}
 
@@ -304,7 +306,7 @@ bool appRuntime::initApplication(unsigned int wndWidth, unsigned int wndHeight)
 	auto wndData = static_cast<windowData_t*>(m_windowData);
 	if (!m_appInterface->initialize(this, static_cast<void*>(wndData->hWnd)))
 	{
-		printf("RUNTIME ERROR - appRuntime::initApplication(): appInterface::initialize() failed.\n");
+		logger::logError("appRuntime::initApplication(): The appInterface failed to initialize.", __FILE__, __LINE__ - 2);
 		return false;
 	}
 
@@ -329,7 +331,7 @@ bool appRuntime::isSafeToStartRunning()
 {
 	if (m_windowData == nullptr)
 	{
-		printf("RUNTIME ERROR - appRuntime::isSafeToStartRunning(): m_windowData is nullptr.\n");
+		logger::logError("appRuntime::isSafeToStartRunning(): Not safe to start running because m_windowData is nullptr.", __FILE__, __LINE__ - 2);
 		return false;
 	}
 	
@@ -337,26 +339,26 @@ bool appRuntime::isSafeToStartRunning()
 
 	if (wndData->hInstance == nullptr)
 	{
-		printf("RUNTIME ERROR - appRuntime::isSafeToStartRunning(): m_windowData->hInstance is nullptr.\n");
+		logger::logError("appRuntime::isSafeToStartRunning(): Not safe to start running because m_windowData->hInstance is nullptr.", __FILE__, __LINE__ - 2);
 		return false;
 	}
 
 	if (wndData->hWnd == nullptr)
 	{
-		printf("RUNTIME ERROR - appRuntime::isSafeToStartRunning(): m_windowData->hWnd is nullptr.\n");
+		logger::logError("appRuntime::isSafeToStartRunning(): Not safe to start running because m_windowData->hWnd is nullptr.", __FILE__, __LINE__ - 2); 
 		return false;
 	}
 
 	if (m_appInterface == nullptr)
 	{
-		printf("RUNTIME ERROR - appRuntime::isSafeToStartRunning(): m_appInterface is nullptr.\n");
+		logger::logError("appRuntime::isSafeToStartRunning(): Not safe to start running because m_appInterface is nullptr.", __FILE__, __LINE__ - 2);
 		return false;
 	}
 	else
 	{
 		if (!m_appInterface->isSafeToStartRunning())
 		{
-			printf("RUNTIME ERROR - appRuntime::isSafeToStartRunning(): m_appInterface->isSafeToStartRunning() returned false.\n");
+			logger::logError("appRuntime::isSafeToStartRunning(): Not safe to start running because m_appInterface->isSafeToStartRunning() failed.", __FILE__, __LINE__ - 2);
 			return false;
 		}
 	}

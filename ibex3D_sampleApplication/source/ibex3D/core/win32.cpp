@@ -1,5 +1,7 @@
 #include <ibex3D/core/win32.h>
 
+#include <ibex3D/utility/logger.h>
+
 #include <comdef.h>
 #include <string>
 #include <stdio.h>
@@ -8,7 +10,7 @@ bool win32Utils::getWindowDimensions(HWND hWnd, int& width, int& height)
 {
 	if (hWnd == nullptr)
 	{
-		printf("WIN32 ERROR - win32Utils::getWindowDimensions(): Argument \"HWND hWnd\" is nullptr.\n");
+		logger::logError("win32Utils::getWindowDimensions(): Couldn't get the window dimensions because argument \"HWND hWnd\" is nullptr.", __FILE__, __LINE__ - 2);
 		return false;
 	}
 
@@ -16,7 +18,7 @@ bool win32Utils::getWindowDimensions(HWND hWnd, int& width, int& height)
 
 	if (GetClientRect(hWnd, &wndRect) == 0)
 	{
-		printf("WIN32 ERROR - win32Utils::getWindowDimensions(): Failed to get the client window rect.\n");
+		logger::logError("win32Utils::getWindowDimensions(): An error occured while trying to get the client window rect.", __FILE__, __LINE__ - 2);
 		return false;
 	}
 

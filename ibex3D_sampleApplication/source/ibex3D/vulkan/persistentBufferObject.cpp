@@ -1,6 +1,8 @@
 #include <ibex3D/vulkan/persistentBufferObject.h>
 #include <ibex3D/vulkan/utils.h>
 
+#include <ibex3D/utility/logger.h>
+
 // ----------------------------------------------------------------------------------------------------
 
 bool vkPersistentBufferObject::initialize(VkDevice device, VkPhysicalDevice physDevice, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags memProps)
@@ -15,7 +17,7 @@ bool vkPersistentBufferObject::initialize(VkDevice device, VkPhysicalDevice phys
 
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::printVkResultMessage(result, "vkBufferObject::initialize()", "Couldn't create the buffer.", vkMessageType::FATAL);
+		logger::logError("vkPersistentBufferObject::initialize(): An error occurred while trying to create the buffer.", __FILE__, __LINE__ - 4);
 		return false;
 	}
 
@@ -26,7 +28,7 @@ bool vkPersistentBufferObject::initialize(VkDevice device, VkPhysicalDevice phys
 
 	if (!vkUtils::findMemoryType(physDevice, memRequirements.memoryTypeBits, memProps, memoryType))
 	{
-		vkUtils::printVkResultMessage(result, "vkBufferObject::initialize()", "Couldn't find a suitable type for the buffer memory.", vkMessageType::FATAL);
+		logger::logError("vkPersistentBufferObject::initialize(): Couldn't find a suitable type for the buffer memory.", __FILE__, __LINE__ - 4);
 		return false;
 	}
 
@@ -39,7 +41,7 @@ bool vkPersistentBufferObject::initialize(VkDevice device, VkPhysicalDevice phys
 
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::printVkResultMessage(result, "vkBufferObject::initialize()", "Couldn't allocate the buffer memory.", vkMessageType::FATAL);
+		logger::logError("vkPersistentBufferObject::initialize(): An error occured while trying to allocate the buffer memory.", __FILE__, __LINE__ - 4);
 		return false;
 	}
 
@@ -47,7 +49,7 @@ bool vkPersistentBufferObject::initialize(VkDevice device, VkPhysicalDevice phys
 
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::printVkResultMessage(result, "vkBufferObject::initialize()", "Couldn't bind the buffer memory.", vkMessageType::FATAL);
+		logger::logError("vkPersistentBufferObject::initialize(): An error occured while trying to bind the buffer memory.", __FILE__, __LINE__ - 4);
 		return false;
 	}
 
@@ -75,7 +77,7 @@ bool vkPersistentBufferObject::mapBufferData(VkDevice device, VkDeviceSize size)
 	
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::printVkResultMessage(result, "vkPersistentBufferObject::mapBufferData()", "Couldn't map the buffer memory.", vkMessageType::FATAL);
+		logger::logError("vkPersistentBufferObject::mapBufferData(): An error occured while trying to map the buffer memory.", __FILE__, __LINE__ - 4);
 		return false;
 	}
 
@@ -99,7 +101,7 @@ bool vkPersistentBufferObject::cmdCopyBuffer(VkDevice device, VkCommandPool cmdP
 
 	if (commandBuffer == nullptr)
 	{
-		vkUtils::printMessage("vkPersistentBufferObject::cmdCopyBuffer()", "Couldn't begin the single-time commands.", vkMessageType::FATAL);
+		logger::logError("vkPersistentBufferObject::cmdCopyBuffer(): Couldn't begin the single-time commands.", __FILE__, __LINE__ - 4);
 		return false;
 	}
 

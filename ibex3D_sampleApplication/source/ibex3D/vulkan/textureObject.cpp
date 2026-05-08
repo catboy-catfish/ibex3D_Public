@@ -2,6 +2,8 @@
 #include <ibex3D/vulkan/bufferObject.h>
 #include <ibex3D/vulkan/utils.h>
 
+#include <ibex3D/utility/logger.h>
+
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/image.h>
 
@@ -15,7 +17,7 @@ bool vkTextureObject::initImageAndView(VkDevice device, VkPhysicalDevice physDev
 
 	if (pixels == nullptr)
 	{
-		vkUtils::printMessage("vkTextureObject::initImageAndView()", "Couldn't load the texture data.\n", vkMessageType::FATAL);
+		logger::logError("vkTextureObject::initImageAndView(): An error occured while trying to load the texture data.", __FILE__, __LINE__ - 4);
 		return false;
 	}
 
@@ -31,14 +33,14 @@ bool vkTextureObject::initImageAndView(VkDevice device, VkPhysicalDevice physDev
 		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
 	))
 	{
-		vkUtils::printMessage("vkTextureObject::initImageAndView()", "Couldn't create the staging buffer and allocate memory.\n", vkMessageType::FATAL);
+		logger::logError("vkTextureObject::initImageAndView(): Couldn't create the staging buffer and allocate memory.", __FILE__, __LINE__ - 9);
 		stbi_image_free(pixels);
 		return false;
 	}
 
 	if (!stagingBuffer.updateBufferData(device, pixels))
 	{
-		vkUtils::printMessage("vkTextureObject::initImageAndView()", "Couldn't update the staging buffer data.\n", vkMessageType::FATAL);
+		logger::logError("vkTextureObject::initImageAndView(): Couldn't update the staging buffer and data.", __FILE__, __LINE__ - 2);
 		stbi_image_free(pixels);
 		return false;
 	}
@@ -56,7 +58,7 @@ bool vkTextureObject::initImageAndView(VkDevice device, VkPhysicalDevice physDev
 		image, imageMemory
 	))
 	{
-		vkUtils::printMessage("vkTextureObject::initImageAndView()", "Couldn't create the image.\n", vkMessageType::FATAL);
+		logger::logError("vkTextureObject::initImageAndView(): Couldn't create the image.", __FILE__, __LINE__ - 9);
 		stagingBuffer.cleanup(device);
 		return false;
 	}
@@ -68,7 +70,7 @@ bool vkTextureObject::initImageAndView(VkDevice device, VkPhysicalDevice physDev
 		VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
 	))
 	{
-		vkUtils::printMessage("vkTextureObject::initImageAndView()", "Couldn't transition the image layout.\n", vkMessageType::FATAL);
+		logger::logError("vkTextureObject::initImageAndView(): Couldn't transition the image layout.", __FILE__, __LINE__ - 7);
 		stagingBuffer.cleanup(device);
 		return false;
 	}
@@ -80,7 +82,7 @@ bool vkTextureObject::initImageAndView(VkDevice device, VkPhysicalDevice physDev
 		static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight)
 	))
 	{
-		vkUtils::printMessage("vkTextureObject::initImageAndView()", "Couldn't copy the staging buffer to the image.\n", vkMessageType::FATAL);
+		logger::logError("vkTextureObject::initImageAndView(): Couldn't copy the staging buffer data to the image.", __FILE__, __LINE__ - 7);
 		stagingBuffer.cleanup(device);
 		return false;
 	}
@@ -91,7 +93,7 @@ bool vkTextureObject::initImageAndView(VkDevice device, VkPhysicalDevice physDev
 		image, VK_FORMAT_R8G8B8A8_SRGB, texWidth, texHeight, mipLevels
 	))
 	{
-		vkUtils::printMessage("vkTextureObject::initImageAndView()", "Couldn't generate the image mipmaps.\n", vkMessageType::FATAL);
+		logger::logError("vkTextureObject::initImageAndView(): Couldn't generate the image mipmaps.", __FILE__, __LINE__ - 6);
 		stagingBuffer.cleanup(device);
 		return false;
 	}
@@ -104,7 +106,7 @@ bool vkTextureObject::initImageAndView(VkDevice device, VkPhysicalDevice physDev
 
 	if (imageView == nullptr)
 	{
-		vkUtils::printMessage("vkTextureObject::initImageView()", "Couldn't create the image view.\n", vkMessageType::FATAL);
+		logger::logError("vkTextureObject::initImageAndView(): Couldn't create the image view.", __FILE__, __LINE__ - 4);
 		return false;
 	}
 
@@ -136,7 +138,7 @@ bool vkTextureObject::initSampler(VkDevice device, VkPhysicalDevice physDevice)
 
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::printVkResultMessage(result, "vkRenderingContext::initTextureSampler()", "Couldn't create the texture sampler.", vkMessageType::FATAL);
+		logger::logError("vkTextureObject::initImageAndView(): An error occurred while trying to create the image sampler.", __FILE__, __LINE__ - 4);
 		return false;
 	}
 

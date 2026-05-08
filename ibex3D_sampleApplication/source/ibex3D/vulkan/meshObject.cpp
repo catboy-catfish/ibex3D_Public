@@ -1,6 +1,8 @@
 #include <ibex3D/vulkan/meshObject.h>
 #include <ibex3D/vulkan/utils.h>
 
+#include <ibex3D/utility/logger.h>
+
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/hash.hpp>
 
@@ -91,7 +93,7 @@ bool vkMeshObject::loadObjFromFile(const char* objFilePath)
 
 	if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, objFilePath))
 	{
-		vkUtils::printMessage("vkMeshObject::loadObjFromFile()", "Couldn't load the model file.", vkMessageType::FATAL);
+		logger::logError("vkMeshObject::loadObjFromFile(): An error occured while trying to load the model file.", __FILE__, __LINE__ - 2);
 		return false;
 	}
 
@@ -158,7 +160,7 @@ bool vkMeshObject::initVertexIndexBuffer(VkDevice device, VkPhysicalDevice physD
 		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
 	))
 	{
-		vkUtils::printMessage("vkMeshObject::initVertexIndexBuffer()", "Couldn't create the staging buffer.", vkMessageType::FATAL);
+		logger::logError("vkMeshObject::initVertexIndexBuffer(): Couldn't create the staging buffer.", __FILE__, __LINE__ - 9);
 		return false;
 	}
 
@@ -179,14 +181,14 @@ bool vkMeshObject::initVertexIndexBuffer(VkDevice device, VkPhysicalDevice physD
 		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
 	))
 	{
-		vkUtils::printMessage("vkMeshObject::initVertexIndexBuffer()", "Couldn't create the combined vertex-index buffer.", vkMessageType::FATAL);
+		logger::logError("vkMeshObject::initVertexIndexBuffer(): Couldn't create the combined vertex-index buffer.", __FILE__, __LINE__ - 9);
 		stagingBuffer.cleanup(device);
 		return false;
 	}
 
 	if (!vtxIdxBuffer.cmdCopyBuffer(device, cmdPool, gfxQueue, stagingBuffer.buffer, combinedBufferSize))
 	{
-		vkUtils::printMessage("vkMeshObject::initVertexIndexBuffer()", "Couldn't copy the staging memory to the combined vertex-index buffer.", vkMessageType::FATAL);
+		logger::logError("vkMeshObject::initVertexIndexBuffer(): Couldn't copy the staging memory to the combined vertex-index buffer.", __FILE__, __LINE__ - 9);
 		stagingBuffer.cleanup(device);
 		return false;
 	}

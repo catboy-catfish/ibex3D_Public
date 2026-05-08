@@ -1,14 +1,15 @@
 #include <ibex3D/vulkan/utils.h>
 
+#include <ibex3D/utility/logger.h>
 #include <ibex3D/utility/miscellaneous.h>
 
 #include <glslang/Include/glslang_c_interface.h>
 #include <glslang/Public/resource_limits_c.h>
 
-#include <stdio.h>
 #include <algorithm>
-#include <set>
 #include <limits>
+#include <set>
+#include <string>
 
 // ----------------------------------------------------------------------------------------------------
 // - Extension functions ------------------------------------------------------------------------------
@@ -52,20 +53,6 @@ void vkExtFunctions::DestroyDebugUtilsMessengerEXT
 #endif
 
 // ----------------------------------------------------------------------------------------------------
-// - Logging ------------------------------------------------------------------------------------------
-// ----------------------------------------------------------------------------------------------------
-
-void vkUtils::printMessage(const char* functionName, const char* message, vkMessageType type)
-{
-	printf("VULKAN ERROR - %s: %s\n\n", functionName, message);
-}
-
-void vkUtils::printVkResultMessage(VkResult result, const char* functionName, const char* message, vkMessageType type)
-{
-	printf("VULKAN ERROR (VkResult: %d) - %s: %s\n\n", (int)result, functionName, message);
-}
-
-// ----------------------------------------------------------------------------------------------------
 // - Validation layers --------------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------
 
@@ -101,7 +88,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL vkUtils::debugMessengerCallback
 	switch (messageSeverity)
 	{
 		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
-		{
+		{	
 			printf("VULKAN WARNING (Validation layer) - %s\n\n", pCallbackData->pMessage);
 			break;
 		}
@@ -219,19 +206,19 @@ int vkUtils::ratePhysicalDeviceSuitability(VkPhysicalDevice physDevice, VkSurfac
 
 	if (!deviceFeatures.geometryShader)
 	{
-		printMessage("vkUtils::ratePhysicalDeviceSuitability()", "This physical device is unsuitable because it doesn't support geometry shaders.", vkMessageType::FATAL);
+		logger::logError("vkUtils::ratePhysicalDeviceSuitability(): This physical device (GPU) is unsuitable because it doesn't support geometry shaders.", __FILE__, __LINE__ - 4);
 		return 0;
 	}
 
 	if (!deviceFeatures.samplerAnisotropy)
 	{
-		printMessage("vkUtils::ratePhysicalDeviceSuitability()", "This physical device is unsuitable because it doesn't support anisotropic texture filtering.", vkMessageType::FATAL);
+		logger::logError("vkUtils::ratePhysicalDeviceSuitability(): This physical device (GPU) is unsuitable because it doesn't support anisotropic texture filtering.", __FILE__, __LINE__ - 10);
 		return 0;
 	}
 
 	if (!extSupport)
 	{
-		printMessage("vkUtils::ratePhysicalDeviceSuitability()", "This physical device is unsuitable because it doesn't support the required extensions.", vkMessageType::FATAL);
+		logger::logError("vkUtils::ratePhysicalDeviceSuitability(): This physical device (GPU) is unsuitable because it doesn't support the required extensions.", __FILE__, __LINE__ - 16);
 		return 0;
 	}
 
@@ -239,7 +226,7 @@ int vkUtils::ratePhysicalDeviceSuitability(VkPhysicalDevice physDevice, VkSurfac
 
 	if ((info.formats.empty() || info.presentModes.empty()))
 	{
-		printMessage("vkUtils::ratePhysicalDeviceSuitability()", "This physical device is unsuitable because it doesn't have adequate swapchain support.", vkMessageType::FATAL);
+		logger::logError("vkUtils::ratePhysicalDeviceSuitability(): This physical device (GPU) is unsuitable because it doesn't support the required formats or present modes.", __FILE__, __LINE__ - 4);
 		return 0;
 	}
 
@@ -247,7 +234,7 @@ int vkUtils::ratePhysicalDeviceSuitability(VkPhysicalDevice physDevice, VkSurfac
 
 	if (!indices.isComplete())
 	{
-		printMessage("vkUtils::ratePhysicalDeviceSuitability()", "This physical device is unsuitable because one or more of the required queue families are missing.", vkMessageType::FATAL);
+		logger::logError("vkUtils::ratePhysicalDeviceSuitability(): This physical device (GPU) is unsuitable because it doesn't support the required queue families.", __FILE__, __LINE__ - 4);
 		return 0;
 	}
 
@@ -318,7 +305,7 @@ VkShaderModule vkUtils::createShaderModuleFromSPIRV(VkDevice device, const std::
 {
 	if (spirvBytecode.empty())
 	{
-		printMessage("vkUtils::createShaderModuleFromSPIRV()", "Argument \"spirvBytecode\" is empty.", vkMessageType::FATAL);
+		logger::logError("vkUtils::createShaderModuleFromSPIRV(): Couldn't create the shader module from SPIR-V because argument \"spirvBytecode\" is empty.", __FILE__, __LINE__);
 		return nullptr;
 	}
 
@@ -332,7 +319,7 @@ VkShaderModule vkUtils::createShaderModuleFromSPIRV(VkDevice device, const std::
 
 	if (result != VK_SUCCESS)
 	{
-		printVkResultMessage(result, "vkUtils::createShaderModuleFromSPIRV()", "Couldn't create the shader module.", vkMessageType::FATAL);
+		logger::logError("vkUtils::createShaderModuleFromSPIRV(): An error occured while trying to create the shader module.", __FILE__, __LINE__ - 4);
 		return nullptr;
 	}
 
@@ -366,7 +353,7 @@ VkCommandBuffer vkUtils::beginSingleTimeCommands(VkDevice device, VkCommandPool 
 
 	if (result != VK_SUCCESS)
 	{
-		printVkResultMessage(result, "vkUtils::beginSingleTimeCommands()", "Couldn't allocate the command buffer.", vkMessageType::FATAL);
+		logger::logError("vkUtils::beginSingleTimeCommands(): An error occured while trying to allocate the command buffer.", __FILE__, __LINE__ - 4);
 		return nullptr;
 	}
 
@@ -414,7 +401,7 @@ bool vkUtils::findMemoryType(VkPhysicalDevice physDevice, uint32_t typeFilter, V
 		}
 	}
 
-	vkUtils::printMessage("vkUtils::findMemoryType()", "Couldn't find any suitable memory type.", vkMessageType::FATAL);
+	logger::logError("vkUtils::findMemoryType(): Couldn't find any suitable memory type.", __FILE__, __LINE__);
 	return false;
 }
 
@@ -441,7 +428,7 @@ bool vkUtils::findSupportedFormat(VkPhysicalDevice physDevice, const std::vector
 		}
 	}
 
-	printMessage("vkUtils::findSupportedFormat()", "Couldn't find any suitable format.", vkMessageType::FATAL);
+	logger::logError("vkUtils::findSupportedFormat(): Couldn't find any suitable format.", __FILE__, __LINE__);
 	return false;
 }
 
@@ -488,7 +475,7 @@ bool vkUtils::createImage(VkDevice device, VkPhysicalDevice physDevice, uint32_t
 
 	if (result != VK_SUCCESS)
 	{
-		printVkResultMessage(result, "vkUtils::createImage()", "Couldn't create the image.", vkMessageType::FATAL);
+		logger::logError("vkUtils::createImage(): An error occured while trying to create the image.", __FILE__, __LINE__ - 4);
 		return false;
 	}
 
@@ -505,7 +492,7 @@ bool vkUtils::createImage(VkDevice device, VkPhysicalDevice physDevice, uint32_t
 		memoryType
 	))
 	{
-		printMessage("vkUtils::createImage()", "Couldn't find the memory type for the image memory.", vkMessageType::FATAL);
+		logger::logError("vkUtils::createImage(): Couldn't find a suitable memory type for the image memory.", __FILE__, __LINE__ - 8);
 		return false;
 	}
 
@@ -518,7 +505,7 @@ bool vkUtils::createImage(VkDevice device, VkPhysicalDevice physDevice, uint32_t
 
 	if (result != VK_SUCCESS)
 	{
-		printVkResultMessage(result, "vkUtils::createImage()", "Couldn't allocate the image memory.", vkMessageType::FATAL);
+		logger::logError("vkUtils::createImage(): An error occured while trying to allocate the image memory.", __FILE__, __LINE__ - 4);
 		return false;
 	}
 
@@ -545,7 +532,7 @@ VkImageView vkUtils::createImageView(VkDevice device, VkImage image, uint32_t mi
 
 	if (result != VK_SUCCESS)
 	{
-		printVkResultMessage(result, "vkUtils::createImageView()", "Couldn't create the image view.", vkMessageType::FATAL);
+		logger::logError("vkUtils::createImageView(): An error occured while trying to create the image view.", __FILE__, __LINE__ - 4);
 		return nullptr;
 	}
 
@@ -637,8 +624,7 @@ bool vkUtils::transitionImageLayout(VkDevice device, VkCommandPool cmdPool, VkQu
 	}
 	else
 	{
-		printMessage("vkUtils::transitionImageLayout()", "Unsupported transition. Supported transitions include \"UNDEFINED -> TRANSFER_DST_OPTIMAL\" and \"TRANSFER_DST_OPTIMAL -> SHADER_READ_ONLY_OPTIMAL\".", vkMessageType::FATAL);
-
+		logger::logError("vkUtils::transitionImageLayout(): Unsupported layout transition. Supported transitions include \"UNDEFINED -> TRANSFER_DST_OPTIMAL\" and \"TRANSFER_DST_OPTIMAL -> SHADER_READ_ONLY_OPTIMAL\".", __FILE__, __LINE__ - 4);
 		vkEndCommandBuffer(commandBuffer);
 		vkFreeCommandBuffers(device, cmdPool, 1, &commandBuffer);
 
@@ -668,7 +654,7 @@ bool vkUtils::generateMipmaps(VkDevice device, VkPhysicalDevice physDevice, VkCo
 
 	if (!(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT))
 	{
-		printMessage("vkUtils::generateMipmaps()", "Image format is required to support linear blitting, but it does not.", vkMessageType::FATAL);
+		logger::logError("vkUtils::generateMipmaps(): Couldn't generate mipmaps because the image format does not support linear blitting.", __FILE__, __LINE__ - 4);
 		return false;
 	}
 
