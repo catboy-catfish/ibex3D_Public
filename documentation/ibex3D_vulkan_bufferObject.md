@@ -32,14 +32,14 @@ DISCLAIMER: The officiai Vulkan SDK gives the prefix "Vk" (with a capital V) to 
 `void cleanup(VkDevice device)`
 - Destroys the buffer and frees the buffer memory using the logical device, if they are initialized/allocated.
 
-`bool updateBufferData(VkDevice device, VkDeviceSize size, void* newData)`
-- Attempts to map the buffer memory into application address space, update the buffer memory with the new data passed in, and then unmap the buffer memory. This function takes the logical device, the buffer size, and a pointer to the new buffer data.
+`bool updateBufferData(VkDevice device, void* newData)`
+- Attempts to map the buffer memory into application address space, update the buffer memory with the new data passed in, and then unmap the buffer memory. This function takes the logical device and a pointer to the new buffer data.
 - Note that mapping and unmapping in Vulkan has a runtime cost. This function (and by extension, this entire struct) shouldn't be used in scenarios where the buffer data is frequently updated. You may want to consider using the `vkPersistentBufferObject` instead, which is designed for persistent mapping.
 - Returns true if the buffer memory is mapped successfully, and false otherwise.
 
-`bool cmdCopyBuffer(VkDevice device, VkCommandPool cmdPool, VkQueue gfxQueue, VkDeviceSize size, VkBuffer srcBuffer)`
-- Copies the data from another buffer (the source) into the member variable `buffer` (the destination). This function takes the logical device, the command pool, the graphics queue, the buffer size and the source buffer.
-- Note that the size of `srcBuffer`/`size` should ideally be the same as the size of the destination `buffer`. I haven't considered the possibility of the source and destination buffers having different sizes, but for now, I reccommend you ensure that the size of both buffers are the same unless you know what you are doing.
+`bool cmdCopyBuffer(VkDevice device, VkCommandPool cmdPool, VkQueue gfxQueue, VkBuffer srcBuffer, VkDeviceSize srcBufSize)`
+- Copies the data from another buffer (the source) into the member variable `buffer` (the destination). This function takes the logical device, the command pool, the graphics queue, the source buffer and the size of the source buffer.
+- Note that the size of `srcBuffer` should ideally be the same as the destination `bufferSize`. I haven't considered the possibility of the source and destination buffers having different sizes, but for now, I reccommend you ensure that the size of both buffers are the same unless you know what you are doing.
 - Returns true if the command buffer can successfully begin, and false otherwise.
 
 ### Member variables
@@ -54,6 +54,9 @@ Remove this block if you don't have anything to say.
 
 `VkDeviceMemory bufferMemory`
 - The variable for the buffer memory, or the `VkDeviceMemory`.
+
+`VkDeviceSize bufferSize`
+- The size of the internal buffer. This is set by the `initialize()` function and its `size` parameter, and set back to 0 by the `cleanup()` function.
 
 ### Remarks
 
@@ -73,7 +76,7 @@ In the meantime, I suggest you take a look at the Vulkan API functions in the so
 
 ### Examples
 
-How to initialize and cleanup a combined vertex/index buffer (as used in the file `include/ibex3D/vulkan/meshObject.cpp`)
+How to initialize and cleanup a combined vertex/index buffer and staging buffer (as used in the file `include/ibex3D/vulkan/meshObject.cpp`)
 
 ```cpp
 // Initialization

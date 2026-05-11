@@ -30,7 +30,7 @@ ibex3D is not even close to finished. I'm pretty sure this codebase has multiple
 ### Documentation
 
 ```
-NOTICE: The documentation is *painfully* unfinished right now, but I'm adding more.
+NOTICE: The documentation is *painfully* unfinished right now, and in addition to that, it's currently on hold. Please feel free to add your own documentation or update the existing stuff if you want, but this project is currently a solo effort and I want to focus more on the actual development side of things right now.
 ```
 
 Very early work-in-progress documentation can be found in the [documentation folder](documentation/). I highly reccommend you start with the [START_HERE](documentation/_START_HERE.md) file, and once you're ready, explore the other files in the folder.

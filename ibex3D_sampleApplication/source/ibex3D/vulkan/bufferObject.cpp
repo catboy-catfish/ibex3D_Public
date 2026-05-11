@@ -17,7 +17,7 @@ bool vkBufferObject::initialize(VkDevice device, VkPhysicalDevice physDevice, Vk
 
 	if (result != VK_SUCCESS)
 	{
-		logger::logError("vkBufferObject::initialize(): An error occured while trying to create the buffer.", __FILE__, __LINE__ - 4);
+		vkUtils::logErrorWithResult(result, "vkBufferObject::initialize(): An error occured while trying to create the buffer.", __FILE__, __LINE__ - 4);
 		return false;
 	}
 
@@ -43,7 +43,7 @@ bool vkBufferObject::initialize(VkDevice device, VkPhysicalDevice physDevice, Vk
 
 	if (result != VK_SUCCESS)
 	{
-		logger::logError("vkBufferObject::initialize(): An error occured while trying to allocate the buffer memory.", __FILE__, __LINE__ - 4);
+		vkUtils::logErrorWithResult(result, "vkBufferObject::initialize(): An error occured while trying to allocate the buffer memory.", __FILE__, __LINE__ - 4);
 		return false;
 	}
 
@@ -51,7 +51,7 @@ bool vkBufferObject::initialize(VkDevice device, VkPhysicalDevice physDevice, Vk
 
 	if (result != VK_SUCCESS)
 	{
-		logger::logError("vkBufferObject::initialize(): An error occured while trying to bind the buffer memory.", __FILE__, __LINE__ - 4);
+		vkUtils::logErrorWithResult(result, "vkBufferObject::initialize(): An error occured while trying to bind the buffer memory.", __FILE__, __LINE__ - 4);
 		return false;
 	}
 
@@ -71,6 +71,8 @@ void vkBufferObject::cleanup(VkDevice device)
 		vkFreeMemory(device, bufferMemory, nullptr);
 		bufferMemory = nullptr;
 	}
+
+	bufferSize = 0;
 }
 
 bool vkBufferObject::updateBufferData(VkDevice device, void* newData)
@@ -81,7 +83,7 @@ bool vkBufferObject::updateBufferData(VkDevice device, void* newData)
 	
 	if (result != VK_SUCCESS)
 	{
-		logger::logError("vkBufferObject::updateBufferData(): An error occured while trying to map the buffer memory.", __FILE__, __LINE__ - 4);
+		vkUtils::logErrorWithResult(result, "vkBufferObject::updateBufferData(): An error occured while trying to map the buffer memory.", __FILE__, __LINE__ - 4);
 		return false;
 	}
 	

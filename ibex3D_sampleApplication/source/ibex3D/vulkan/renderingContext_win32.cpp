@@ -57,7 +57,7 @@ static glm::mat4 getCameraProjMatrix(float fovRadians, uint32_t imgWidth, uint32
 // ----------------------------------------------------------------------------------------------------
 
 bool vkRenderingContext::initialize(void* wndMemory)
-{		
+{			
 	int wndWidth, wndHeight;
 	IBEX3D_BASSERT(win32Utils::getWindowDimensions(static_cast<HWND>(wndMemory), wndWidth, wndHeight));
 
@@ -99,7 +99,7 @@ bool vkRenderingContext::drawFrame()
 	}
 	else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
 	{
-		logger::logError("vkRenderingContext::drawFrame(): Couldn't acquire the swapchain image.", __FILE__, __LINE__ - 9);
+		vkUtils::logErrorWithResult(result, "vkRenderingContext::drawFrame(): Couldn't acquire the swapchain image.", __FILE__, __LINE__ - 9);
 		return false;
 	}
 
@@ -126,7 +126,7 @@ bool vkRenderingContext::drawFrame()
 
 	if (result != VK_SUCCESS)
 	{
-		logger::logError("vkRenderingContext::drawFrame(): An error occurred while trying to submit the draw command to the command buffer.", __FILE__, __LINE__ - 4);
+		vkUtils::logErrorWithResult(result, "vkRenderingContext::drawFrame(): An error occurred while trying to submit the draw command to the command buffer.", __FILE__, __LINE__ - 4);
 		return false;
 	}
 
@@ -150,7 +150,7 @@ bool vkRenderingContext::drawFrame()
 	}
 	else if (result != VK_SUCCESS)
 	{
-		logger::logError("vkRenderingContext::drawFrame(): An error occurred while trying to enqueue the image for presentation.", __FILE__, __LINE__ - 9);
+		vkUtils::logErrorWithResult(result, "vkRenderingContext::drawFrame(): An error occurred while trying to enqueue the image for presentation.", __FILE__, __LINE__ - 9);
 		return false;
 	}
 
@@ -212,7 +212,7 @@ bool vkRenderingContext::initInstance()
 
 	if (result != VK_SUCCESS)
 	{
-		logger::logError("vkRenderingContext::initInstance(): An error occured while trying to create the instance.", __FILE__, __LINE__ - 4);
+		vkUtils::logErrorWithResult(result, "vkRenderingContext::initInstance(): An error occured while trying to create the instance.", __FILE__, __LINE__ - 4);
 		return false;
 	}
 
@@ -221,7 +221,7 @@ bool vkRenderingContext::initInstance()
 
 	if (result != VK_SUCCESS)
 	{
-		logger::logError("vkRenderingContext::initInstance(): An error occured while trying to create the debug utils messenger.", __FILE__, __LINE__ - 4); 
+		vkUtils::logErrorWithResult(result, "vkRenderingContext::initInstance(): An error occured while trying to create the debug utils messenger.", __FILE__, __LINE__ - 4);
 		return false;
 	}
 #endif
@@ -248,7 +248,7 @@ bool vkRenderingContext::initSurface(void* wndMemory)
 
 	if (result != VK_SUCCESS)
 	{
-		logger::logError("vkRenderingContext::initSurface(): An error occured while trying to create the Win32 window surface.", __FILE__, __LINE__ - 4);
+		vkUtils::logErrorWithResult(result, "vkRenderingContext::initSurface(): An error occured while trying to create the Win32 window surface.", __FILE__, __LINE__ - 4);
 		return false;
 	}
 	
@@ -349,7 +349,7 @@ bool vkRenderingContext::initLogicalDevice()
 
 	if (result != VK_SUCCESS)
 	{
-		logger::logError("vkRenderingContext::initLogicalDevice(): An error occured while trying to create the logical device.", __FILE__, __LINE__ - 4);
+		vkUtils::logErrorWithResult(result, "vkRenderingContext::initLogicalDevice(): An error occured while trying to create the logical device.", __FILE__, __LINE__ - 4);
 		return false;
 	}
 
@@ -454,7 +454,7 @@ bool vkRenderingContext::initRenderPass()
 
 	if (result != VK_SUCCESS)
 	{
-		logger::logError("vkRenderingContext::initRenderPass(): An error occured while trying to create the render pass.", __FILE__, __LINE__ - 4);
+		vkUtils::logErrorWithResult(result, "vkRenderingContext::initRenderPass(): An error occured while trying to create the render pass.", __FILE__, __LINE__ - 4);
 		return false;
 	}
 
@@ -490,7 +490,7 @@ bool vkRenderingContext::initDescriptorSetLayout()
 
 	if (result != VK_SUCCESS)
 	{
-		logger::logError("vkRenderingContext::initDescriptorSetLayout(): An error occured while trying to create the descriptor set layout for the uniform buffer.", __FILE__, __LINE__ - 4);
+		vkUtils::logErrorWithResult(result, "vkRenderingContext::initDescriptorSetLayout(): An error occured while trying to create the descriptor set layout for the uniform buffer.", __FILE__, __LINE__ - 4);
 		return false;
 	}
 
@@ -655,7 +655,7 @@ bool vkRenderingContext::initGraphicsPipeline()
 
 	if (result != VK_SUCCESS)
 	{
-		logger::logError("vkRenderingContext::initGraphicsPipeline(): An error occured while trying to create the graphics pipeline layout.", __FILE__, __LINE__ - 4);
+		vkUtils::logErrorWithResult(result, "vkRenderingContext::initGraphicsPipeline(): An error occured while trying to create the graphics pipeline layout.", __FILE__, __LINE__ - 4);
 		
 		if (frgShaderModule != nullptr)
 		{
@@ -700,7 +700,7 @@ bool vkRenderingContext::initGraphicsPipeline()
 
 	if (result != VK_SUCCESS)
 	{
-		logger::logError("vkRenderingContext::initGraphicsPipeline(): An error occured while trying to create the graphics pipeline.", __FILE__, __LINE__ - 4);
+		vkUtils::logErrorWithResult(result, "vkRenderingContext::initGraphicsPipeline(): An error occured while trying to create the graphics pipeline.", __FILE__, __LINE__ - 4);
 
 		if (frgShaderModule != nullptr)
 		{
@@ -750,7 +750,7 @@ bool vkRenderingContext::initCommandPoolAndBuffers()
 
 	if (result != VK_SUCCESS)
 	{
-		logger::logError("vkRenderingContext::initCommandPoolAndBuffers(): An error occured while trying to create the command pool.", __FILE__, __LINE__ - 4);
+		vkUtils::logErrorWithResult(result, "vkRenderingContext::initCommandPoolAndBuffers(): An error occured while trying to create the command pool.", __FILE__, __LINE__ - 4);
 		return false;
 	}
 
@@ -768,7 +768,7 @@ bool vkRenderingContext::initCommandPoolAndBuffers()
 
 	if (result != VK_SUCCESS)
 	{
-		logger::logError("vkRenderingContext::initCommandPoolAndBuffers(): An error occured while trying to allocate the command buffers.", __FILE__, __LINE__ - 4);
+		vkUtils::logErrorWithResult(result, "vkRenderingContext::initCommandPoolAndBuffers(): An error occured while trying to allocate the command buffers.", __FILE__, __LINE__ - 4);
 		return false;
 	}
 
@@ -816,7 +816,7 @@ bool vkRenderingContext::initFramebuffers()
 
 		if (result != VK_SUCCESS)
 		{
-			logger::logError("vkRenderingContext::initFramebuffers(): An error occured while trying to create one or more of the required framebuffers.", __FILE__, __LINE__ - 4);
+			vkUtils::logErrorWithResult(result, "vkRenderingContext::initFramebuffers(): An error occured while trying to create one or more of the required framebuffers.", __FILE__, __LINE__ - 4);
 			return false;
 		}
 	}
@@ -908,7 +908,7 @@ bool vkRenderingContext::initDescriptorPoolAndSets()
 
 	if (result != VK_SUCCESS)
 	{
-		logger::logError("vkRenderingContext::initDescriptorPoolAndSets(): An error occured while trying to allocate the descriptor sets.", __FILE__, __LINE__ - 4);
+		vkUtils::logErrorWithResult(result, "vkRenderingContext::initDescriptorPoolAndSets(): An error occured while trying to allocate the descriptor sets.", __FILE__, __LINE__ - 4);
 		return false;
 	}
 
@@ -967,7 +967,7 @@ bool vkRenderingContext::initSyncObjects()
 
 		if (result != VK_SUCCESS)
 		{
-			logger::logError("vkRenderingContext::initSyncObjects(): An error occured while trying to create the semaphore for one or more swapchain images.", __FILE__, __LINE__ - 4);
+			vkUtils::logErrorWithResult(result, "vkRenderingContext::initSyncObjects(): An error occured while trying to create the semaphore for one or more swapchain images.", __FILE__, __LINE__ - 4);
 			return false;
 		}
 	}
@@ -978,7 +978,7 @@ bool vkRenderingContext::initSyncObjects()
 
 		if (result != VK_SUCCESS)
 		{
-			logger::logError("vkRenderingContext::initSyncObjects(): An error occured while trying to create the semaphore for one or more frames in flight.", __FILE__, __LINE__ - 4);
+			vkUtils::logErrorWithResult(result, "vkRenderingContext::initSyncObjects(): An error occured while trying to create the semaphore for one or more frames in flight.", __FILE__, __LINE__ - 4);
 			return false;
 		}
 
@@ -986,7 +986,7 @@ bool vkRenderingContext::initSyncObjects()
 
 		if (result != VK_SUCCESS)
 		{
-			logger::logError("vkRenderingContext::initSyncObjects(): An error occured while trying to create the fence for one or more frames in flight.", __FILE__, __LINE__ - 4);
+			vkUtils::logErrorWithResult(result, "vkRenderingContext::initSyncObjects(): An error occured while trying to create the fence for one or more frames in flight.", __FILE__, __LINE__ - 4);
 			return false;
 		}
 	}
@@ -1021,7 +1021,7 @@ bool vkRenderingContext::recordCommandBuffer(VkCommandBuffer buffer, uint32_t im
 
 	if (result != VK_SUCCESS)
 	{
-		logger::logError("vkRenderingContext::recordCommandBuffer(): An error occured while trying to begin the command buffer.", __FILE__, __LINE__ - 4);
+		vkUtils::logErrorWithResult(result, "vkRenderingContext::recordCommandBuffer(): An error occured while trying to begin the command buffer.", __FILE__, __LINE__ - 4);
 		return false;
 	}
 
@@ -1063,7 +1063,7 @@ bool vkRenderingContext::recordCommandBuffer(VkCommandBuffer buffer, uint32_t im
 
 	if (result != VK_SUCCESS)
 	{
-		logger::logError("vkRenderingContext::recordCommandBuffer(): An error occured while trying to end the command buffer.", __FILE__, __LINE__ - 4);
+		vkUtils::logErrorWithResult(result, "vkRenderingContext::recordCommandBuffer(): An error occured while trying to end the command buffer.", __FILE__, __LINE__ - 4);
 		return false;
 	}
 

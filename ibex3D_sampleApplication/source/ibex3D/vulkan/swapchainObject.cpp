@@ -69,7 +69,7 @@ bool vkSwapchainObject::initSwapchain(VkDevice device, VkPhysicalDevice physDevi
 
 	if (result != VK_SUCCESS)
 	{
-		logger::logError("vkSwapchainObject::initSwapchain(): An error occured while trying to create the swapchain.", __FILE__, __LINE__ - 4);
+		vkUtils::logErrorWithResult(result, "vkSwapchainObject::initSwapchain(): An error occured while trying to create the swapchain.", __FILE__, __LINE__ - 4);
 		return false;
 	}
 
@@ -77,7 +77,7 @@ bool vkSwapchainObject::initSwapchain(VkDevice device, VkPhysicalDevice physDevi
 
 	if (result != VK_SUCCESS)
 	{
-		logger::logError("vkSwapchainObject::initSwapchain(): An error occured while trying to retrieve the number of swapchain images.", __FILE__, __LINE__ - 4);
+		vkUtils::logErrorWithResult(result, "vkSwapchainObject::initSwapchain(): An error occured while trying to retrieve the number of swapchain images.", __FILE__, __LINE__ - 4);
 		return false;
 	}
 
@@ -87,7 +87,7 @@ bool vkSwapchainObject::initSwapchain(VkDevice device, VkPhysicalDevice physDevi
 
 	if (result != VK_SUCCESS)
 	{
-		logger::logError("vkSwapchainObject::initSwapchain(): An error occured while trying to retrieve the swapchain images.", __FILE__, __LINE__ - 4);
+		vkUtils::logErrorWithResult(result, "vkSwapchainObject::initSwapchain(): An error occured while trying to retrieve the swapchain images.", __FILE__, __LINE__ - 4);
 		return false;
 	}
 

@@ -138,7 +138,7 @@ bool vkTextureObject::initSampler(VkDevice device, VkPhysicalDevice physDevice)
 
 	if (result != VK_SUCCESS)
 	{
-		logger::logError("vkTextureObject::initImageAndView(): An error occurred while trying to create the image sampler.", __FILE__, __LINE__ - 4);
+		vkUtils::logErrorWithResult(result, "vkTextureObject::initImageAndView(): An error occurred while trying to create the image sampler.", __FILE__, __LINE__ - 4);
 		return false;
 	}
 

@@ -17,7 +17,7 @@ bool vkPersistentBufferObject::initialize(VkDevice device, VkPhysicalDevice phys
 
 	if (result != VK_SUCCESS)
 	{
-		logger::logError("vkPersistentBufferObject::initialize(): An error occurred while trying to create the buffer.", __FILE__, __LINE__ - 4);
+		vkUtils::logErrorWithResult(result, "vkPersistentBufferObject::initialize(): An error occurred while trying to create the buffer.", __FILE__, __LINE__ - 4);
 		return false;
 	}
 
@@ -41,7 +41,7 @@ bool vkPersistentBufferObject::initialize(VkDevice device, VkPhysicalDevice phys
 
 	if (result != VK_SUCCESS)
 	{
-		logger::logError("vkPersistentBufferObject::initialize(): An error occured while trying to allocate the buffer memory.", __FILE__, __LINE__ - 4);
+		vkUtils::logErrorWithResult(result, "vkPersistentBufferObject::initialize(): An error occured while trying to allocate the buffer memory.", __FILE__, __LINE__ - 4);
 		return false;
 	}
 
@@ -49,7 +49,7 @@ bool vkPersistentBufferObject::initialize(VkDevice device, VkPhysicalDevice phys
 
 	if (result != VK_SUCCESS)
 	{
-		logger::logError("vkPersistentBufferObject::initialize(): An error occured while trying to bind the buffer memory.", __FILE__, __LINE__ - 4);
+		vkUtils::logErrorWithResult(result, "vkPersistentBufferObject::initialize(): An error occured while trying to bind the buffer memory.", __FILE__, __LINE__ - 4);
 		return false;
 	}
 
@@ -77,7 +77,7 @@ bool vkPersistentBufferObject::mapBufferData(VkDevice device, VkDeviceSize size)
 	
 	if (result != VK_SUCCESS)
 	{
-		logger::logError("vkPersistentBufferObject::mapBufferData(): An error occured while trying to map the buffer memory.", __FILE__, __LINE__ - 4);
+		vkUtils::logErrorWithResult(result, "vkPersistentBufferObject::mapBufferData(): An error occured while trying to map the buffer memory.", __FILE__, __LINE__ - 4);
 		return false;
 	}
 

@@ -63,6 +63,11 @@ public:
 	);
 #endif
 
+	// Logging
+	static void logErrorWithResult(VkResult result, const char* desc, const char* file, size_t line);
+	static void logWarningWithResult(VkResult result, const char* desc, const char* file, size_t line);
+	static void logInfoWithResult(VkResult result, const char* desc, const char* file, size_t line);
+
 	// Physical device and swapchain
 	static vkQueueFamilyIndices findQueueFamilies(VkPhysicalDevice physDevice, VkSurfaceKHR surface);
 	static vkSwapchainSupportInfo querySwapchainSupport(VkPhysicalDevice physDevice, VkSurfaceKHR surface);

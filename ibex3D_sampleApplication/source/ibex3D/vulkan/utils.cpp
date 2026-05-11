@@ -104,6 +104,28 @@ VKAPI_ATTR VkBool32 VKAPI_CALL vkUtils::debugMessengerCallback
 #endif
 
 // ----------------------------------------------------------------------------------------------------
+// - Logging ------------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------
+
+void vkUtils::logErrorWithResult(VkResult result, const char* desc, const char* file, size_t line)
+{
+	auto descWithResult = std::string(desc) + " (VkResult: " + std::to_string(result) + ")";
+	logger::logError(descWithResult.c_str(), file, line);
+}
+
+void vkUtils::logWarningWithResult(VkResult result, const char* desc, const char* file, size_t line)
+{
+	auto descWithResult = std::string(desc) + " (VkResult: " + std::to_string(result) + ")";
+	logger::logWarning(descWithResult.c_str(), file, line);
+}
+
+void vkUtils::logInfoWithResult(VkResult result, const char* desc, const char* file, size_t line)
+{
+	auto descWithResult = std::string(desc) + " (VkResult: " + std::to_string(result) + ")";
+	logger::logInfo(descWithResult.c_str(), file, line);
+}
+
+// ----------------------------------------------------------------------------------------------------
 // - Physical device and swapchain --------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------
 
@@ -319,7 +341,7 @@ VkShaderModule vkUtils::createShaderModuleFromSPIRV(VkDevice device, const std::
 
 	if (result != VK_SUCCESS)
 	{
-		logger::logError("vkUtils::createShaderModuleFromSPIRV(): An error occured while trying to create the shader module.", __FILE__, __LINE__ - 4);
+		vkUtils::logErrorWithResult(result, "vkUtils::createShaderModuleFromSPIRV(): An error occured while trying to create the shader module.", __FILE__, __LINE__ - 4);
 		return nullptr;
 	}
 
@@ -353,7 +375,7 @@ VkCommandBuffer vkUtils::beginSingleTimeCommands(VkDevice device, VkCommandPool 
 
 	if (result != VK_SUCCESS)
 	{
-		logger::logError("vkUtils::beginSingleTimeCommands(): An error occured while trying to allocate the command buffer.", __FILE__, __LINE__ - 4);
+		vkUtils::logErrorWithResult(result, "vkUtils::beginSingleTimeCommands(): An error occured while trying to allocate the command buffer.", __FILE__, __LINE__ - 4);
 		return nullptr;
 	}
 
@@ -505,7 +527,7 @@ bool vkUtils::createImage(VkDevice device, VkPhysicalDevice physDevice, uint32_t
 
 	if (result != VK_SUCCESS)
 	{
-		logger::logError("vkUtils::createImage(): An error occured while trying to allocate the image memory.", __FILE__, __LINE__ - 4);
+		vkUtils::logErrorWithResult(result, "vkUtils::createImage(): An error occured while trying to allocate the image memory.", __FILE__, __LINE__ - 4);
 		return false;
 	}
 
@@ -532,7 +554,7 @@ VkImageView vkUtils::createImageView(VkDevice device, VkImage image, uint32_t mi
 
 	if (result != VK_SUCCESS)
 	{
-		logger::logError("vkUtils::createImageView(): An error occured while trying to create the image view.", __FILE__, __LINE__ - 4);
+		vkUtils::logErrorWithResult(result, "vkUtils::createImageView(): An error occured while trying to create the image view.", __FILE__, __LINE__ - 4);
 		return nullptr;
 	}
 
