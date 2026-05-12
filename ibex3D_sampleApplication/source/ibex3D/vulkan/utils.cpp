@@ -108,7 +108,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL vkUtils::debugMessengerCallback
 // ----------------------------------------------------------------------------------------------------
 
 void vkUtils::logErrorWithResult(VkResult result, const char* desc, const char* file, size_t line)
-{
+{	
 	auto descWithResult = std::string(desc) + " (VkResult: " + std::to_string(result) + ")";
 	logger::logError(descWithResult.c_str(), file, line);
 }

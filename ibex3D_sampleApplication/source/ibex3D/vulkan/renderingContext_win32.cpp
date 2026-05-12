@@ -21,10 +21,6 @@
 
 #define MAX_FRAMES_IN_FLIGHT 2
 
-static std::vector<const char*> instanceExtensions;
-static std::vector<const char*> instanceLayers;
-static std::vector<const char*> deviceExtensions;
-
 struct vkUniformBufferData
 {
 	glm::mat4 modelMatrix;
@@ -36,10 +32,10 @@ struct vkUniformBufferData
 
 static glm::mat4 getCameraViewMatrix(glm::vec3 position, glm::vec3 rotation)
 {
-	glm::mat4 viewMatrix	= glm::rotate(glm::mat4(1.0f), rotation.y, glm::vec3(0.0f, 0.0f, 1.0f));	// Roll
-	viewMatrix				= glm::rotate(viewMatrix, rotation.z, glm::vec3(1.0f, 0.0f, 0.0f));			// Pitch
-	viewMatrix				= glm::rotate(viewMatrix, rotation.x, glm::vec3(0.0f, 1.0f, 0.0f));			// Yaw
-
+	glm::mat4	viewMatrix = glm::rotate(glm::mat4(1.0f), rotation.y, glm::vec3(0.0f, 0.0f, 1.0f));		// Roll
+				viewMatrix = glm::rotate(viewMatrix, rotation.z, glm::vec3(1.0f, 0.0f, 0.0f));			// Pitch
+				viewMatrix = glm::rotate(viewMatrix, rotation.x, glm::vec3(0.0f, 1.0f, 0.0f));			// Yaw
+	
 	viewMatrix = glm::translate(viewMatrix, -position);
 
 	return viewMatrix;
@@ -171,17 +167,13 @@ void vkRenderingContext::cleanup()
 
 bool vkRenderingContext::initInstance()
 {
-	configureRequiredStuff();
-
 #ifdef IBEX3D_VULKAN_VALIDATION
 	if (!checkInstanceLayerSupport())
 	{
 		logger::logError("vkRenderingContext::initInstance(): IBEX3D_VULKAN_VALIDATION is enabled, but the required validation layers are unavailable on this device.", __FILE__, __LINE__ - 2);
 		return false;
 	}
-
 #endif
-
 	VkApplicationInfo applicationInfo = {};
 	applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
 	applicationInfo.pApplicationName = "No name";
@@ -189,6 +181,8 @@ bool vkRenderingContext::initInstance()
 	applicationInfo.apiVersion = VK_API_VERSION_1_3;
 	applicationInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
 	applicationInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
+
+	auto instanceExtensions = getRequiredInstanceExtensions();
 
 	VkInstanceCreateInfo instanceInfo = {};
 	instanceInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -199,6 +193,8 @@ bool vkRenderingContext::initInstance()
 #ifdef IBEX3D_VULKAN_VALIDATION
 	VkDebugUtilsMessengerCreateInfoEXT messengerInfo = {};
 	vkUtils::populateDebugMessengerCreateInfo(messengerInfo);
+
+	auto instanceLayers = getRequiredInstanceLayers();
 
 	instanceInfo.ppEnabledLayerNames = instanceLayers.data();
 	instanceInfo.enabledLayerCount = static_cast<uint32_t>(instanceLayers.size());
@@ -273,7 +269,7 @@ bool vkRenderingContext::initPhysicalDevice(VkSampleCountFlagBits msaaSamplesUse
 
 	for (const auto& device : devices)
 	{
-		bool extensionsSupported = checkPhysicalDeviceExtensionSupport(device);
+		bool extensionsSupported = checkDeviceExtensionSupport(device);
 		
 		int score = vkUtils::ratePhysicalDeviceSuitability(device, m_surface, extensionsSupported);
 		candidates.insert(std::make_pair(score, device));
@@ -335,10 +331,13 @@ bool vkRenderingContext::initLogicalDevice()
 	logicalDeviceInfo.pEnabledFeatures = &deviceFeatures;
 	logicalDeviceInfo.queueCreateInfoCount = static_cast<uint32_t>(queueInfos.size());
 	logicalDeviceInfo.pQueueCreateInfos = queueInfos.data();
+
+	auto deviceExtensions = getRequiredDeviceExtensions();
 	logicalDeviceInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
 	logicalDeviceInfo.ppEnabledExtensionNames = deviceExtensions.data();
 
 #ifdef IBEX3D_VULKAN_VALIDATION
+	auto instanceLayers = getRequiredInstanceLayers();
 	logicalDeviceInfo.enabledLayerCount = static_cast<uint32_t>(instanceLayers.size());
 	logicalDeviceInfo.ppEnabledLayerNames = instanceLayers.data();
 #else
@@ -498,7 +497,7 @@ bool vkRenderingContext::initDescriptorSetLayout()
 }
 
 bool vkRenderingContext::initGraphicsPipeline()
-{
+{		
 	// TODO: Figure out how to compile the GLSL shaders into SPIR-V at runtime using libshaderc
 	auto vtxShaderBytecode = ibex3D_utilFunctions::readFile("assets/shaders/shader_vert.spv");
 	if (vtxShaderBytecode.empty()) return false;
@@ -1236,28 +1235,11 @@ void vkRenderingContext::cleanupInstance()
 // - Helper functions ---------------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------
 
-void vkRenderingContext::configureRequiredStuff()
-{
-	instanceExtensions.clear();
-	instanceExtensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
-	instanceExtensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
-
-#ifdef IBEX3D_VULKAN_VALIDATION
-	instanceExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-	
-	instanceLayers.clear();
-	instanceLayers.push_back("VK_LAYER_KHRONOS_validation");
-#endif
-
-	deviceExtensions.clear();
-	deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
-}
-
 bool vkRenderingContext::checkInstanceLayerSupport()
 {
-	if (instanceLayers.empty()) return true;
-
 #ifdef IBEX3D_VULKAN_VALIDATION
+	auto instanceLayers = getRequiredInstanceLayers();
+
 	uint32_t layerCount = 0;
 	vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
 
@@ -1287,13 +1269,15 @@ bool vkRenderingContext::checkInstanceLayerSupport()
 	return true;
 }
 
-bool vkRenderingContext::checkPhysicalDeviceExtensionSupport(VkPhysicalDevice device)
+bool vkRenderingContext::checkPhysDeviceExtensionSupport(VkPhysicalDevice physDevice)
 {
+	auto deviceExtensions = getRequiredDeviceExtensions();
+	
 	uint32_t extensionCount = 0;
-	vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
+	vkEnumerateDeviceExtensionProperties(physDevice, nullptr, &extensionCount, nullptr);
 
 	std::vector<VkExtensionProperties> availableExtensions(extensionCount);
-	vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
+	vkEnumerateDeviceExtensionProperties(physDevice, nullptr, &extensionCount, availableExtensions.data());
 
 	std::set<std::string> extensions
 	(
@@ -1339,4 +1323,42 @@ void vkRenderingContext::printAvailableInstanceLayers()
 	{
 		printf("- %s\n", layer.layerName);
 	}
+}
+
+std::vector<const char*> vkRenderingContext::getRequiredInstanceExtensions()
+{
+	std::vector<const char*> requiredExtensions =
+	{
+		VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
+		VK_KHR_SURFACE_EXTENSION_NAME,
+#ifdef IBEX3D_VULKAN_VALIDATION
+		VK_EXT_DEBUG_UTILS_EXTENSION_NAME
+#endif
+	};
+
+	return requiredExtensions;
+}
+
+std::vector<const char*> vkRenderingContext::getRequiredInstanceLayers()
+{
+#ifdef IBEX3D_VULKAN_VALIDATION
+	std::vector<const char*> layers =
+	{
+		"VK_LAYER_KHRONOS_validation"
+	};
+
+	return layers;
+#else
+	return std::vector<const char*>();
+#endif
+}
+
+std::vector<const char*> vkRenderingContext::getRequiredDeviceExtensions()
+{
+	std::vector<const char*> requiredExtensions =
+	{
+		VK_KHR_SWAPCHAIN_EXTENSION_NAME
+	};
+
+	return requiredExtensions;
 }

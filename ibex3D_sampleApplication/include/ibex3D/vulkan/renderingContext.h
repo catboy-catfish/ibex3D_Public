@@ -37,12 +37,15 @@ private:
 	void cleanupSwapchain();
 	void cleanupLogicalDevice();
 	void cleanupInstance();
+	
+	static bool checkInstanceLayerSupport();
+	static bool checkPhysDeviceExtensionSupport(VkPhysicalDevice physDevice);
+	static void printAvailableInstanceExtensions();
+	static void printAvailableInstanceLayers();
 
-	void configureRequiredStuff();
-	bool checkInstanceLayerSupport();
-	bool checkPhysicalDeviceExtensionSupport(VkPhysicalDevice device);
-	void printAvailableInstanceExtensions();
-	void printAvailableInstanceLayers();
+	static std::vector<const char*> getRequiredInstanceExtensions();
+	static std::vector<const char*> getRequiredInstanceLayers();
+	static std::vector<const char*> getRequiredDeviceExtensions();
 
 private:
 	void* m_wndMemory = nullptr;

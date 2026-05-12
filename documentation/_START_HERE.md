@@ -175,7 +175,7 @@ General/Miscellaneous:
 - Finalize documentation for the rest of the engine
 - Figure out how to render multiple objects in one scene, preferrably with different shaders for each
 - Focus on pimping the engine code and architecture until you have the balls to make actual progress
-- Investigate GLFW as a more stable, cross-platform replacement for the manual Win32 windowing code
+- Investigate SDL or GLFW as a more stable, cross-platform replacement for the manual Win32 windowing code
 - Switch from Visual Studio to something like CMake to become more platform and compiler-independent
 - Use meta build systems to exclude platform-specific source code files depending on chosen build platform
 
