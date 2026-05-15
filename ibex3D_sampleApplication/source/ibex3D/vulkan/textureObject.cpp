@@ -38,13 +38,17 @@ bool vkTextureObject::initImageAndView(VkDevice device, VkPhysicalDevice physDev
 		return false;
 	}
 
-	if (!stagingBuffer.updateBufferData(device, pixels))
+	void* data;
+
+	if (!stagingBuffer.mapBufferMemory(device, 0, imageSize, 0, &data))
 	{
-		logger::logError("vkTextureObject::initImageAndView(): Couldn't update the staging buffer and data.", __FILE__, __LINE__ - 2);
-		stbi_image_free(pixels);
+		logger::logError("vkTextureObject::initImageAndView(): Couldn't map the staging buffer memory.", __FILE__, __LINE__ - 2);
 		return false;
 	}
+	
+	memcpy(data, pixels, imageSize);
 
+	stagingBuffer.unmapBufferMemory(device);
 	stbi_image_free(pixels);
 
 	mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))) + 1;

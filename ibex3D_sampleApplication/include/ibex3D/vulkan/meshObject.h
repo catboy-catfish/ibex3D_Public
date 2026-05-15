@@ -17,10 +17,9 @@ struct vkVertex
 	
 	bool operator == (const vkVertex& other) const
 	{
-		return
-		(vertexPosition == other.vertexPosition) && 
-		(vertexNormal == other.vertexNormal) &&
-		(textureCoord == other.textureCoord);
+		return (vertexPosition == other.vertexPosition)
+			&& (vertexNormal == other.vertexNormal)
+			&& (textureCoord == other.textureCoord);
 	}
 	
 	// ----------------------------------------------------------------------------------------------------

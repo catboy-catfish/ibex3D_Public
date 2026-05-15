@@ -209,6 +209,12 @@ VkSampleCountFlagBits vkUtils::getMaxUsableSampleCount(VkPhysicalDevice physDevi
 
 int vkUtils::ratePhysicalDeviceSuitability(VkPhysicalDevice physDevice, VkSurfaceKHR surface, bool extSupport)
 {
+	if (!extSupport)
+	{
+		logger::logError("vkUtils::ratePhysicalDeviceSuitability(): This physical device (GPU) is unsuitable because it doesn't support the required extensions.", __FILE__, __LINE__ - 16);
+		return 0;
+	}
+	
 	int score = 0;
 
 	VkPhysicalDeviceProperties2 deviceProperties = {};
@@ -235,12 +241,6 @@ int vkUtils::ratePhysicalDeviceSuitability(VkPhysicalDevice physDevice, VkSurfac
 	if (!deviceFeatures.samplerAnisotropy)
 	{
 		logger::logError("vkUtils::ratePhysicalDeviceSuitability(): This physical device (GPU) is unsuitable because it doesn't support anisotropic texture filtering.", __FILE__, __LINE__ - 10);
-		return 0;
-	}
-
-	if (!extSupport)
-	{
-		logger::logError("vkUtils::ratePhysicalDeviceSuitability(): This physical device (GPU) is unsuitable because it doesn't support the required extensions.", __FILE__, __LINE__ - 16);
 		return 0;
 	}
 

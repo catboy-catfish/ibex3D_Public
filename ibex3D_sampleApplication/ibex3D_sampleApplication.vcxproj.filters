@@ -7,9 +7,6 @@
     <ClInclude Include="include\ibex3D\core\appRuntime.h">
       <Filter>ibex3D\core\appRuntime</Filter>
     </ClInclude>
-    <ClInclude Include="include\ibex3D\vulkan\bufferObject.h">
-      <Filter>ibex3D\vulkan\bufferObject</Filter>
-    </ClInclude>
     <ClInclude Include="include\ibex3D\core\entryPoint.h">
       <Filter>ibex3D\core\entryPoint</Filter>
     </ClInclude>
@@ -21,9 +18,6 @@
     </ClInclude>
     <ClInclude Include="include\ibex3D\utility\miscellaneous.h">
       <Filter>ibex3D\utility\miscellaneous</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ibex3D\vulkan\persistentBufferObject.h">
-      <Filter>ibex3D\vulkan\persistentBufferObject</Filter>
     </ClInclude>
     <ClInclude Include="include\ibex3D\vulkan\renderingContext.h">
       <Filter>ibex3D\vulkan\renderingContext</Filter>
@@ -55,6 +49,9 @@
     <ClInclude Include="include\ibex3D\utility\logger.h">
       <Filter>ibex3D\utility\logger</Filter>
     </ClInclude>
+    <ClInclude Include="include\ibex3D\vulkan\bufferObject.h">
+      <Filter>ibex3D\vulkan\bufferObject</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\sampleApp\appInterface.cpp">
@@ -63,17 +60,11 @@
     <ClCompile Include="source\ibex3D\core\appRuntime_win32.cpp">
       <Filter>ibex3D\core\appRuntime</Filter>
     </ClCompile>
-    <ClCompile Include="source\ibex3D\vulkan\bufferObject.cpp">
-      <Filter>ibex3D\vulkan\bufferObject</Filter>
-    </ClCompile>
     <ClCompile Include="source\ibex3D\vulkan\meshObject.cpp">
       <Filter>ibex3D\vulkan\meshObject</Filter>
     </ClCompile>
     <ClCompile Include="source\ibex3D\utility\miscellaneous.cpp">
       <Filter>ibex3D\utility\miscellaneous</Filter>
-    </ClCompile>
-    <ClCompile Include="source\ibex3D\vulkan\persistentBufferObject.cpp">
-      <Filter>ibex3D\vulkan\persistentBufferObject</Filter>
     </ClCompile>
     <ClCompile Include="source\ibex3D\vulkan\renderingContext_win32.cpp">
       <Filter>ibex3D\vulkan\renderingContext</Filter>
@@ -104,6 +95,9 @@
     </ClCompile>
     <ClCompile Include="source\ibex3D\utility\logger.cpp">
       <Filter>ibex3D\utility\logger</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ibex3D\vulkan\bufferObject.cpp">
+      <Filter>ibex3D\vulkan\bufferObject</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -155,14 +149,8 @@
     <Filter Include="ibex3D\vulkan">
       <UniqueIdentifier>{775354c9-aac6-4e75-8dd0-11b6a450d4f6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ibex3D\vulkan\bufferObject">
-      <UniqueIdentifier>{f80742b0-729d-47d5-ac4c-4293ee84a8cc}</UniqueIdentifier>
-    </Filter>
     <Filter Include="ibex3D\vulkan\meshObject">
       <UniqueIdentifier>{5b7aba76-4577-478e-a6d1-927562a45c10}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ibex3D\vulkan\persistentBufferObject">
-      <UniqueIdentifier>{c6583f61-789d-4bbc-a2d2-7dd0b4dccda8}</UniqueIdentifier>
     </Filter>
     <Filter Include="ibex3D\vulkan\renderingContext">
       <UniqueIdentifier>{0f580266-c677-47c3-af2f-97ec7b5e41bf}</UniqueIdentifier>
@@ -187,6 +175,9 @@
     </Filter>
     <Filter Include="ibex3D\utility\logger">
       <UniqueIdentifier>{c5392e6d-58bf-45e6-b27b-3998bd02f8f2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\vulkan\bufferObject">
+      <UniqueIdentifier>{32595bcb-86c0-4180-8dcb-64ed4af6d986}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

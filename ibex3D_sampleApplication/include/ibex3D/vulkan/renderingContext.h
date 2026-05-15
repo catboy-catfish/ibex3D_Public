@@ -2,7 +2,7 @@
 #include "swapchainObject.h"
 #include "meshObject.h"
 #include "textureObject.h"
-#include "persistentBufferObject.h"
+#include "bufferObject.h"
 
 class vkRenderingContext
 {
@@ -68,7 +68,8 @@ private:
 	uint32_t m_currentFrame = 0;
 	
 	std::vector<VkFramebuffer> m_swapchainFramebuffers;
-	std::vector<vkPersistentBufferObject> m_uniformBuffers;
+	std::vector<vkBufferObject> m_uniformBuffers;
+	std::vector<void*> m_uniformBuffersMapped;
 	std::vector<VkDescriptorSet> m_descriptorSets;
 	std::vector<VkCommandBuffer> m_commandBuffers;
 	std::vector<VkSemaphore> m_swapchainSemaphores;
@@ -78,6 +79,7 @@ private:
 	vkTextureObject m_textureClass;
 	vkMeshObject m_meshClass;
 
+	float m_aspectRatio = 1.0f;
 	float m_currentMeshRotation = 0.0f;
 	bool m_wasJustResized = false;
 	bool m_useVsync = true;

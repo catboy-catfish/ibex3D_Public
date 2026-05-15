@@ -3,9 +3,7 @@
 
 #include <ibex3D/utility/logger.h>
 
-// ----------------------------------------------------------------------------------------------------
-
-bool vkBufferObject::initialize(VkDevice device, VkPhysicalDevice physDevice, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags memProps)
+bool vkBufferObject::initialize(VkDevice device, VkPhysicalDevice physDevice, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags memProperties)
 {
 	VkBufferCreateInfo bufferInfo = {};
 	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -25,10 +23,10 @@ bool vkBufferObject::initialize(VkDevice device, VkPhysicalDevice physDevice, Vk
 
 	uint32_t memoryType = 0;
 	VkMemoryRequirements memRequirements = {};
-	
+
 	vkGetBufferMemoryRequirements(device, buffer, &memRequirements);
 
-	if (!vkUtils::findMemoryType(physDevice, memRequirements.memoryTypeBits, memProps, memoryType))
+	if (!vkUtils::findMemoryType(physDevice, memRequirements.memoryTypeBits, memProperties, memoryType))
 	{
 		logger::logError("vkBufferObject::initialize(): Couldn't find a suitable type for the buffer memory.", __FILE__, __LINE__ - 2);
 		return false;
@@ -75,26 +73,40 @@ void vkBufferObject::cleanup(VkDevice device)
 	bufferSize = 0;
 }
 
-bool vkBufferObject::updateBufferData(VkDevice device, void* newData)
+bool vkBufferObject::mapBufferMemory(VkDevice device, VkDeviceSize regionOffset, VkDeviceSize regionSize, VkMemoryMapFlags mapFlags, void** ppData)
 {
-	void* data;
-	
-	VkResult result = vkMapMemory(device, bufferMemory, 0, bufferSize, 0, &data);
+	VkResult result = vkMapMemory(device, bufferMemory, regionOffset, regionSize, mapFlags, ppData);
 	
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::logErrorWithResult(result, "vkBufferObject::updateBufferData(): An error occured while trying to map the buffer memory.", __FILE__, __LINE__ - 4);
+		vkUtils::logErrorWithResult(result, "vkBufferObject::mapBufferData(): An error occured while trying to map the buffer memory into application address space.", __FILE__, __LINE__ - 4);
 		return false;
 	}
-	
-	memcpy(data, newData, bufferSize);
-
-	vkUnmapMemory(device, bufferMemory);
 
 	return true;
 }
 
-bool vkBufferObject::cmdCopyBuffer(VkDevice device, VkCommandPool cmdPool, VkQueue gfxQueue, VkBuffer srcBuffer, VkDeviceSize srcBufSize)
+void vkBufferObject::unmapBufferMemory(VkDevice device)
+{
+	vkUnmapMemory(device, bufferMemory);
+}
+
+bool vkBufferObject::updateBufferOnce(VkDevice device, VkDeviceSize regionOffset, VkDeviceSize regionSize, VkMemoryMapFlags mapFlags, void* newData)
+{
+	void* data;
+	if (!mapBufferMemory(device, regionOffset, regionSize, mapFlags, &data))
+	{
+		logger::logError("vkBufferObject::updateBufferOnce(): Couldn't map the buffer memory.", __FILE__, __LINE__ - 2);
+		return false;
+	}
+	
+	memcpy(data, newData, regionSize);
+
+	unmapBufferMemory(device);
+	return true;
+}
+
+bool vkBufferObject::cmdCopyBuffer(VkDevice device, VkCommandPool cmdPool, VkQueue gfxQueue, VkBuffer srcBuffer, VkDeviceSize srcOffset, VkDeviceSize dstOffset, VkDeviceSize regionSize)
 {
 	VkCommandBuffer commandBuffer = vkUtils::beginSingleTimeCommands(device, cmdPool);
 
@@ -106,7 +118,10 @@ bool vkBufferObject::cmdCopyBuffer(VkDevice device, VkCommandPool cmdPool, VkQue
 	}
 
 	VkBufferCopy copyRegion = {};
-	copyRegion.size = srcBufSize;
+	copyRegion.srcOffset = srcOffset;
+	copyRegion.dstOffset = dstOffset;
+	copyRegion.size = regionSize;
+
 	vkCmdCopyBuffer(commandBuffer, srcBuffer, buffer, 1, &copyRegion);
 
 	vkUtils::endSingleTimeCommands(device, cmdPool, gfxQueue, commandBuffer);

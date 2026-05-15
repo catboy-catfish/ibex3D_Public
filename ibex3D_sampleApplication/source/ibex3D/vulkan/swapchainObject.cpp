@@ -271,3 +271,8 @@ void vkSwapchainObject::cleanupDepthResources(VkDevice device)
 		depthImageMemory = nullptr;
 	}
 }
+
+float vkSwapchainObject::getAspectRatio()
+{
+	return imageExtent.width / static_cast<float>(imageExtent.height);
+}

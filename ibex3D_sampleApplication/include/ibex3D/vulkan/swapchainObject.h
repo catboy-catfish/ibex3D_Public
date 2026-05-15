@@ -33,4 +33,6 @@ struct vkSwapchainObject
 	void cleanupSwapchain(VkDevice device);
 	void cleanupColorResources(VkDevice device);
 	void cleanupDepthResources(VkDevice device);
+
+	float getAspectRatio();
 };

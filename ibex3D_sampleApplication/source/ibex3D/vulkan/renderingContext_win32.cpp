@@ -41,12 +41,11 @@ static glm::mat4 getCameraViewMatrix(glm::vec3 position, glm::vec3 rotation)
 	return viewMatrix;
 }
 
-static glm::mat4 getCameraProjMatrix(float fovRadians, uint32_t imgWidth, uint32_t imgHeight)
+static glm::mat4 getCameraProjMatrix(float fovRadians, float aspectRatio)
 {
-	float aspectRatio = imgWidth / static_cast<float>(imgHeight);
-	glm::mat4 projMatrix = glm::perspective(fovRadians, aspectRatio, 0.1f, 10.0f);
-	projMatrix[1][1] *= -1.0f;
-
+	glm::mat4	projMatrix = glm::perspective(fovRadians, aspectRatio, 0.1f, 10.0f);
+				projMatrix[1][1] = -projMatrix[1][1];
+	
 	return projMatrix;
 }
 
@@ -72,7 +71,7 @@ bool vkRenderingContext::initialize(void* wndMemory)
 	IBEX3D_BASSERT(initUniformBuffers());
 	IBEX3D_BASSERT(initDescriptorPoolAndSets());
 	IBEX3D_BASSERT(initSyncObjects());
-
+	
 	return true;
 }
 
@@ -269,7 +268,7 @@ bool vkRenderingContext::initPhysicalDevice(VkSampleCountFlagBits msaaSamplesUse
 
 	for (const auto& device : devices)
 	{
-		bool extensionsSupported = checkDeviceExtensionSupport(device);
+		bool extensionsSupported = checkPhysDeviceExtensionSupport(device);
 		
 		int score = vkUtils::ratePhysicalDeviceSuitability(device, m_surface, extensionsSupported);
 		candidates.insert(std::make_pair(score, device));
@@ -365,6 +364,8 @@ bool vkRenderingContext::initSwapchain(int wndWidth, int wndHeight)
 		return false;
 	}
 	
+	m_aspectRatio = m_swapchain.getAspectRatio();
+
 	return true;
 }
 
@@ -841,7 +842,8 @@ bool vkRenderingContext::initModelAndTexture()
 bool vkRenderingContext::initUniformBuffers()
 {
 	m_uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
-	
+	m_uniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
+
 	VkDeviceSize bufferSize = sizeof(vkUniformBufferData);
 
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
@@ -859,7 +861,7 @@ bool vkRenderingContext::initUniformBuffers()
 			return false;
 		}
 
-		if (!m_uniformBuffers[i].mapBufferData(m_logicalDevice, bufferSize))
+		if (!m_uniformBuffers[i].mapBufferMemory(m_logicalDevice, 0, bufferSize, 0, &m_uniformBuffersMapped[i]))
 		{
 			logger::logError("vkRenderingContext::initUniformBuffers(): Couldn't map the memory for one or more of the uniform buffers.", __FILE__, __LINE__ - 2);
 			return false;
@@ -1001,12 +1003,12 @@ void vkRenderingContext::updateUniformBuffer(uint32_t currentImage)
 	vkUniformBufferData data = {};
 	data.modelMatrix = glm::rotate(glm::mat4(1.0f), m_currentMeshRotation, glm::vec3(0.0f, 1.0f, 0.0f));
 	data.viewMatrix = getCameraViewMatrix(cameraPos, cameraRot);
-	data.projMatrix = getCameraProjMatrix(glm::radians(60.0f), m_swapchain.imageExtent.width, m_swapchain.imageExtent.height);
+	data.projMatrix = getCameraProjMatrix(glm::radians(60.0f), m_aspectRatio);
 
 	data.cameraPosition = cameraPos;
 	data.padding = 0.0f;
 
-	m_uniformBuffers[currentImage].setBufferData(sizeof(data), &data);
+	memcpy(m_uniformBuffersMapped[currentImage], &data, sizeof(data));
 }
 
 bool vkRenderingContext::recordCommandBuffer(VkCommandBuffer buffer, uint32_t imageIndex)
@@ -1133,11 +1135,12 @@ void vkRenderingContext::cleanupLogicalDevice()
 
 		for (auto& buffer : m_uniformBuffers)
 		{
-			buffer.unmapBufferData(m_logicalDevice);
+			buffer.unmapBufferMemory(m_logicalDevice);
 			buffer.cleanup(m_logicalDevice);
 		}
 
 		m_uniformBuffers.clear();
+		m_uniformBuffersMapped.clear();
 
 		m_meshClass.cleanup(m_logicalDevice);
 		m_textureClass.cleanup(m_logicalDevice);

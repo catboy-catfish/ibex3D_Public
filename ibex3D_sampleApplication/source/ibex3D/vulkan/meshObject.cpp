@@ -165,12 +165,16 @@ bool vkMeshObject::initVertexIndexBuffer(VkDevice device, VkPhysicalDevice physD
 	}
 
 	void* data;
-	vkMapMemory(device, stagingBuffer.bufferMemory, 0, combinedBufferSize, 0, &data);
+	if (!stagingBuffer.mapBufferMemory(device, 0, combinedBufferSize, 0, &data))
+	{
+		logger::logError("vkMeshObject::initVertexIndexBuffer(): Couldn't map the staging buffer memory.", __FILE__, __LINE__ - 2);
+		return false;
+	}
 
 	memcpy(data, vertices.data(), vtxBufferSize);
-	memcpy(static_cast<char*>(data) + vtxBufferSize, indices.data(), idxBufferSize);	// "static_cast<char*>(data) + vtxBufferSize" is pointer arithmetic, right?
+	memcpy(static_cast<char*>(data) + vtxBufferSize, indices.data(), idxBufferSize);
 
-	vkUnmapMemory(device, stagingBuffer.bufferMemory);
+	stagingBuffer.unmapBufferMemory(device);
 
 	if (!vtxIdxBuffer.initialize
 	(
@@ -186,7 +190,7 @@ bool vkMeshObject::initVertexIndexBuffer(VkDevice device, VkPhysicalDevice physD
 		return false;
 	}
 
-	if (!vtxIdxBuffer.cmdCopyBuffer(device, cmdPool, gfxQueue, stagingBuffer.buffer, combinedBufferSize))
+	if (!vtxIdxBuffer.cmdCopyBuffer(device, cmdPool, gfxQueue, stagingBuffer.buffer, 0, 0, combinedBufferSize))
 	{
 		logger::logError("vkMeshObject::initVertexIndexBuffer(): Couldn't copy the staging memory to the combined vertex-index buffer.", __FILE__, __LINE__ - 9);
 		stagingBuffer.cleanup(device);
