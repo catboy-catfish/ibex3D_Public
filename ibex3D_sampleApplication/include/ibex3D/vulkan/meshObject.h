@@ -5,7 +5,7 @@
 #include <array>
 #include <vector>
 
-#include <glm/glm.hpp>
+#include <ibex3D/thirdparty/glm/glm.hpp>
 
 struct vkVertex
 {

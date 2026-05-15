@@ -1,6 +1,8 @@
 #include <ibex3D/vulkan/renderingContext.h>
 #include <ibex3D/vulkan/utils.h>
 
+#include <ibex3D/core/win32.h>
+
 #include <ibex3D/utility/logger.h>
 #include <ibex3D/utility/miscellaneous.h>
 
@@ -8,14 +10,13 @@
 #include <set>
 #include <stdio.h>
 
-#include <ibex3D/core/win32.h>
-#include <vulkan/vulkan_win32.h>
-
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#include <glm/glm.hpp>
-#include <glm/ext/matrix_transform.hpp>
-#include <glm/ext/matrix_clip_space.hpp>
+#include <ibex3D/thirdparty/glm/glm.hpp>
+#include <ibex3D/thirdparty/glm/ext/matrix_transform.hpp>
+#include <ibex3D/thirdparty/glm/ext/matrix_clip_space.hpp>
+
+#include <vulkan/vulkan_win32.h>
 
 // ----------------------------------------------------------------------------------------------------
 

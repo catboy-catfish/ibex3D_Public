@@ -8,15 +8,15 @@ void logger::log(const char* text)
 
 void logger::logError(const char* description, const char* file, size_t line)
 {
-	fprintf(stderr, "ERROR (File: %s, line %zu) - %s\n\n", file, line, description);
+	fprintf(stderr, "\nERROR (File: %s, line %zu) - %s\n", file, line, description);
 }
 
 void logger::logWarning(const char* description, const char* file, size_t line)
 {
-	fprintf(stdout, "WARNING (File: %s, line %zu) - %s\n\n", file, line, description);
+	fprintf(stdout, "\nWARNING (File: %s, line %zu) - %s\n", file, line, description);
 }
 
 void logger::logInfo(const char* description, const char* file, size_t line)
 {
-	fprintf(stdout, "INFO (File: %s, line %zu) - %s\n\n", file, line, description);
+	fprintf(stdout, "\nINFO (File: %s, line %zu) - %s\n", file, line, description);
 }

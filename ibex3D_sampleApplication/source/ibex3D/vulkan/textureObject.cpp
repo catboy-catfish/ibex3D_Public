@@ -5,7 +5,7 @@
 #include <ibex3D/utility/logger.h>
 
 #define STB_IMAGE_IMPLEMENTATION
-#include <stb/image.h>
+#include <ibex3D/thirdparty/stb/image.h>
 
 #include <algorithm>
 #include <cmath>

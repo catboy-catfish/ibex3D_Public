@@ -4,10 +4,9 @@
 #include <ibex3D/utility/logger.h>
 
 #define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/hash.hpp>
-
 #define TINYOBJLOADER_IMPLEMENTATION
-#include <tinyobjloader/tiny_obj_loader.h>
+#include <ibex3D/thirdparty/glm/gtx/hash.hpp>
+#include <ibex3D/thirdparty/tinyobjloader/tiny_obj_loader.h>
 
 #include <string>
 #include <unordered_map>

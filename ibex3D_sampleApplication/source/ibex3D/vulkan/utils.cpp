@@ -89,12 +89,12 @@ VKAPI_ATTR VkBool32 VKAPI_CALL vkUtils::debugMessengerCallback
 	{
 		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
 		{	
-			printf("VULKAN WARNING (Validation layer) - %s\n\n", pCallbackData->pMessage);
+			printf("\nVULKAN WARNING (Validation layer) - %s\n", pCallbackData->pMessage);
 			break;
 		}
 		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
 		{
-			printf("VULKAN ERROR (Validation layer) - %s\n\n", pCallbackData->pMessage);
+			printf("\nVULKAN ERROR (Validation layer) - %s\n", pCallbackData->pMessage);
 			break;
 		}
 	}
