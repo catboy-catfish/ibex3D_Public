@@ -3,6 +3,8 @@
 
 #include <ibex3D/utility/logger.h>
 
+// - Functions ----------------------------------------------------------------------------------------
+
 bool vkBufferObject::initialize(VkDevice device, VkPhysicalDevice physDevice, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags memProperties)
 {
 	VkBufferCreateInfo bufferInfo = {};

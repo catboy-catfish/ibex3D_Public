@@ -2,6 +2,8 @@
 
 #include <immintrin.h>
 
+// - Class declaration --------------------------------------------------------------------------------
+
 struct alignas(16) vec4_simd
 {
 	union

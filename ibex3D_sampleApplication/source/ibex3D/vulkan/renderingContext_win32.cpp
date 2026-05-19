@@ -12,13 +12,13 @@
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#include <ibex3D/thirdparty/glm/glm.hpp>
-#include <ibex3D/thirdparty/glm/ext/matrix_transform.hpp>
-#include <ibex3D/thirdparty/glm/ext/matrix_clip_space.hpp>
+#include <thirdparty/glm/glm.hpp>
+#include <thirdparty/glm/ext/matrix_transform.hpp>
+#include <thirdparty/glm/ext/matrix_clip_space.hpp>
 
 #include <vulkan/vulkan_win32.h>
 
-// ----------------------------------------------------------------------------------------------------
+// - Macros, helper structs, file-scope functions, etc ------------------------------------------------
 
 #define MAX_FRAMES_IN_FLIGHT 2
 
@@ -50,7 +50,7 @@ static glm::mat4 getCameraProjMatrix(float fovRadians, float aspectRatio)
 	return projMatrix;
 }
 
-// ----------------------------------------------------------------------------------------------------
+// - Public utility functions -------------------------------------------------------------------------
 
 bool vkRenderingContext::initialize(void* wndMemory)
 {			
@@ -164,6 +164,8 @@ void vkRenderingContext::cleanup()
 	cleanupLogicalDevice();
 	cleanupInstance();
 }
+
+// - Initialization functions -------------------------------------------------------------------------
 
 bool vkRenderingContext::initInstance()
 {
@@ -480,7 +482,11 @@ bool vkRenderingContext::initDescriptorSetLayout()
 	samplerLayoutBinding.pImmutableSamplers = nullptr;
 	samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-	std::array<VkDescriptorSetLayoutBinding, 2> bindings = { uboLayoutBinding, samplerLayoutBinding };
+	std::array<VkDescriptorSetLayoutBinding, 2> bindings =
+	{
+		uboLayoutBinding,
+		samplerLayoutBinding
+	};
 
 	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
 	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -639,11 +645,11 @@ bool vkRenderingContext::initGraphicsPipeline()
 	depthStencilInfo.depthWriteEnable = VK_TRUE;
 	depthStencilInfo.depthCompareOp = VK_COMPARE_OP_LESS;
 	depthStencilInfo.depthBoundsTestEnable = VK_FALSE;
-	depthStencilInfo.minDepthBounds = 0.0f;		// Optional
-	depthStencilInfo.maxDepthBounds = 1.0f;		// Optional
+	depthStencilInfo.minDepthBounds = 0.0f;
+	depthStencilInfo.maxDepthBounds = 1.0f;
 	depthStencilInfo.stencilTestEnable = VK_FALSE;
-	depthStencilInfo.front = {};				// Optional
-	depthStencilInfo.back = {};					// Optional
+	depthStencilInfo.front = {};
+	depthStencilInfo.back = {};
 
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
 	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -755,7 +761,7 @@ bool vkRenderingContext::initCommandPoolAndBuffers()
 		return false;
 	}
 
-	// ----------------------------------------------------------------------------------------------------
+	// - Command buffers for frames in flight -------------------------------------------------------------
 
 	m_commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
 
@@ -894,7 +900,7 @@ bool vkRenderingContext::initDescriptorPoolAndSets()
 		return false;
 	}
 
-	// ----------------------------------------------------------------------------------------------------
+	// - Descriptor sets for frames in flight -------------------------------------------------------------
 
 	std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, m_descriptorSetLayout);
 
@@ -995,6 +1001,8 @@ bool vkRenderingContext::initSyncObjects()
 
 	return true;
 }
+
+// - Runtime/rendering functions ----------------------------------------------------------------------
 
 void vkRenderingContext::updateUniformBuffer(uint32_t currentImage)
 {
@@ -1108,6 +1116,8 @@ bool vkRenderingContext::recreateSwapchain()
 
 	return true;
 }
+
+// - Cleanup functions --------------------------------------------------------------------------------
 
 void vkRenderingContext::cleanupSwapchain()
 {	
@@ -1235,9 +1245,7 @@ void vkRenderingContext::cleanupInstance()
 	}
 }
 
-// ----------------------------------------------------------------------------------------------------
 // - Helper functions ---------------------------------------------------------------------------------
-// ----------------------------------------------------------------------------------------------------
 
 bool vkRenderingContext::checkInstanceLayerSupport()
 {

@@ -5,10 +5,12 @@
 #include <ibex3D/utility/logger.h>
 
 #define STB_IMAGE_IMPLEMENTATION
-#include <ibex3D/thirdparty/stb/image.h>
+#include <thirdparty/stb/image.h>
 
 #include <algorithm>
 #include <cmath>
+
+// - Functions ----------------------------------------------------------------------------------------
 
 bool vkTextureObject::initImageAndView(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue, const char* imgFilePath)
 {
@@ -104,7 +106,7 @@ bool vkTextureObject::initImageAndView(VkDevice device, VkPhysicalDevice physDev
 
 	stagingBuffer.cleanup(device);
 
-	// ----------------------------------------------------------------------------------------------------
+	// - Image view ---------------------------------------------------------------------------------------
 
 	imageView = vkUtils::createImageView(device, image, mipLevels, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
 

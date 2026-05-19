@@ -1,22 +1,45 @@
 #pragma once
 
+#include <new>
 #include <stdio.h>
 #include <stdlib.h>
+#include <utility>
 
-static size_t totalUsedBytes = 0;
+// - Global variables ---------------------------------------------------------------------------------
 
-void* operator new(size_t size)
+static size_t totalRamUsage = 0;
+
+// - Functions ----------------------------------------------------------------------------------------
+
+template <typename t>
+t* ibex3D_allocate()
 {
-	totalUsedBytes += size;
-	printf("Allocated %zu bytes (now using %zu bytes).\n", size, totalUsedBytes);
+	size_t memSize = sizeof(t);
+	totalRamUsage += memSize;
+	printf("Allocated %zu bytes of RAM (now using %zu bytes).\n", memSize, totalRamUsage);
 
-	return malloc(size);
+	void* mem = malloc(memSize);
+	return new(mem) t;
 }
 
-void operator delete(void* memory, size_t size)
+template <typename t, typename u>
+t* ibex3D_allocate(u&& args)
 {
-	totalUsedBytes -= size;
-	printf("Deallocated %zu bytes (now using %zu bytes).\n", size, totalUsedBytes);
+	size_t memSize = sizeof(t);
+	totalRamUsage += memSize;
+	printf("Allocated %zu bytes of RAM (now using %zu bytes).\n", memSize, totalRamUsage);
 
-	free(memory);
+	void* mem = malloc(memSize);
+	return new(mem) t(std::forward<U>(args));
+}
+
+template <typename t>
+void ibex3D_free(t* mem)
+{
+	size_t memSize = sizeof(t);
+	totalRamUsage -= memSize;
+	printf("Freed %zu bytes of RAM (now using %zu bytes).\n", memSize, totalRamUsage);
+
+	mem->~t();
+	free(mem);
 }

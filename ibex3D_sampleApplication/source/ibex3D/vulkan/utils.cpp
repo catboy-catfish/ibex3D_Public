@@ -11,9 +11,7 @@
 #include <set>
 #include <string>
 
-// ----------------------------------------------------------------------------------------------------
 // - Extension functions ------------------------------------------------------------------------------
-// ----------------------------------------------------------------------------------------------------
 
 #ifdef IBEX3D_VULKAN_VALIDATION
 VkResult vkExtFunctions::CreateDebugUtilsMessengerEXT
@@ -52,9 +50,7 @@ void vkExtFunctions::DestroyDebugUtilsMessengerEXT
 }
 #endif
 
-// ----------------------------------------------------------------------------------------------------
 // - Validation layers --------------------------------------------------------------------------------
-// ----------------------------------------------------------------------------------------------------
 
 #ifdef IBEX3D_VULKAN_VALIDATION
 void vkUtils::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& info)
@@ -103,9 +99,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL vkUtils::debugMessengerCallback
 }
 #endif
 
-// ----------------------------------------------------------------------------------------------------
 // - Logging ------------------------------------------------------------------------------------------
-// ----------------------------------------------------------------------------------------------------
 
 void vkUtils::logErrorWithResult(VkResult result, const char* desc, const char* file, size_t line)
 {	
@@ -125,9 +119,7 @@ void vkUtils::logInfoWithResult(VkResult result, const char* desc, const char* f
 	logger::logInfo(descWithResult.c_str(), file, line);
 }
 
-// ----------------------------------------------------------------------------------------------------
 // - Physical device and swapchain --------------------------------------------------------------------
-// ----------------------------------------------------------------------------------------------------
 
 vkQueueFamilyIndices vkUtils::findQueueFamilies(VkPhysicalDevice physDevice, VkSurfaceKHR surface)
 {
@@ -263,9 +255,7 @@ int vkUtils::ratePhysicalDeviceSuitability(VkPhysicalDevice physDevice, VkSurfac
 	return score;
 }
 
-// ----------------------------------------------------------------------------------------------------
 // - Swapchain ----------------------------------------------------------------------------------------
-// ----------------------------------------------------------------------------------------------------
 
 VkSurfaceFormatKHR vkUtils::chooseSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
 {
@@ -319,9 +309,7 @@ VkExtent2D vkUtils::chooseExtent(const VkSurfaceCapabilitiesKHR& surfaceCaps, in
 	}
 }
 
-// ----------------------------------------------------------------------------------------------------
 // - Shader loading -----------------------------------------------------------------------------------
-// ----------------------------------------------------------------------------------------------------
 
 VkShaderModule vkUtils::createShaderModuleFromSPIRV(VkDevice device, const std::vector<char>& spirvBytecode)
 {
@@ -357,9 +345,7 @@ VkShaderModule vkUtils::createShaderModuleFromGLSL(VkDevice device, const char* 
 	return nullptr;
 }
 
-// ----------------------------------------------------------------------------------------------------
 // - Command buffers ----------------------------------------------------------------------------------
-// ----------------------------------------------------------------------------------------------------
 
 VkCommandBuffer vkUtils::beginSingleTimeCommands(VkDevice device, VkCommandPool pool)
 {
@@ -405,9 +391,7 @@ void vkUtils::endSingleTimeCommands(VkDevice device, VkCommandPool pool, VkQueue
 	vkFreeCommandBuffers(device, pool, 1, &buffer);
 }
 
-// ----------------------------------------------------------------------------------------------------
 // - Buffers ------------------------------------------------------------------------------------------
-// ----------------------------------------------------------------------------------------------------
 
 bool vkUtils::findMemoryType(VkPhysicalDevice physDevice, uint32_t typeFilter, VkMemoryPropertyFlags memPropertyFlags, uint32_t& outputMemoryType)
 {
@@ -427,9 +411,7 @@ bool vkUtils::findMemoryType(VkPhysicalDevice physDevice, uint32_t typeFilter, V
 	return false;
 }
 
-// ----------------------------------------------------------------------------------------------------
 // - Formats ------------------------------------------------------------------------------------------
-// ----------------------------------------------------------------------------------------------------
 
 bool vkUtils::findSupportedFormat(VkPhysicalDevice physDevice, const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features, VkFormat& outFormat)
 {
@@ -471,9 +453,7 @@ bool vkUtils::formatHasStencilComponent(VkFormat format)
 	return (format == VK_FORMAT_D32_SFLOAT_S8_UINT) || (format == VK_FORMAT_D24_UNORM_S8_UINT);
 }
 
-// ----------------------------------------------------------------------------------------------------
 // - Images -------------------------------------------------------------------------------------------
-// ----------------------------------------------------------------------------------------------------
 
 bool vkUtils::createImage(VkDevice device, VkPhysicalDevice physDevice, uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags memProperties, VkImage& image, VkDeviceMemory& imageMem)
 {

@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClInclude Include="include\sampleApp\appInterface.h">
+    <ClInclude Include="include\ibex3D\core\application.h">
       <Filter>sampleApp\appInterface</Filter>
     </ClInclude>
-    <ClInclude Include="include\ibex3D\core\appRuntime.h">
+    <ClInclude Include="include\ibex3D\core\runtime.h">
       <Filter>ibex3D\core\appRuntime</Filter>
     </ClInclude>
     <ClInclude Include="include\ibex3D\core\entryPoint.h">
@@ -52,12 +52,13 @@
     <ClInclude Include="include\ibex3D\vulkan\bufferObject.h">
       <Filter>ibex3D\vulkan\bufferObject</Filter>
     </ClInclude>
+    <ClInclude Include="include\ibex3D\vulkan\enumTextGetter.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\sampleApp\appInterface.cpp">
+    <ClCompile Include="source\ibex3D\core\application.cpp">
       <Filter>sampleApp\appInterface</Filter>
     </ClCompile>
-    <ClCompile Include="source\ibex3D\core\appRuntime_win32.cpp">
+    <ClCompile Include="source\ibex3D\core\runtime_win32.cpp">
       <Filter>ibex3D\core\appRuntime</Filter>
     </ClCompile>
     <ClCompile Include="source\ibex3D\vulkan\meshObject.cpp">
@@ -90,7 +91,7 @@
     <ClCompile Include="source\ibex3D\core\win32.cpp">
       <Filter>ibex3D\core\win32</Filter>
     </ClCompile>
-    <ClCompile Include="source\sampleApp\main.cpp">
+    <ClCompile Include="source\ibex3D\main.cpp">
       <Filter>sampleApp</Filter>
     </ClCompile>
     <ClCompile Include="source\ibex3D\utility\logger.cpp">

@@ -1,5 +1,8 @@
 #pragma once
+
 #include <vulkan/vulkan.h>
+
+// - Struct declaration -------------------------------------------------------------------------------
 
 struct vkBufferObject
 {
@@ -7,7 +10,7 @@ struct vkBufferObject
 	VkDeviceMemory bufferMemory = nullptr;
 	VkDeviceSize bufferSize = 0;
 
-	// ----------------------------------------------------------------------------------------------------
+	// - Functions ----------------------------------------------------------------------------------------
 
 	bool initialize(VkDevice device, VkPhysicalDevice physDevice, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags memProperties);
 	void cleanup(VkDevice device);

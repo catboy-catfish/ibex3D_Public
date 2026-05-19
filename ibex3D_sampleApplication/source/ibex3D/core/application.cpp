@@ -1,26 +1,22 @@
-#include <sampleApp/appInterface.h>
+#include <ibex3D/core/application.h>
+#include <ibex3D/core/runtime.h>
 
-#include <ibex3D/core/appRuntime.h>
 #include <ibex3D/vulkan/renderingContext.h>
 
 #include <ibex3D/utility/logger.h>
 
-// ----------------------------------------------------------------------------------------------------
-
-/*
-	Win32 virtual key codes.
-	https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
-*/
+// - Win32 virtual key codes --------------------------------------------------------------------------
+// - https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes -----------------------
 
 #define KEY_A 0x41
 #define KEY_D 0x44
 
-// ----------------------------------------------------------------------------------------------------
+// - Main functions -----------------------------------------------------------------------------------
 
-bool appInterface::initialize(appRuntime* pRuntime, void* pWindow)
+bool application::initialize(runtime* pRuntime, void* pWindow)
 {
 	/*
-		Called by the parent appRuntime when the application is being initialized.
+		Called by the parent runtime when the application is being initialized.
 		Use this function to allocate memory, initialize variables, etc.
 	*/
 
@@ -30,7 +26,7 @@ bool appInterface::initialize(appRuntime* pRuntime, void* pWindow)
 	}
 	else
 	{
-		logger::logError("appInterface::initialize(): Couldn't initialize the appInterface because argument \"appRuntime* pRuntime\" is nullptr. You must pass a valid appRuntime pointer for the appInterface to communicate with.", __FILE__, __LINE__ - 2);
+		logger::logError("application::initialize(): Couldn't initialize the application because argument \"runtime* pRuntime\" is nullptr. You must pass a valid runtime pointer for the application to communicate with.", __FILE__, __LINE__ - 2);
 		return false;
 	}
 	
@@ -44,10 +40,10 @@ bool appInterface::initialize(appRuntime* pRuntime, void* pWindow)
 	return true;
 }
 
-void appInterface::update(float deltaTime)
+void application::update(float deltaTime)
 {
 	/*
-		Called by the parent appRuntime every frame when the game should update its logic.
+		Called by the parent runtime every frame when the game should update its logic.
 		Use this function to update all objects and variables, manage memory, etc.
 	*/
 	
@@ -55,10 +51,10 @@ void appInterface::update(float deltaTime)
 	updateMeshRotation(deltaTime);
 }
 
-void appInterface::render(float deltaTime)
+void application::render(float deltaTime)
 {	
 	/*
-		Called by the parent appRuntime every frame after all logic in update() is complete.
+		Called by the parent runtime every frame after all logic in update() is complete.
 		Use this function to render all objects, perform other relevant tasks, etc.
 	*/
 	
@@ -69,10 +65,10 @@ void appInterface::render(float deltaTime)
 	}
 }
 
-void appInterface::cleanup()
+void application::cleanup()
 {
 	/*
-		Called by the parent appRuntime when it has finished running and is cleaning up before exiting.
+		Called by the parent runtime when it has finished running and is cleaning up before exiting.
 		Use this function to free all allocated memory, save any relevant data, etc.
 	*/
 	
@@ -86,27 +82,27 @@ void appInterface::cleanup()
 	m_appRuntime = nullptr;
 }
 
-void appInterface::input_onKeyDownEvent(unsigned int key)
+void application::input_onKeyDownEvent(unsigned int key)
 {
 	/*
-		Called by the parent appRuntime in the event where a key is pressed.
+		Called by the parent runtime in the event where a key is pressed.
 		Use this function to perform tasks depending on the key that was pressed, etc.
 	*/
 	
 	m_keyStates[key] = true;
 }
 
-void appInterface::input_onKeyUpEvent(unsigned int key)
+void application::input_onKeyUpEvent(unsigned int key)
 {
 	/*
-		Called by the parent appRuntime in the event where a key is released.
+		Called by the parent runtime in the event where a key is released.
 		Use this function to perform tasks depending on the key that was released, etc.
 	*/
 	
 	m_keyStates[key] = false;
 }
 
-bool appInterface::input_isKeyDown(unsigned int key)
+bool application::input_isKeyDown(unsigned int key)
 {
 	/*
 		Checks if a key is currently pressed or released right now.
@@ -116,10 +112,10 @@ bool appInterface::input_isKeyDown(unsigned int key)
 	return m_keyStates[key];
 }
 
-void appInterface::window_onResizeEvent(unsigned int wndWidth, unsigned int wndHeight)
+void application::window_onResizeEvent(unsigned int wndWidth, unsigned int wndHeight)
 {
 	/*
-		Called by the parent appRuntime in the event where the application window is resized.
+		Called by the parent runtime in the event where the application window is resized.
 		Use this function to refresh any rendering/UI data, update relevant variables, etc.
 
 		The parameters wndWidth and wndHeight are the new width and height of the window after being resized, respectively.
@@ -132,24 +128,24 @@ void appInterface::window_onResizeEvent(unsigned int wndWidth, unsigned int wndH
 	}
 }
 
-void appInterface::window_onFocusEvent()
+void application::window_onFocusEvent()
 {
 	/*
-		Called by the parent appRuntime in the event where the application window gains focus.
+		Called by the parent runtime in the event where the application window gains focus.
 	*/
 }
 
-void appInterface::window_onUnfocusEvent()
+void application::window_onUnfocusEvent()
 {
 	/*
-		Called by the parent appRuntime in the event where the application window loses focus.
+		Called by the parent runtime in the event where the application window loses focus.
 	*/
 }
 
-void appInterface::window_onCloseRequestedEvent()
+void application::window_onCloseRequestedEvent()
 {
 	/*
-		Called by the parent appRuntime in the event where the application window receives a close request (e.g. the user clicks the "X" button on the window).
+		Called by the parent runtime in the event where the application window receives a close request (e.g. the user clicks the "X" button on the window).
 		Use this function to perform any relevant tasks before the application is closed, etc.
 		
 		Not to be confused with the cleanup() function, which is called after this event is received when the application is actually being cleaned up before exiting.
@@ -157,11 +153,11 @@ void appInterface::window_onCloseRequestedEvent()
 	*/
 }
 
-bool appInterface::isSafeToStartRunning()
+bool application::isSafeToStartRunning()
 {
 	/*
-		Utility function that is called by the parent appRuntime before starting the main loop to check if everything is properly initialized.
-		This is called by appRuntime::isSafeToStartRunning(), which serves the same purpose for the appRuntime
+		Utility function that is called by the parent runtime before starting the main loop to check if everything is properly initialized.
+		This is called by runtime::isSafeToStartRunning(), which serves the same purpose for the runtime
 		before starting the main loop to check if everything is properly initialized.
 	*/
 	
@@ -178,13 +174,13 @@ bool appInterface::isSafeToStartRunning()
 	return true;
 }
 
-// ----------------------------------------------------------------------------------------------------
+// - Custom function examples -------------------------------------------------------------------------
 
-void appInterface::updateFpsCounter(float deltaTime)
+void application::updateFpsCounter(float deltaTime)
 {
 	/*
 		An example of a function you could create yourself for your own ibex3D project.
-		This function is not called by the parent appRuntime, but you could call it in update(), render(), or any of the event functions, etc. as needed.
+		This function is not called by the parent runtime, but you could call it in update(), render(), or any of the event functions, etc. as needed.
 	*/
 	
 	m_elapsedFrames++;
@@ -198,7 +194,7 @@ void appInterface::updateFpsCounter(float deltaTime)
 	}
 }
 
-void appInterface::updateMeshRotation(float deltaTime)
+void application::updateMeshRotation(float deltaTime)
 {
 	if (input_isKeyDown(KEY_A))
 		m_meshRotVel = -m_meshRotSpd;

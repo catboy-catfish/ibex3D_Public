@@ -1,9 +1,9 @@
 #pragma once
-#include <vulkan/vulkan.h>
 
+#include <vulkan/vulkan.h>
 #include <vector>
 
-// ----------------------------------------------------------------------------------------------------
+// - Struct declaration -------------------------------------------------------------------------------
 
 struct vkSwapchainObject
 {
@@ -24,7 +24,7 @@ struct vkSwapchainObject
 	VkFormat imageFormat = VK_FORMAT_UNDEFINED;
 	VkExtent2D imageExtent = { 0, 0 };
 
-	// ----------------------------------------------------------------------------------------------------
+	// - Functions ----------------------------------------------------------------------------------------
 
 	bool initSwapchain(VkDevice device, VkPhysicalDevice physDevice, VkSurfaceKHR surface, int wndWidth, int wndHeight, bool vSync);
 	bool initColorResources(VkDevice device, VkPhysicalDevice physDevice, VkSampleCountFlagBits msaaSamples);

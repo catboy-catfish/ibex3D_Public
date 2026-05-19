@@ -5,11 +5,13 @@
 
 #define GLM_ENABLE_EXPERIMENTAL
 #define TINYOBJLOADER_IMPLEMENTATION
-#include <ibex3D/thirdparty/glm/gtx/hash.hpp>
-#include <ibex3D/thirdparty/tinyobjloader/tiny_obj_loader.h>
+#include <thirdparty/glm/gtx/hash.hpp>
+#include <thirdparty/tinyobjloader/tiny_obj_loader.h>
 
 #include <string>
 #include <unordered_map>
+
+// - Hashing functionality ----------------------------------------------------------------------------
 
 namespace std
 {
@@ -28,6 +30,8 @@ namespace std
 		}
 	};
 }
+
+// - vkVertex functions -------------------------------------------------------------------------------
 
 VkVertexInputBindingDescription vkVertex::getBindingDesc()
 {
@@ -65,7 +69,7 @@ std::array<VkVertexInputAttributeDescription, 3> vkVertex::getAttributeDescs()
 	return attribDescs;
 }
 
-// ----------------------------------------------------------------------------------------------------
+// - Main functions -----------------------------------------------------------------------------------
 
 void vkMeshObject::initSimpleModel()
 {

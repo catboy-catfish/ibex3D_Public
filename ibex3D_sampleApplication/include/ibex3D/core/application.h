@@ -1,15 +1,16 @@
 #pragma once
 
-class appRuntime;
+// - Forward declarations -----------------------------------------------------------------------------
+
+class runtime;
 class vkRenderingContext;
 
-class appInterface
+// - Class declaration --------------------------------------------------------------------------------
+
+class application
 {
 public:
-	
-	/* Required setup functions */
-
-	bool initialize(appRuntime* pRuntime, void* pWindow);
+	bool initialize(runtime* pRuntime, void* pWindow);
 	void update(float deltaTime);
 	void render(float deltaTime);
 	void cleanup();
@@ -25,25 +26,21 @@ public:
 
 	bool isSafeToStartRunning();
 
-	/* Examples of some functions you could create yourself for your own ibex3D project */
+	// Example functions below - add or remove as needed
 
 	void updateFpsCounter(float deltaTime);
 	void updateMeshRotation(float deltaTime);
 
 private:
-
-	/* Required setup variables */
-	
 	bool m_keyStates[256] = { false };
-	appRuntime* m_appRuntime = nullptr;
+	runtime* m_appRuntime = nullptr;
 	vkRenderingContext* m_renderingContext = nullptr;
 
-	/* Example variables - add or remove as needed */
+	// Example variables below - add or remove as needed
 
 	float m_meshRot = 0.0f;
 	float m_meshRotVel = 0.0f;
 	float m_meshRotSpd = 1.0f;
-
 	float m_elapsedTime = 0.0f;
 	size_t m_elapsedFrames = 0;
 };

@@ -1,8 +1,11 @@
 #pragma once
+
 #include "swapchainObject.h"
 #include "meshObject.h"
 #include "textureObject.h"
 #include "bufferObject.h"
+
+// - Class declaration --------------------------------------------------------------------------------
 
 class vkRenderingContext
 {

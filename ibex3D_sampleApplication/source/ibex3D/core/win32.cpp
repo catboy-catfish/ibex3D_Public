@@ -1,10 +1,11 @@
 #include <ibex3D/core/win32.h>
-
 #include <ibex3D/utility/logger.h>
 
 #include <comdef.h>
 #include <string>
 #include <stdio.h>
+
+// - Functions ----------------------------------------------------------------------------------------
 
 bool win32Utils::getWindowDimensions(HWND hWnd, int& width, int& height)
 {

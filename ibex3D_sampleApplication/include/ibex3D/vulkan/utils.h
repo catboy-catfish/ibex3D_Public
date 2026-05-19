@@ -3,7 +3,7 @@
 #include <vulkan/vulkan.h>
 #include <vector>
 
-// ----------------------------------------------------------------------------------------------------
+// - Helper structs -----------------------------------------------------------------------------------
 
 struct vkQueueFamilyIndices
 {
@@ -23,7 +23,7 @@ struct vkSwapchainSupportInfo
 	std::vector<VkPresentModeKHR> presentModes;
 };
 
-// ----------------------------------------------------------------------------------------------------
+// - Main struct declarations -------------------------------------------------------------------------
 
 class vkExtFunctions
 {

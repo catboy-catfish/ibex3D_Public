@@ -2,10 +2,12 @@
 
 #include "bufferObject.h"
 
+#include <thirdparty/glm/glm.hpp>
+
 #include <array>
 #include <vector>
 
-#include <ibex3D/thirdparty/glm/glm.hpp>
+// - Helper struct declaration ------------------------------------------------------------------------
 
 struct vkVertex
 {
@@ -13,7 +15,7 @@ struct vkVertex
 	glm::vec3 vertexNormal;
 	glm::vec2 textureCoord;
 
-	// ----------------------------------------------------------------------------------------------------
+	// - Operator overrides -------------------------------------------------------------------------------
 	
 	bool operator == (const vkVertex& other) const
 	{
@@ -22,11 +24,13 @@ struct vkVertex
 			&& (textureCoord == other.textureCoord);
 	}
 	
-	// ----------------------------------------------------------------------------------------------------
+	// - Functions ----------------------------------------------------------------------------------------
 
 	static VkVertexInputBindingDescription getBindingDesc();
 	static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescs();
 };
+
+// - Main struct declaration --------------------------------------------------------------------------
 
 struct vkMeshObject
 {	
@@ -36,7 +40,7 @@ struct vkMeshObject
 	std::vector<vkVertex> vertices;
 	std::vector<uint32_t> indices;
 
-	// ----------------------------------------------------------------------------------------------------
+	// - Functions ----------------------------------------------------------------------------------------
 
 	void initSimpleModel();
 	bool loadObjFromFile(const char* objFilePath);

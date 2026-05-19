@@ -1,5 +1,7 @@
 #pragma once
 
+// - Class declaration --------------------------------------------------------------------------------
+
 struct vec2
 {
 	float x = 0.0f;
@@ -9,7 +11,7 @@ struct vec2
 	vec2(float inX, float inY) : x(inX), y(inY) {}
 	vec2(float inXY) : x(inXY), y(inXY) {}
 
-	// ----------------------------------------------------------------------------------------------------
+	// - Operator overrides -------------------------------------------------------------------------------
 
 	vec2 operator + (const vec2& other) const;
 	vec2 operator - (const vec2& other) const;
@@ -24,7 +26,7 @@ struct vec2
 	bool operator == (const vec2& other) const;
 	bool operator != (const vec2& other) const;
 
-	// ----------------------------------------------------------------------------------------------------
+	// - Advanced math and utility functions --------------------------------------------------------------
 
 	vec2 multipliedByFloat(float in) const;
 	void multiplyByFloat(float in);
@@ -42,7 +44,7 @@ struct vec2
 
 	float getDotProduct(const vec2& other) const;
 
-	// ----------------------------------------------------------------------------------------------------
+	// - Unsafe division functions ------------------------------------------------------------------------
 
 	vec2 unsafeDividedBy(const vec2& other) const;
 	vec2 unsafeDividedByFloat(float in) const;

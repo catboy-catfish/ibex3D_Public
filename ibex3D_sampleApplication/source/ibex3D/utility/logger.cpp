@@ -1,6 +1,8 @@
 #include <ibex3D/utility/logger.h>
 #include <stdio.h>
 
+// - Functions ----------------------------------------------------------------------------------------
+
 void logger::log(const char* text)
 {
 	fprintf(stdout, text);

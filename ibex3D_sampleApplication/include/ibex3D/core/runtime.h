@@ -2,8 +2,13 @@
 
 #include <chrono>
 
-class appInterface;
-class appRuntime
+// - Forward declarations -----------------------------------------------------------------------------
+
+class application;
+
+// - Class declaration --------------------------------------------------------------------------------
+
+class runtime
 {
 public:
 	bool initialize(unsigned int wndWidth, unsigned int wndHeight, const char* wndTitle);
@@ -31,7 +36,7 @@ private:
 
 private:
 	void* m_windowData = nullptr;
-	appInterface* m_appInterface = nullptr;
+	application* m_application = nullptr;
 
 	std::chrono::high_resolution_clock::time_point m_startTime = std::chrono::high_resolution_clock::now();
 	bool m_keepRunningFlag = true;

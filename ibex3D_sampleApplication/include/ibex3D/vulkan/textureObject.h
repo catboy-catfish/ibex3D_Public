@@ -2,6 +2,8 @@
 
 #include <vulkan/vulkan.h>
 
+// - Struct declaration -------------------------------------------------------------------------------
+
 struct vkTextureObject
 {
 	VkImage image = nullptr;
@@ -10,6 +12,8 @@ struct vkTextureObject
 	VkSampler sampler = nullptr;
 
 	uint32_t mipLevels = 0;
+
+	// - Functions ----------------------------------------------------------------------------------------
 
 	bool initImageAndView(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue, const char* imgFilePath);
 	bool initSampler(VkDevice device, VkPhysicalDevice physDevice);

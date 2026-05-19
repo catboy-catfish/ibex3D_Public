@@ -5,7 +5,7 @@
 
 #include <array>
 
-// ----------------------------------------------------------------------------------------------------
+// - Functions ----------------------------------------------------------------------------------------
 
 bool vkSwapchainObject::initSwapchain(VkDevice device, VkPhysicalDevice physDevice, VkSurfaceKHR surface, int wndWidth, int wndHeight, bool vSync)
 {
@@ -94,7 +94,7 @@ bool vkSwapchainObject::initSwapchain(VkDevice device, VkPhysicalDevice physDevi
 	imageFormat = format.format;
 	imageExtent = extent;
 
-	// ----------------------------------------------------------------------------------------------------
+	// - Image views --------------------------------------------------------------------------------------
 
 	swapchainImageViews.resize(imageCount);
 
