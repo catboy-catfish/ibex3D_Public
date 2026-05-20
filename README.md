@@ -30,12 +30,10 @@ ibex3D is not even close to finished. I'm pretty sure this codebase has multiple
 ### Documentation
 
 ```
-NOTICE: The documentation is *painfully* unfinished right now, and in addition to that, it's currently on hold. Please feel free to add your own documentation or update the existing stuff if you want, but this project is currently a solo effort and I want to focus more on the actual development side of things right now.
+NOTICE: The documentation is *painfully* unfinished right now, and in addition to that, it's currently on hold (for the most part, but it still may be occasionally updated in bursts). Please feel free to add your own documentation or update the existing stuff if you want, but this project is currently a solo effort and I want to focus more on the actual development side of things right now.
 ```
 
 Very early work-in-progress documentation can be found in the [documentation folder](documentation/). I highly reccommend you start with the [START_HERE](documentation/_START_HERE.md) file, and once you're ready, explore the other files in the folder.
-
-If you want to create your own documentation, I've personally created a templates folder in order to make your life easier. The files with the `md` file extension should be easily editable with a Markdown text editor like [byxiaozhi's Typedown](https://github.com/byxiaozhi/Typedown) or [this online editor](https://markdownlivepreview.com/). The files ending with `.drawio` must be edited with [draw.io](https://app.diagrams.net/), a free online diagram creation software (note that it requires a browser with JavaScript support).
 
 ### Model file name notice
 

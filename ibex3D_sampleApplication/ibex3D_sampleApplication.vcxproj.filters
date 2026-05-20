@@ -1,11 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClInclude Include="include\ibex3D\core\application.h">
-      <Filter>sampleApp\appInterface</Filter>
-    </ClInclude>
     <ClInclude Include="include\ibex3D\core\runtime.h">
-      <Filter>ibex3D\core\appRuntime</Filter>
+      <Filter>ibex3D\core\runtime</Filter>
     </ClInclude>
     <ClInclude Include="include\ibex3D\core\entryPoint.h">
       <Filter>ibex3D\core\entryPoint</Filter>
@@ -52,14 +49,16 @@
     <ClInclude Include="include\ibex3D\vulkan\bufferObject.h">
       <Filter>ibex3D\vulkan\bufferObject</Filter>
     </ClInclude>
-    <ClInclude Include="include\ibex3D\vulkan\enumTextGetter.h" />
+    <ClInclude Include="include\ibex3D\vulkan\enumTextGetter.h">
+      <Filter>ibex3D\vulkan\enumTextGetter</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ibex3D\core\application.h">
+      <Filter>ibex3D\core\application</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\ibex3D\core\application.cpp">
-      <Filter>sampleApp\appInterface</Filter>
-    </ClCompile>
     <ClCompile Include="source\ibex3D\core\runtime_win32.cpp">
-      <Filter>ibex3D\core\appRuntime</Filter>
+      <Filter>ibex3D\core\runtime</Filter>
     </ClCompile>
     <ClCompile Include="source\ibex3D\vulkan\meshObject.cpp">
       <Filter>ibex3D\vulkan\meshObject</Filter>
@@ -91,31 +90,25 @@
     <ClCompile Include="source\ibex3D\core\win32.cpp">
       <Filter>ibex3D\core\win32</Filter>
     </ClCompile>
-    <ClCompile Include="source\ibex3D\main.cpp">
-      <Filter>sampleApp</Filter>
-    </ClCompile>
     <ClCompile Include="source\ibex3D\utility\logger.cpp">
       <Filter>ibex3D\utility\logger</Filter>
     </ClCompile>
     <ClCompile Include="source\ibex3D\vulkan\bufferObject.cpp">
       <Filter>ibex3D\vulkan\bufferObject</Filter>
     </ClCompile>
+    <ClCompile Include="source\ibex3D\core\application.cpp">
+      <Filter>ibex3D\core\application</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ibex3D\main.cpp">
+      <Filter>ibex3D</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Filter Include="sampleApp">
-      <UniqueIdentifier>{74a12a20-480e-46b3-aa47-721406568039}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="sampleApp\appInterface">
-      <UniqueIdentifier>{cb344a5b-7751-4a9b-8496-0b36e854557b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="ibex3D">
       <UniqueIdentifier>{cb863526-b27e-476d-8042-0a64315fde5d}</UniqueIdentifier>
     </Filter>
     <Filter Include="ibex3D\core">
       <UniqueIdentifier>{a022e727-1164-4ba6-8707-c30e32a623ad}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ibex3D\core\appRuntime">
-      <UniqueIdentifier>{22ab9be6-8ecc-4103-9d25-a16602fb5306}</UniqueIdentifier>
     </Filter>
     <Filter Include="ibex3D\core\entryPoint">
       <UniqueIdentifier>{72d1f6a3-58ce-4213-8675-cade4220991a}</UniqueIdentifier>
@@ -179,6 +172,15 @@
     </Filter>
     <Filter Include="ibex3D\vulkan\bufferObject">
       <UniqueIdentifier>{32595bcb-86c0-4180-8dcb-64ed4af6d986}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\vulkan\enumTextGetter">
+      <UniqueIdentifier>{9b971604-6c54-468b-a76d-b8a215e2aa29}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\core\runtime">
+      <UniqueIdentifier>{22ab9be6-8ecc-4103-9d25-a16602fb5306}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\core\application">
+      <UniqueIdentifier>{ace03999-7535-431a-a83f-f16b82610bd8}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

@@ -79,14 +79,23 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 
 bool runtime::initialize(unsigned int wndWidth, unsigned int wndHeight, const char* wndTitle)
 {
-	if (!initWindow(wndWidth, wndHeight, wndTitle))
+	try
 	{
-		return false;
-	}
+		if (!initWindow(wndWidth, wndHeight, wndTitle))
+		{
+			return false;
+		}
 
-	if (!initApplication(wndWidth, wndHeight))
+		if (!initApplication(wndWidth, wndHeight))
+		{
+			return false;
+		}
+	}
+	catch (const std::exception& e)
 	{
-	 	return false;
+		auto descString = std::string("runtime::initialize(): Caught an exception during the initialization stage! Details: ") + e.what() + std::string(".\n");
+		logger::logError(descString.c_str(), __FILE__, __LINE__ - 6);
+		return false;
 	}
 
 	return true;
@@ -105,7 +114,7 @@ void runtime::run()
 	}
 	catch (const std::exception& e)
 	{
-		auto descString = std::string("runtime::run(): Caught an exception! Details: ") + e.what() + std::string(".\n");
+		auto descString = std::string("runtime::run(): Caught an exception during the runtime stage! Details: ") + e.what() + std::string(".\n");
 		logger::logError(descString.c_str(), __FILE__, __LINE__ - 6);
 		
 		return;

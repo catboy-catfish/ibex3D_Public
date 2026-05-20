@@ -5,17 +5,19 @@
 - [Assumptions of Prior Experience](#assumptions-of-prior-experience)
   - [Learning resources](#learning-resources)
 - [Program Execution Flow](#program-execution-flow)
-- - [Entry Point File](#entry-point-file)
+- - [The Entry Point File](#the-entry-point-file)
     - [Testbed](#testbed)
 - [Code Conventions](#code-conventions)
 - [Preprocessor Definitions](#preprocessor-definitions)
+- [Contributing](#contributing)
+  - [Documentation](#documentation)
 - [To-Do List](#to-do-list)
 
 ### Assumptions of Prior Experience
 
 If you work with ibex3D, you are assumed to have basic knowledge of programming in C++ and GLSL, and if you want to implement advanced features, you'll also need intermediate/advanced C++ knowledge as well as graphics programming using the Vulkan API. The ibex3D documentation doesn't go into depth about these very often, and if you have no prior experience with any of them, you might become lost and confused.
 
-In which case, I suggest you use the resources linked in the below section to get started. If you have any ideas for better resources, please consider suggesting or adding them in the Learning Resources section!
+In which case, I suggest you use the resources linked in the below section to get started.
 
 ##### Learning Resources
 
@@ -56,26 +58,26 @@ For general graphics programming, look into:
 - [PardCode - Game Engine Tutorial Series (YouTube playlist)](https://www.youtube.com/playlist?list=PLv8DnRaQOs5-MR-zbP1QUdq5FL0FWqVzg)
 - [PardCode - C++ OpenGL 3D Game Tutorial Series From Scratch (YouTube playlist)](https://www.youtube.com/playlist?list=PLv8DnRaQOs5-TyYnF56YghOxQBNr1VVmF)
 
-I _strongly_ recommend that you don't restrict yourself to just these links and resources. Please feel free to look for other C++/Vulkan/graphics programming tutorials - do a quick google search for "C++ tutorial", "Vulkan tutorial" or "Graphics programming tutorial" - if you get confused or want to solidify your existing knowledge.
+I _strongly_ recommend that you don't restrict yourself to just these links and resources. Please feel free to look for other C++/Vulkan/graphics programming tutorials - do a quick google search for "C++ tutorial", "Vulkan tutorial" or "Graphics programming tutorial" - if you ever get confused, or want to deepen or solidify your existing knowledge. If you have any ideas for better resources, please consider adding or suggesting them in this section!
 
 ### Program Execution
 
 The execution for the entire application and game proceeds as follows:
-main.cpp -> [appRuntime](ibex3D_core_appRuntime.md) -> [appInterface](sampleApp_appInterface.md)
+main.cpp -> [runtime](ibex3D_core_runtime.md) -> [application](ibex3D_core_application.md)
 
-In addition to that, the execution of the `appRuntime` and `appInterface` classes are split up into three stages: initialization, runtime, and cleanup. The [appRuntime source file](ibex3D_core_appRuntime.md) contains a detailed explanation of what this means and what the various stages are responsible for.
+In addition to that, the execution of the `runtime` and `application` classes are split up into three stages: initialization, runtime, and cleanup. The [runtime source file](ibex3D_core_runtime.md) contains a detailed explanation of what this means and what the various stages are responsible for.
 
 ##### The Entry Point File
 
-The entry point file for the ibex3D sample application is located at `ibex3D_sampleApplication/source/sampleApp/main.cpp`, where the `ibex3D_sampleApplication` folder is located along this file's parent folder and the `libraries` folder. The source code of this file looks something like this:
+The entry point file for the ibex3D sample application is located at `ibex3D_sampleApplication/source/ibex3D/main.cpp`, where the `ibex3D_sampleApplication` folder is located along this file's parent folder and the `libraries` folder. The source code of this file looks something like this:
 
 ```cpp
 #include <ibex3D/core/entryPoint.h>
-#include <ibex3D/core/appRuntime.h>
+#include <ibex3D/core/runtime.h>
 
 int ibex3D_entryPoint()
 {
-    auto runtime = new appRuntime;
+    auto runtime = new runtime;
 
     if (runtime->initialize(1280, 720, "Hello, ibex3D!"))
     {
@@ -90,7 +92,8 @@ int ibex3D_entryPoint()
 }
 ```
 
-The symbol `ibex3D_entryPoint` is a preprocessor macro in `ibex3D_sampleApplication/include/ibex3D/core/entryPoint.h` which simply switches between `main()` (which has an extra console window for debugging) and `WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow)` (with no console window) depending on whether or not `_CONSOLE` is specified, which is itself specified in Debug mode and not in Release mode. The source code of that file looks something like this:
+The symbol `ibex3D_entryPoint` is a preprocessor macro in `ibex3D_sampleApplication/include/ibex3D/core/entryPoint.h` which simply switches between `main()` (which has an extra console window for debugging) and `WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow)` (with no console window) depending on whether or not `_CONSOLE` is specified, which is itself specified in Debug mode and not in Release mode.
+The source code of that file looks something like this:
 
 ```cpp
 #pragma once
@@ -111,9 +114,15 @@ The symbol `ibex3D_entryPoint` is a preprocessor macro in `ibex3D_sampleApplicat
 
 ##### Testbed
 
-In addition to the main entry point file, `source/sampleApp/main.cpp`, the project also has another entry point .cpp file whose name starts with `testbed_`. It might be named something like `testbed_simd.cpp` or `testbed_fastgltf.cpp` or `testbed_`whatever`.cpp`. Anyways, this file is used for testing functions, classes and stuff in isolation from the main game without making changes to the main.cpp file. Note that this file isn't meant to be used in the final executable.
+In addition to the main entry point file, `source/sampleApp/main.cpp`, the project might also has another entry point .cpp file whose name starts with `testbed_`.
+It might be named something like `testbed_simd.cpp` or `testbed_fastgltf.cpp` or `testbed_`whatever`.cpp`.
+Anyways, this file is used for testing functions, classes and stuff in isolation from the main game without making changes to the main.cpp file.
+Note that this file isn't meant to be used in the final executable.
 
-To switch to using the `testbed_`.cpp file in the Visual Studio project, make sure the `Show All Files` option is enabled in the Solution Explorer to see the real folders. Then, right click on `testbed_`.cpp and select `Include In Project`, then right click on the main.cpp file and select `Exclude From Project`. To switch back, include the main.cpp file and then exclude the `testbed_`.cpp file. If you disable `Show All Files` to see the virtual folders, also known as "filters", you'll notice that the entry point file has been moved out of the sampleApp filter, so please make sure to move it back in whenever you do this!
+To switch to using the `testbed_`.cpp file in the Visual Studio project, make sure the `Show All Files` option is enabled in the Solution Explorer to see the real folders.
+Then, right click on `testbed_`.cpp and select `Include In Project`, then right click on the main.cpp file and select `Exclude From Project`.
+To switch back, include the main.cpp file and then exclude the `testbed_`.cpp file.
+If you disable `Show All Files` to see the virtual folders, also known as "filters", you'll notice that the entry point file will have been moved out of the sampleApp filter, so please make sure to move it back in whenever you do this!
 
 ### Code Conventions
 
@@ -157,16 +166,24 @@ void cleanup()
 ### Preprocessor Definitions
 
 SIMD:
-
 - `IBEX3D_SIMD_SSE` - Determines whether the SSE instruction is included and used in the build. If this is not specified, basic SISD instructions are used instead. This is currently only used in `vec4::operator +=`, `operator -=`, `operator *=` and `operator /=`, as well as the function `vec4::unsafeDivideBy()`.
 
 Vulkan:
-
 - `IBEX3D_VULKAN_VALIDATION` - Determines whether validation layers (and related helper/extension functions/callbacks) are included and used in the build. If this is not specified, validation layers are disabled, and the functions that use them either do nothing or are excluded entirely. This is currently used in the files `source/ibex3D/vulkan/renderingContext.cpp`, `include/ibex3D/vulkan/vkUtils.h` and `source/ibex3D/vulkan/vkUtils.cpp`.
+
+### Contributing
+
+##### Documentation
+
+If you want to create your own documentation, I've personally created a templates folder in order to make your life easier. Files with the `md` file extension should be easily editable with a Markdown text editor like [byxiaozhi's Typedown](https://github.com/byxiaozhi/Typedown) or [this online editor](https://markdownlivepreview.com/). Files ending with `.drawio` must be edited with [draw.io](https://app.diagrams.net/), a free online diagram creation software (note that it requires a browser with JavaScript support).
+
+If you use draw.io to export your diagram as an image, please use the following settings. Choose to export your image as a JPEG, set the Zoom to 200 and the Appearance to Light, and use the snake_case naming convention (all lowercase with words separated by underscores) to name your image file. Then, export it to the media folder in the parent folder of this file.
+
+![draw.io - Preferred export settings](media/drawio_export_convention.jpg)
 
 ### To-Do List
 
-This is a to-do list for Sam and other developers (if any) to refer to.
+For Sam and other developers (if any) to refer to.
 
 Documentation:
 - Try to keep up to date if you notice any discrepancies between this file and the source code/APIs!
@@ -190,8 +207,8 @@ Vulkan-Specific:
 - Investigate push constants as a replacement for uniform buffers
 
 Model importing:
-- The .obj model file format is being ignored by the .gitignore, and I find the vertex/index loading code in vkMeshClass to be hideous since .obj files don't seem to support modern indexing by default. Transition to a better model file format for this like glTF or FBX instead.
-- Better yet, start using a custom intermediate format for assets that is quickly loadable, efficient and customizable - [vkguide.dev has a tutorial for this](https://vkguide.dev/docs/extra-chapter/asset_system/).
+- The .obj model file format is being ignored by the .gitignore, and I find the vertex/index loading code in vkMeshClass to be hideous since .obj files don't seem to support modern indexing by default. Transition to a better model file format for this like glTF or FBX instead - [vkguide.dev has a tutorial for loading .gltf files using fastgltf, but I'm personally having difficulty understanding it](https://vkguide.dev/docs/new_vkguide/chapter_5).
+- Better yet, start using a custom intermediate format for assets that is quickly loadable, efficient and customizable - [The handsome, humble and ever so helpful vkguide.dev has a tutorial for this as well](https://vkguide.dev/docs/extra-chapter/asset_system/).
 
 Math vector types:
 - Figure out how to implement SIMD into the vec2 and vec3 types

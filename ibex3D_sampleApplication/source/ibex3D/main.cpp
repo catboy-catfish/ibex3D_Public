@@ -1,18 +1,17 @@
 #include <ibex3D/core/entryPoint.h>
 #include <ibex3D/core/runtime.h>
-#include <ibex3D/utility/logger.h>
 
 int ibex3D_entryPoint()
 {		
-	auto rt = new runtime;
+	auto pRuntime = new runtime;
 
-	if (rt->initialize(1280, 720, "Hello, ibex3D!"))
+	if (pRuntime->initialize(1280, 720, "Hello, ibex3D!"))
 	{
-		rt->run();
+		pRuntime->run();
 	}
 
-	rt->cleanup();
-	delete rt;
+	pRuntime->cleanup();
+	delete pRuntime;
 
 	return 0;
 }

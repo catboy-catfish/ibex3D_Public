@@ -22,7 +22,7 @@ bool application::initialize(runtime* pRuntime, void* pWindow)
 
 	if (pRuntime != nullptr)
 	{
-		m_appRuntime = pRuntime;
+		m_runtime = pRuntime;
 	}
 	else
 	{
@@ -49,12 +49,15 @@ void application::update(float deltaTime)
 	
 	updateFpsCounter(deltaTime);
 	updateMeshRotation(deltaTime);
+
+	// FIX: This exception isn't caught by the try-catch block in runtime::run().
+	// throw std::bad_cast(); // make sure to #include <exception>!
 }
 
 void application::render(float deltaTime)
 {	
 	/*
-		Called by the parent runtime every frame after all logic in update() is complete.
+		Called by the parent runtime every frame after all logic in update() is completed.
 		Use this function to render all objects, perform other relevant tasks, etc.
 	*/
 	
@@ -69,7 +72,7 @@ void application::cleanup()
 {
 	/*
 		Called by the parent runtime when it has finished running and is cleaning up before exiting.
-		Use this function to free all allocated memory, save any relevant data, etc.
+		Use this function to save any relevant data, free all allocated memory before exiting, etc.
 	*/
 	
 	if (m_renderingContext != nullptr)
@@ -79,7 +82,7 @@ void application::cleanup()
 		m_renderingContext = nullptr;
 	}
 
-	m_appRuntime = nullptr;
+	m_runtime = nullptr;
 }
 
 void application::input_onKeyDownEvent(unsigned int key)
@@ -115,7 +118,7 @@ bool application::input_isKeyDown(unsigned int key)
 void application::window_onResizeEvent(unsigned int wndWidth, unsigned int wndHeight)
 {
 	/*
-		Called by the parent runtime in the event where the application window is resized.
+		Called by the parent runtime in the event where the window is resized.
 		Use this function to refresh any rendering/UI data, update relevant variables, etc.
 
 		The parameters wndWidth and wndHeight are the new width and height of the window after being resized, respectively.
@@ -131,22 +134,22 @@ void application::window_onResizeEvent(unsigned int wndWidth, unsigned int wndHe
 void application::window_onFocusEvent()
 {
 	/*
-		Called by the parent runtime in the event where the application window gains focus.
+		Called by the parent runtime in the event where the window gains user focus.
 	*/
 }
 
 void application::window_onUnfocusEvent()
 {
 	/*
-		Called by the parent runtime in the event where the application window loses focus.
+		Called by the parent runtime in the event where the window loses user focus.
 	*/
 }
 
 void application::window_onCloseRequestedEvent()
 {
 	/*
-		Called by the parent runtime in the event where the application window receives a close request (e.g. the user clicks the "X" button on the window).
-		Use this function to perform any relevant tasks before the application is closed, etc.
+		Called by the parent runtime in the event where the window receives a close request from the user (e.g. they click the "X" button on the top right corner).
+		Use this function to perform any relevant tasks before the cleanup stage occurs, etc.
 		
 		Not to be confused with the cleanup() function, which is called after this event is received when the application is actually being cleaned up before exiting.
 		This function is only for performing tasks right when the close request is received, and not for when the application is actually being cleaned up before exiting.
@@ -161,7 +164,7 @@ bool application::isSafeToStartRunning()
 		before starting the main loop to check if everything is properly initialized.
 	*/
 	
-	if (m_appRuntime == nullptr)
+	if (m_runtime == nullptr)
 	{
 		return false;
 	}
@@ -187,7 +190,7 @@ void application::updateFpsCounter(float deltaTime)
 	m_elapsedTime += deltaTime;
 
 	if (m_elapsedTime >= 1.0f)
-	{
+	{		
 		printf("%zu frames have passed this second.\n", m_elapsedFrames);
 		m_elapsedFrames = 0;
 		m_elapsedTime = 0.0f;

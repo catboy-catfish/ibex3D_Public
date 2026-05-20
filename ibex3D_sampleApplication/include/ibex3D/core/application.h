@@ -33,7 +33,7 @@ public:
 
 private:
 	bool m_keyStates[256] = { false };
-	runtime* m_appRuntime = nullptr;
+	runtime* m_runtime = nullptr;
 	vkRenderingContext* m_renderingContext = nullptr;
 
 	// Example variables below - add or remove as needed
