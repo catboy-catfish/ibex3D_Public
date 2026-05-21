@@ -4,7 +4,7 @@
 
 - [Assumptions of Prior Experience](#assumptions-of-prior-experience)
   - [Learning resources](#learning-resources)
-- [Program Execution Flow](#program-execution-flow)
+- [Program Execution](#program-execution)
 - - [The Entry Point File](#the-entry-point-file)
     - [Testbed](#testbed)
 - [Code Conventions](#code-conventions)
