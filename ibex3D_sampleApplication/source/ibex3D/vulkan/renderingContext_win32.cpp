@@ -6,9 +6,10 @@
 #include <ibex3D/utility/logger.h>
 #include <ibex3D/utility/miscellaneous.h>
 
-#include <map>
-#include <set>
 #include <stdio.h>
+#include <string>
+#include <set>
+#include <map>
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE

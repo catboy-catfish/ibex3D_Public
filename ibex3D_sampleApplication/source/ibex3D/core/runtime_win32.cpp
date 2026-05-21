@@ -3,16 +3,15 @@
 #include <ibex3D/core/win32.h>
 
 #include <ibex3D/utility/logger.h>
+#include <ibex3D/utility/bitUtils.h>
 
 #include <stdio.h>
 #include <string>
 #include <exception>
 
-// - Macro definitions --------------------------------------------------------------------------------
+// - Win32-specific structs and stuff -----------------------------------------------------------------
 
 #define WINDOW_CLASS_NAME "ibex3D Window Class"
-
-// - Win32-specific structs and stuff -----------------------------------------------------------------
 
 struct windowData_t
 {
@@ -21,7 +20,9 @@ struct windowData_t
 };
 
 static LRESULT CALLBACK windowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
-{
+{	
+	// FIX: Exceptions thrown from this function are not caught by the try-catch block in runtime::run().
+
 	LONG_PTR rtLongPtr = GetWindowLongPtrA(hWnd, GWLP_USERDATA);
 	auto rtHandle = reinterpret_cast<runtime*>(GetWindowLongPtrA(hWnd, GWLP_USERDATA));
 
@@ -39,7 +40,14 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 		}
 		case WM_KEYDOWN:
 		{
-			rtHandle->window_onKeyDownEvent(static_cast<unsigned int>(wParam));
+			// The 30th bit of lParam distinguishes between the initial key press (0) and subsequent auto-repeats while held (1).
+			// We only want the initial key press, so we take the 30th bit and invert it.
+
+			if (!getNthBit(lParam, 30))
+			{
+				rtHandle->window_onKeyDownEvent(static_cast<unsigned int>(wParam));
+			}
+			
 			break;
 		}
 		case WM_KEYUP:
@@ -95,6 +103,7 @@ bool runtime::initialize(unsigned int wndWidth, unsigned int wndHeight, const ch
 	{
 		auto descString = std::string("runtime::initialize(): Caught an exception during the initialization stage! Details: ") + e.what() + std::string(".\n");
 		logger::logError(descString.c_str(), __FILE__, __LINE__ - 6);
+
 		return false;
 	}
 
@@ -114,6 +123,8 @@ void runtime::run()
 	}
 	catch (const std::exception& e)
 	{
+		// FIX: This doesn't catch any exceptions thrown by windowProc or deeper in the call stack. Investigate this!
+		
 		auto descString = std::string("runtime::run(): Caught an exception during the runtime stage! Details: ") + e.what() + std::string(".\n");
 		logger::logError(descString.c_str(), __FILE__, __LINE__ - 6);
 		
@@ -276,7 +287,7 @@ bool runtime::initWindow(unsigned int wndWidth, unsigned int wndHeight, const ch
 }
 
 void runtime::updateWindow()
-{
+{	
 	MSG msg = {};
 
 	while (PeekMessageA(&msg, nullptr, 0, 0, PM_REMOVE))
@@ -316,7 +327,7 @@ bool runtime::initApplication(unsigned int wndWidth, unsigned int wndHeight)
 	m_application = new application;
 
 	auto wndData = static_cast<windowData_t*>(m_windowData);
-	if (!m_application->initialize(this, static_cast<void*>(wndData->hWnd)))
+	if (!m_application->initialize(this, wndData->hWnd))
 	{
 		logger::logError("runtime::initApplication(): The application failed to initialize.", __FILE__, __LINE__ - 2);
 		return false;

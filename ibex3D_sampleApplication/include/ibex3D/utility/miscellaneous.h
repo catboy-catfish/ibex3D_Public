@@ -1,6 +1,5 @@
 #pragma once
 
-#include <string>
 #include <vector>
 
 // - Macro definition ---------------------------------------------------------------------------------
@@ -17,5 +16,5 @@ class ibex3D_utilFunctions
 {
 public:
 	// File reading
-	static std::vector<char> readFile(const std::string& filePath);
+	static std::vector<char> readFile(const char* filePath);
 };

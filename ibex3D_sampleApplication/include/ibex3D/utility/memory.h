@@ -30,7 +30,7 @@ t* ibex3D_allocate(u&& args)
 	printf("Allocated %zu bytes of RAM (now using %zu bytes).\n", memSize, totalRamUsage);
 
 	void* mem = malloc(memSize);
-	return new(mem) t(std::forward<U>(args));
+	return new(mem) t(std::forward<u>(args));
 }
 
 template <typename t>

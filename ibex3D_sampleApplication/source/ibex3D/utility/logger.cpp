@@ -8,17 +8,23 @@ void logger::log(const char* text)
 	fprintf(stdout, text);
 }
 
-void logger::logError(const char* description, const char* file, size_t line)
+void logger::logInfo(const char* description, const char* file, size_t line)
 {
-	fprintf(stderr, "\nERROR (File: %s, line %zu) - %s\n", file, line, description);
+#ifdef IBEX3D_LOG_INFO
+	fprintf(stdout, "\nINFO (File: %s, line %zu) - %s\n", file, line, description);
+#endif
 }
 
 void logger::logWarning(const char* description, const char* file, size_t line)
 {
-	fprintf(stdout, "\nWARNING (File: %s, line %zu) - %s\n", file, line, description);
+#ifdef IBEX3D_LOG_WARNINGS
+	fprintf(stderr, "\nWARNING (File: %s, line %zu) - %s\n", file, line, description);
+#endif
 }
 
-void logger::logInfo(const char* description, const char* file, size_t line)
+void logger::logError(const char* description, const char* file, size_t line)
 {
-	fprintf(stdout, "\nINFO (File: %s, line %zu) - %s\n", file, line, description);
+#ifdef IBEX3D_LOG_ERRORS
+	fprintf(stderr, "\nERROR (File: %s, line %zu) - %s\n", file, line, description);
+#endif
 }

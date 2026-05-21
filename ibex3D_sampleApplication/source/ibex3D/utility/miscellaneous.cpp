@@ -5,7 +5,7 @@
 
 // - Functions ----------------------------------------------------------------------------------------
 
-std::vector<char> ibex3D_utilFunctions::readFile(const std::string& filePath)
+std::vector<char> ibex3D_utilFunctions::readFile(const char* filePath)
 {
 	// Pick up from where you left off at https://youtu.be/Qbs9v1W7St8?si=guDlWk9bBXZzHxOe&t=476
 	
@@ -13,7 +13,7 @@ std::vector<char> ibex3D_utilFunctions::readFile(const std::string& filePath)
 
 	if (!file.is_open())
 	{
-		printf("UTILITY ERROR - ibex3D_utilFunctions::readFile(): Couldn't open file at path \"%s\".\n", filePath.c_str());
+		printf("UTILITY ERROR - ibex3D_utilFunctions::readFile(): Couldn't open file at path \"%s\".\n", filePath);
 		return std::vector<char>();
 	}
 

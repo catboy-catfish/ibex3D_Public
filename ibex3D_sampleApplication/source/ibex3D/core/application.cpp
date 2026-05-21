@@ -20,20 +20,18 @@ bool application::initialize(runtime* pRuntime, void* pWindow)
 		Use this function to allocate memory, initialize variables, etc.
 	*/
 
-	if (pRuntime != nullptr)
+	if (pRuntime == nullptr)
 	{
-		m_runtime = pRuntime;
-	}
-	else
-	{
-		logger::logError("application::initialize(): Couldn't initialize the application because argument \"runtime* pRuntime\" is nullptr. You must pass a valid runtime pointer for the application to communicate with.", __FILE__, __LINE__ - 2);
+		logger::logError("application::initialize(): Couldn't initialize the application because argument \"runtime* pRuntime\" is nullptr. You must pass a pointer to the runtime instance that owns this application instance so that the application can communicate with it.", __FILE__, __LINE__ - 2);
 		return false;
 	}
 	
+	m_runtime = pRuntime;
 	m_renderingContext = new vkRenderingContext;
 	
 	if (!m_renderingContext->initialize(pWindow))
 	{
+		logger::logError("application::initialize(): Couldn't initialize the application because the vkRenderingContext failed to initialize.", __FILE__, __LINE__ - 2);
 		return false;
 	}
 
@@ -91,7 +89,7 @@ void application::input_onKeyDownEvent(unsigned int key)
 		Called by the parent runtime in the event where a key is pressed.
 		Use this function to perform tasks depending on the key that was pressed, etc.
 	*/
-	
+
 	m_keyStates[key] = true;
 }
 
@@ -101,7 +99,7 @@ void application::input_onKeyUpEvent(unsigned int key)
 		Called by the parent runtime in the event where a key is released.
 		Use this function to perform tasks depending on the key that was released, etc.
 	*/
-	
+
 	m_keyStates[key] = false;
 }
 

@@ -55,6 +55,9 @@
     <ClInclude Include="include\ibex3D\core\application.h">
       <Filter>ibex3D\core\application</Filter>
     </ClInclude>
+    <ClInclude Include="include\ibex3D\utility\bitUtils.h">
+      <Filter>ibex3D\utility\bitUtils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\ibex3D\core\runtime_win32.cpp">
@@ -181,6 +184,9 @@
     </Filter>
     <Filter Include="ibex3D\core\application">
       <UniqueIdentifier>{ace03999-7535-431a-a83f-f16b82610bd8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\utility\bitUtils">
+      <UniqueIdentifier>{55026003-6fd7-4086-b9dc-42e62aca507c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

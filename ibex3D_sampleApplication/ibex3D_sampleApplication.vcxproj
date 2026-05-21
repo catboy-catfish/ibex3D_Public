@@ -18,6 +18,7 @@
     <ClInclude Include="include\ibex3D\math\vec3.h" />
     <ClInclude Include="include\ibex3D\math\vec4.h" />
     <ClInclude Include="include\ibex3D\math\vec4_simd.h" />
+    <ClInclude Include="include\ibex3D\utility\bitUtils.h" />
     <ClInclude Include="include\ibex3D\utility\logger.h" />
     <ClInclude Include="include\ibex3D\utility\memory.h" />
     <ClInclude Include="include\ibex3D\utility\miscellaneous.h" />
@@ -100,7 +101,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>IBEX3D_SIMD_SSE;IBEX3D_VULKAN_VALIDATION;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>IBEX3D_LOG_INFO;IBEX3D_LOG_WARNINGS;IBEX3D_LOG_ERRORS;IBEX3D_SIMD_SSE;IBEX3D_VULKAN_VALIDATION;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(VULKAN_SDK)/Include/;$(ProjectDir)include/</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
