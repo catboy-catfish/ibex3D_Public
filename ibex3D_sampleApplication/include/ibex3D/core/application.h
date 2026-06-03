@@ -1,11 +1,11 @@
 #pragma once
 
-// - Forward declarations -----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------
 
 class runtime;
 class vkRenderingContext;
 
-// - Class declaration --------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------
 
 class application
 {
@@ -16,6 +16,7 @@ public:
 	void cleanup();
 
 	void input_onKeyDownEvent(unsigned int key);
+	void input_onKeyRepeatEvent(unsigned int key);
 	void input_onKeyUpEvent(unsigned int key);
 	bool input_isKeyDown(unsigned int key);
 
@@ -33,6 +34,7 @@ public:
 
 private:
 	bool m_keyStates[256] = { false };
+
 	runtime* m_runtime = nullptr;
 	vkRenderingContext* m_renderingContext = nullptr;
 

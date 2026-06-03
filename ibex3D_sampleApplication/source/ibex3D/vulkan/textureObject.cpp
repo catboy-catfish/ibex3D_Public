@@ -10,7 +10,7 @@
 #include <algorithm>
 #include <cmath>
 
-// - Functions ----------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------
 
 bool vkTextureObject::initImageAndView(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue, const char* imgFilePath)
 {
@@ -69,9 +69,14 @@ bool vkTextureObject::initImageAndView(VkDevice device, VkPhysicalDevice physDev
 		return false;
 	}
 
+	// New: Recording the functions below into the same command buffer before ending it.
+	// I'm wondering how much of a good idea this is???
+
+	VkCommandBuffer cmdBuffer = vkUtils::beginSingleTimeCommands(device, cmdPool);
+
 	if (!vkUtils::transitionImageLayout
 	(
-		device, cmdPool, gfxQueue,
+		device, cmdBuffer,
 		image, mipLevels, VK_FORMAT_R8G8B8A8_SRGB,
 		VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
 	))
@@ -81,9 +86,12 @@ bool vkTextureObject::initImageAndView(VkDevice device, VkPhysicalDevice physDev
 		return false;
 	}
 
+	// vkUtils::endSingleTimeCommands(device, cmdPool, gfxQueue, cmdBuffer);
+	// VkCommandBuffer cmdBuffer = vkUtils::beginSingleTimeCommands(device, cmdPool);
+
 	if (!vkUtils::copyBufferToImage
 	(
-		device, cmdPool, gfxQueue,
+		device, cmdBuffer,
 		stagingBuffer.buffer, image,
 		static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight)
 	))
@@ -93,9 +101,12 @@ bool vkTextureObject::initImageAndView(VkDevice device, VkPhysicalDevice physDev
 		return false;
 	}
 
+	// vkUtils::endSingleTimeCommands(device, cmdPool, gfxQueue, cmdBuffer);
+	// VkCommandBuffer cmdBuffer = vkUtils::beginSingleTimeCommands(device, cmdPool);
+
 	if (!vkUtils::generateMipmaps
 	(
-		device, physDevice, cmdPool, gfxQueue,
+		device, physDevice, cmdBuffer,
 		image, VK_FORMAT_R8G8B8A8_SRGB, texWidth, texHeight, mipLevels
 	))
 	{
@@ -104,9 +115,10 @@ bool vkTextureObject::initImageAndView(VkDevice device, VkPhysicalDevice physDev
 		return false;
 	}
 
+	vkUtils::endSingleTimeCommands(device, cmdPool, gfxQueue, cmdBuffer);
 	stagingBuffer.cleanup(device);
 
-	// - Image view ---------------------------------------------------------------------------------------
+	// ----------------------------------------------------------------------------------------------------
 
 	imageView = vkUtils::createImageView(device, image, mipLevels, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
 

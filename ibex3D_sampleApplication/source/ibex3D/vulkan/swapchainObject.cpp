@@ -5,7 +5,7 @@
 
 #include <array>
 
-// - Functions ----------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------
 
 bool vkSwapchainObject::initSwapchain(VkDevice device, VkPhysicalDevice physDevice, VkSurfaceKHR surface, int wndWidth, int wndHeight, bool vSync)
 {
@@ -66,7 +66,7 @@ bool vkSwapchainObject::initSwapchain(VkDevice device, VkPhysicalDevice physDevi
 	swapchainInfo.oldSwapchain = VK_NULL_HANDLE;
 
 	VkResult result = vkCreateSwapchainKHR(device, &swapchainInfo, nullptr, &swapchain);
-
+	
 	if (result != VK_SUCCESS)
 	{
 		vkUtils::logErrorWithResult(result, "vkSwapchainObject::initSwapchain(): An error occured while trying to create the swapchain.", __FILE__, __LINE__ - 4);
@@ -94,7 +94,7 @@ bool vkSwapchainObject::initSwapchain(VkDevice device, VkPhysicalDevice physDevi
 	imageFormat = format.format;
 	imageExtent = extent;
 
-	// - Image views --------------------------------------------------------------------------------------
+	// ----------------------------------------------------------------------------------------------------
 
 	swapchainImageViews.resize(imageCount);
 
@@ -192,11 +192,12 @@ bool vkSwapchainObject::initDepthResources(VkDevice device, VkPhysicalDevice phy
 		return false;
 	}
 
+	VkCommandBuffer cmdBuffer = vkUtils::beginSingleTimeCommands(device, cmdPool);
+
 	if (!vkUtils::transitionImageLayout
 	(
 		device,
-		cmdPool,
-		gfxQueue,
+		cmdBuffer,
 		depthImage,
 		1,
 		depthFormat,
@@ -204,9 +205,11 @@ bool vkSwapchainObject::initDepthResources(VkDevice device, VkPhysicalDevice phy
 		VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
 	))
 	{
-		logger::logError("vkSwapchainObject::initDepthResources(): Couldn't transition the depth image layout.", __FILE__, __LINE__ - 12);
+		logger::logError("vkSwapchainObject::initDepthResources(): Couldn't transition the depth image layout.", __FILE__, __LINE__ - 11);
 		return false;
 	}
+
+	vkUtils::endSingleTimeCommands(device, cmdPool, gfxQueue, cmdBuffer);
 
 	return true;
 }

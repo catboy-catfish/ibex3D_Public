@@ -9,7 +9,7 @@
 #include <string>
 #include <exception>
 
-// - Win32-specific structs and stuff -----------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------
 
 #define WINDOW_CLASS_NAME "ibex3D Window Class"
 
@@ -41,9 +41,12 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 		case WM_KEYDOWN:
 		{
 			// The 30th bit of lParam distinguishes between the initial key press (0) and subsequent auto-repeats while held (1).
-			// We only want the initial key press, so we take the 30th bit and invert it.
-
-			if (!getNthBit(lParam, 30))
+			
+			if (getNthBit(lParam, 30))
+			{
+				rtHandle->window_onKeyRepeatEvent(static_cast<unsigned int>(wParam));
+			}
+			else
 			{
 				rtHandle->window_onKeyDownEvent(static_cast<unsigned int>(wParam));
 			}
@@ -83,7 +86,7 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 	return DefWindowProcA(hWnd, msg, wParam, lParam);
 }
 
-// - Main public functions ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------
 
 bool runtime::initialize(unsigned int wndWidth, unsigned int wndHeight, const char* wndTitle)
 {
@@ -181,6 +184,14 @@ void runtime::window_onKeyDownEvent(unsigned int key)
 	}
 }
 
+void runtime::window_onKeyRepeatEvent(unsigned int key)
+{
+	if (m_application != nullptr)
+	{
+		m_application->input_onKeyRepeatEvent(key);
+	}
+}
+
 void runtime::window_onKeyUpEvent(unsigned int key)
 {
 	if (m_application != nullptr)
@@ -189,7 +200,7 @@ void runtime::window_onKeyUpEvent(unsigned int key)
 	}
 }
 
-// - Functions called by window procedure -------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------
 
 void runtime::window_onResizeEvent(unsigned int newWidth, unsigned int newHeight)
 {	
@@ -230,7 +241,7 @@ void runtime::window_onCloseRequestedEvent()
 	m_keepRunningFlag = false;
 }
 
-// - Window functions ---------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------
 
 bool runtime::initWindow(unsigned int wndWidth, unsigned int wndHeight, const char* wndTitle)
 {
@@ -320,7 +331,7 @@ void runtime::cleanupWindow()
 	}
 }
 
-// - Application functions ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------
 
 bool runtime::initApplication(unsigned int wndWidth, unsigned int wndHeight)
 {
@@ -346,7 +357,7 @@ void runtime::cleanupApplication()
 	}
 }
 
-// - Helper functions ---------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------
 
 bool runtime::isSafeToStartRunning()
 {

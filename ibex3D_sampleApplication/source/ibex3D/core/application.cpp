@@ -5,13 +5,12 @@
 
 #include <ibex3D/utility/logger.h>
 
-// - Win32 virtual key codes --------------------------------------------------------------------------
 // - https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes -----------------------
 
 #define KEY_A 0x41
 #define KEY_D 0x44
 
-// - Main functions -----------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------
 
 bool application::initialize(runtime* pRuntime, void* pWindow)
 {
@@ -61,8 +60,7 @@ void application::render(float deltaTime)
 	
 	if (m_renderingContext != nullptr)
 	{
-		m_renderingContext->setMeshRotation(m_meshRot);
-		m_renderingContext->drawFrame();
+		m_renderingContext->drawFrame(m_meshRot);
 	}
 }
 
@@ -91,6 +89,14 @@ void application::input_onKeyDownEvent(unsigned int key)
 	*/
 
 	m_keyStates[key] = true;
+}
+
+void application::input_onKeyRepeatEvent(unsigned int key)
+{
+	/*
+		Called by the parent runtime in the event where a key auto-repeats while held down.
+		Use this function to perform tasks depending on the key that was repeated, etc.
+	*/
 }
 
 void application::input_onKeyUpEvent(unsigned int key)
@@ -125,7 +131,7 @@ void application::window_onResizeEvent(unsigned int wndWidth, unsigned int wndHe
 	
 	if (m_renderingContext != nullptr)
 	{
-		m_renderingContext->enableResizedFlag();
+		m_renderingContext->refresh();
 	}
 }
 
@@ -175,7 +181,7 @@ bool application::isSafeToStartRunning()
 	return true;
 }
 
-// - Custom function examples -------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------
 
 void application::updateFpsCounter(float deltaTime)
 {

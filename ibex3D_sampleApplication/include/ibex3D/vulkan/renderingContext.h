@@ -5,15 +5,14 @@
 #include "textureObject.h"
 #include "bufferObject.h"
 
-// - Class declaration --------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------
 
 class vkRenderingContext
 {
 public:
 	bool initialize(void* wndMemory);
-	void setMeshRotation(float rotation);
-	bool drawFrame();
-	void enableResizedFlag();
+	bool drawFrame(float meshRotation);
+	void refresh();
 	void cleanup();
 
 private:
@@ -43,8 +42,6 @@ private:
 	
 	static bool checkInstanceLayerSupport();
 	static bool checkPhysDeviceExtensionSupport(VkPhysicalDevice physDevice);
-	static void printAvailableInstanceExtensions();
-	static void printAvailableInstanceLayers();
 
 	static std::vector<const char*> getRequiredInstanceExtensions();
 	static std::vector<const char*> getRequiredInstanceLayers();
@@ -84,6 +81,6 @@ private:
 
 	float m_aspectRatio = 1.0f;
 	float m_currentMeshRotation = 0.0f;
-	bool m_wasJustResized = false;
+	bool m_refreshSwapchain = false;
 	bool m_useVsync = true;
 };

@@ -1,7 +1,7 @@
 #include <ibex3D/math/vec3.h>
 #include <math.h>
 
-// - Operator overrides -------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------
 
 vec3 vec3::operator + (const vec3& other) const
 {
@@ -86,7 +86,7 @@ bool vec3::operator != (const vec3& other) const
 	return false;
 }
 
-// - Advanced math and utility functions --------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------
 
 vec3 vec3::multipliedByFloat(float in) const
 {
@@ -180,7 +180,7 @@ float vec3::getDotProduct(const vec3& other) const
 	return (x * other.x) + (y * other.y) + (z * other.z);
 }
 
-// - Unsafe division functions ------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------
 
 vec3 vec3::unsafeDividedBy(const vec3& other) const
 {

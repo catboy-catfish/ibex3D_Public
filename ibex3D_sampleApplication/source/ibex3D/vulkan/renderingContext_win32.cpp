@@ -19,7 +19,7 @@
 
 #include <vulkan/vulkan_win32.h>
 
-// - Macros, helper structs, file-scope functions, etc ------------------------------------------------
+// ----------------------------------------------------------------------------------------------------
 
 #define MAX_FRAMES_IN_FLIGHT 2
 
@@ -51,10 +51,10 @@ static glm::mat4 getCameraProjMatrix(float fovRadians, float aspectRatio)
 	return projMatrix;
 }
 
-// - Public utility functions -------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------
 
 bool vkRenderingContext::initialize(void* wndMemory)
-{			
+{
 	int wndWidth, wndHeight;
 	IBEX3D_BASSERT(win32Utils::getWindowDimensions(static_cast<HWND>(wndMemory), wndWidth, wndHeight));
 
@@ -77,13 +77,10 @@ bool vkRenderingContext::initialize(void* wndMemory)
 	return true;
 }
 
-void vkRenderingContext::setMeshRotation(float rotation)
-{
-	m_currentMeshRotation = rotation;
-}
-
-bool vkRenderingContext::drawFrame()
+bool vkRenderingContext::drawFrame(float meshRotation)
 {	
+	m_currentMeshRotation = meshRotation;
+	
 	vkWaitForFences(m_logicalDevice, 1, &m_frameFences[m_currentFrame], VK_TRUE, UINT64_MAX);
 
 	uint32_t imageIndex = 0;
@@ -96,7 +93,7 @@ bool vkRenderingContext::drawFrame()
 	}
 	else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
 	{
-		vkUtils::logErrorWithResult(result, "vkRenderingContext::drawFrame(): Couldn't acquire the swapchain image.", __FILE__, __LINE__ - 9);
+		vkUtils::logErrorWithResult(result, "vkRenderingContext::drawFrame(): An error occured while trying to acquire the swapchain image.", __FILE__, __LINE__ - 9);
 		return false;
 	}
 
@@ -105,7 +102,7 @@ bool vkRenderingContext::drawFrame()
 	updateUniformBuffer(m_currentFrame);
 	recordCommandBuffer(m_commandBuffers[m_currentFrame], imageIndex);
 
-	// - Submitting command buffer ------------------------------------------------------------------------
+	// ----------------------------------------------------------------------------------------------------
 
 	VkPipelineStageFlags waitStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
@@ -123,11 +120,11 @@ bool vkRenderingContext::drawFrame()
 
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::logErrorWithResult(result, "vkRenderingContext::drawFrame(): An error occurred while trying to submit the draw command to the command buffer.", __FILE__, __LINE__ - 4);
+		vkUtils::logErrorWithResult(result, "vkRenderingContext::drawFrame(): An error occurred while trying to submit the rendering command buffer.", __FILE__, __LINE__ - 4);
 		return false;
 	}
 
-	// - Presentation -------------------------------------------------------------------------------------
+	// ----------------------------------------------------------------------------------------------------
 
 	VkPresentInfoKHR presentInfo = {};
 	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -140,10 +137,10 @@ bool vkRenderingContext::drawFrame()
 
 	result = vkQueuePresentKHR(m_presentQueue, &presentInfo);
 
-	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || m_wasJustResized)
+	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || m_refreshSwapchain)
 	{
 		IBEX3D_BASSERT(recreateSwapchain());
-		m_wasJustResized = false;
+		m_refreshSwapchain = false;
 	}
 	else if (result != VK_SUCCESS)
 	{
@@ -155,9 +152,9 @@ bool vkRenderingContext::drawFrame()
 	return true;
 }
 
-void vkRenderingContext::enableResizedFlag()
+void vkRenderingContext::refresh()
 {
-	m_wasJustResized = true;
+	m_refreshSwapchain = true;
 }
 
 void vkRenderingContext::cleanup()
@@ -166,7 +163,7 @@ void vkRenderingContext::cleanup()
 	cleanupInstance();
 }
 
-// - Initialization functions -------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------
 
 bool vkRenderingContext::initInstance()
 {
@@ -216,7 +213,7 @@ bool vkRenderingContext::initInstance()
 	}
 
 #ifdef IBEX3D_VULKAN_VALIDATION
-	result = vkExtFunctions::CreateDebugUtilsMessengerEXT(m_instance, &messengerInfo, nullptr, &m_debugMessenger);
+	result = vkUtils::createDebugMessenger(m_instance, &messengerInfo, nullptr, &m_debugMessenger);
 
 	if (result != VK_SUCCESS)
 	{
@@ -507,7 +504,7 @@ bool vkRenderingContext::initDescriptorSetLayout()
 
 bool vkRenderingContext::initGraphicsPipeline()
 {		
-	// TODO: Figure out how to compile the GLSL shaders into SPIR-V at runtime using libshaderc
+	// TODO: Figure out how to compile the GLSL shaders into SPIR-V at runtime using glslang or shaderc
 	auto vtxShaderBytecode = ibex3D_utilFunctions::readFile("assets/shaders/shader_vert.spv");
 	if (vtxShaderBytecode.empty()) return false;
 
@@ -762,7 +759,7 @@ bool vkRenderingContext::initCommandPoolAndBuffers()
 		return false;
 	}
 
-	// - Command buffers for frames in flight -------------------------------------------------------------
+	// ----------------------------------------------------------------------------------------------------
 
 	m_commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
 
@@ -901,7 +898,7 @@ bool vkRenderingContext::initDescriptorPoolAndSets()
 		return false;
 	}
 
-	// - Descriptor sets for frames in flight -------------------------------------------------------------
+	// ----------------------------------------------------------------------------------------------------
 
 	std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, m_descriptorSetLayout);
 
@@ -1003,7 +1000,7 @@ bool vkRenderingContext::initSyncObjects()
 	return true;
 }
 
-// - Runtime/rendering functions ----------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------
 
 void vkRenderingContext::updateUniformBuffer(uint32_t currentImage)
 {
@@ -1118,7 +1115,7 @@ bool vkRenderingContext::recreateSwapchain()
 	return true;
 }
 
-// - Cleanup functions --------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------
 
 void vkRenderingContext::cleanupSwapchain()
 {	
@@ -1229,7 +1226,7 @@ void vkRenderingContext::cleanupInstance()
 #ifdef IBEX3D_VULKAN_VALIDATION
 		if (m_debugMessenger != nullptr)
 		{
-			vkExtFunctions::DestroyDebugUtilsMessengerEXT(m_instance, m_debugMessenger, nullptr);
+			vkUtils::destroyDebugMessenger(m_instance, m_debugMessenger, nullptr);
 			m_debugMessenger = nullptr;
 		}
 #endif
@@ -1241,12 +1238,12 @@ void vkRenderingContext::cleanupInstance()
 
 		vkDestroyInstance(m_instance, nullptr);
 		m_instance = nullptr;
-
-		m_wndMemory = nullptr;
 	}
+
+	m_wndMemory = nullptr;
 }
 
-// - Helper functions ---------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------
 
 bool vkRenderingContext::checkInstanceLayerSupport()
 {
@@ -1304,38 +1301,6 @@ bool vkRenderingContext::checkPhysDeviceExtensionSupport(VkPhysicalDevice physDe
 	}
 
 	return extensions.empty();
-}
-
-void vkRenderingContext::printAvailableInstanceExtensions()
-{
-	uint32_t extensionCount = 0;
-	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
-
-	std::vector<VkExtensionProperties> extensions(extensionCount);
-	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
-
-	printf("Available instance extensions:\n");
-
-	for (const auto& extension : extensions)
-	{
-		printf("- %s\n", extension.extensionName);
-	}
-}
-
-void vkRenderingContext::printAvailableInstanceLayers()
-{
-	uint32_t layerCount = 0;
-	vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
-
-	std::vector<VkLayerProperties> layers(layerCount);
-	vkEnumerateInstanceLayerProperties(&layerCount, layers.data());
-
-	printf("Available instance layers:\n");
-
-	for (const auto& layer : layers)
-	{
-		printf("- %s\n", layer.layerName);
-	}
 }
 
 std::vector<const char*> vkRenderingContext::getRequiredInstanceExtensions()

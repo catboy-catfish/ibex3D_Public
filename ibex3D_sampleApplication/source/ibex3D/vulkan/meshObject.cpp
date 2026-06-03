@@ -11,7 +11,7 @@
 #include <string>
 #include <unordered_map>
 
-// - Hashing functionality ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------
 
 namespace std
 {
@@ -31,7 +31,7 @@ namespace std
 	};
 }
 
-// - vkVertex functions -------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------
 
 VkVertexInputBindingDescription vkVertex::getBindingDesc()
 {
@@ -69,7 +69,7 @@ std::array<VkVertexInputAttributeDescription, 3> vkVertex::getAttributeDescs()
 	return attribDescs;
 }
 
-// - Main functions -----------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------
 
 void vkMeshObject::initSimpleModel()
 {

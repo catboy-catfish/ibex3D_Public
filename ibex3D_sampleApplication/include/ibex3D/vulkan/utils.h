@@ -3,7 +3,7 @@
 #include <vulkan/vulkan.h>
 #include <vector>
 
-// - Helper structs -----------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------
 
 struct vkQueueFamilyIndices
 {
@@ -23,28 +23,7 @@ struct vkSwapchainSupportInfo
 	std::vector<VkPresentModeKHR> presentModes;
 };
 
-// - Main struct declarations -------------------------------------------------------------------------
-
-class vkExtFunctions
-{
-public:
-#ifdef IBEX3D_VULKAN_VALIDATION
-	static VkResult CreateDebugUtilsMessengerEXT
-	(
-		VkInstance instance,
-		const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
-		const VkAllocationCallbacks* pAllocator,
-		VkDebugUtilsMessengerEXT* pDebugMessenger
-	);
-
-	static void DestroyDebugUtilsMessengerEXT
-	(
-		VkInstance instance,
-		VkDebugUtilsMessengerEXT debugMessenger,
-		const VkAllocationCallbacks* pAllocator
-	);
-#endif
-};
+// ----------------------------------------------------------------------------------------------------
 
 class vkUtils
 {
@@ -52,6 +31,21 @@ public:
 
 	// Validation layers
 #ifdef IBEX3D_VULKAN_VALIDATION
+	static VkResult createDebugMessenger
+	(
+		VkInstance instance,
+		const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
+		const VkAllocationCallbacks* pAllocator,
+		VkDebugUtilsMessengerEXT* pDebugMessenger
+	);
+
+	static void destroyDebugMessenger
+	(
+		VkInstance instance,
+		VkDebugUtilsMessengerEXT debugMessenger,
+		const VkAllocationCallbacks* pAllocator
+	);
+
 	static void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& info);
 
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debugMessengerCallback
@@ -98,7 +92,7 @@ public:
 	// Images
 	static bool createImage(VkDevice device, VkPhysicalDevice physDevice, uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags memProperties, VkImage& image, VkDeviceMemory& imageMem);
 	static VkImageView createImageView(VkDevice device, VkImage image, uint32_t mipLevels, VkFormat format, VkImageAspectFlags aspect);
-	static bool copyBufferToImage(VkDevice device, VkCommandPool cmdPool, VkQueue gfxQueue, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
-	static bool transitionImageLayout(VkDevice device, VkCommandPool cmdPool, VkQueue gfxQueue, VkImage image, uint32_t mipLevels, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
-	static bool generateMipmaps(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue, VkImage image, VkFormat format, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
+	static bool copyBufferToImage(VkDevice device, VkCommandBuffer cmdBuffer, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
+	static bool transitionImageLayout(VkDevice device, VkCommandBuffer cmdBuffer, VkImage image, uint32_t mipLevels, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+	static bool generateMipmaps(VkDevice device, VkPhysicalDevice physDevice, VkCommandBuffer cmdBuffer, VkImage image, VkFormat format, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
 };

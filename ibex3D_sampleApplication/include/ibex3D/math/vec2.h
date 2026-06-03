@@ -1,6 +1,6 @@
 #pragma once
 
-// - Class declaration --------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------
 
 struct vec2
 {
@@ -11,13 +11,12 @@ struct vec2
 	vec2(float inX, float inY) : x(inX), y(inY) {}
 	vec2(float inXY) : x(inXY), y(inXY) {}
 
-	// - Operator overrides -------------------------------------------------------------------------------
+	// ----------------------------------------------------------------------------------------------------
 
 	vec2 operator + (const vec2& other) const;
 	vec2 operator - (const vec2& other) const;
 	vec2 operator * (const vec2& other) const;
 	vec2 operator / (const vec2& other) const;
-
 	void operator += (const vec2& other);
 	void operator -= (const vec2& other);
 	void operator *= (const vec2& other);
@@ -26,11 +25,10 @@ struct vec2
 	bool operator == (const vec2& other) const;
 	bool operator != (const vec2& other) const;
 
-	// - Advanced math and utility functions --------------------------------------------------------------
+	// ----------------------------------------------------------------------------------------------------
 
 	vec2 multipliedByFloat(float in) const;
 	void multiplyByFloat(float in);
-
 	vec2 dividedByFloat(float in) const;
 	void divideByFloat(float in);
 
@@ -38,13 +36,12 @@ struct vec2
 	void lerpTo(const vec2& other, float amount);
 
 	float getLength() const;
-
 	vec2 normalized() const;
 	void normalize();
 
 	float getDotProduct(const vec2& other) const;
 
-	// - Unsafe division functions ------------------------------------------------------------------------
+	// ----------------------------------------------------------------------------------------------------
 
 	vec2 unsafeDividedBy(const vec2& other) const;
 	vec2 unsafeDividedByFloat(float in) const;

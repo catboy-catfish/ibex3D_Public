@@ -49,9 +49,6 @@
     <ClInclude Include="include\ibex3D\vulkan\bufferObject.h">
       <Filter>ibex3D\vulkan\bufferObject</Filter>
     </ClInclude>
-    <ClInclude Include="include\ibex3D\vulkan\enumTextGetter.h">
-      <Filter>ibex3D\vulkan\enumTextGetter</Filter>
-    </ClInclude>
     <ClInclude Include="include\ibex3D\core\application.h">
       <Filter>ibex3D\core\application</Filter>
     </ClInclude>
@@ -175,9 +172,6 @@
     </Filter>
     <Filter Include="ibex3D\vulkan\bufferObject">
       <UniqueIdentifier>{32595bcb-86c0-4180-8dcb-64ed4af6d986}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ibex3D\vulkan\enumTextGetter">
-      <UniqueIdentifier>{9b971604-6c54-468b-a76d-b8a215e2aa29}</UniqueIdentifier>
     </Filter>
     <Filter Include="ibex3D\core\runtime">
       <UniqueIdentifier>{22ab9be6-8ecc-4103-9d25-a16602fb5306}</UniqueIdentifier>

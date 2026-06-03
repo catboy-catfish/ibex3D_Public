@@ -5,7 +5,7 @@
 #include <immintrin.h>
 #endif
 
-// - Operator override definitions --------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------
 
 vec4 vec4::operator + (const vec4& other) const
 {	
@@ -122,7 +122,7 @@ bool vec4::operator != (const vec4& other) const
 	return false;
 }
 
-// - Advanced math and utility functions --------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------
 
 vec4 vec4::multipliedByFloat(float in) const
 {
@@ -222,7 +222,7 @@ float vec4::getDotProduct(const vec4& other) const
 	return (x * other.x) + (y * other.y) + (z * other.z) + (w * other.w);
 }
 
-// - Unsafe division functions ------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------
 
 vec4 vec4::unsafeDividedBy(const vec4& other) const
 {

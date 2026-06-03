@@ -2,11 +2,11 @@
 
 #include <chrono>
 
-// - Forward declarations -----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------
 
 class application;
 
-// - Class declaration --------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------
 
 class runtime
 {
@@ -18,6 +18,7 @@ public:
 	void cleanup();
 
 	void window_onKeyDownEvent(unsigned int key);
+	void window_onKeyRepeatEvent(unsigned int key);
 	void window_onKeyUpEvent(unsigned int key);
 	void window_onResizeEvent(unsigned int newWidth, unsigned int newHeight);
 	void window_onFocusEvent();

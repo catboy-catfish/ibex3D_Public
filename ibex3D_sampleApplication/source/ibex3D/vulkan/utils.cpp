@@ -3,6 +3,8 @@
 #include <ibex3D/utility/logger.h>
 #include <ibex3D/utility/miscellaneous.h>
 
+#include <vulkan/vk_enum_string_helper.h>
+
 #include <glslang/Include/glslang_c_interface.h>
 #include <glslang/Public/resource_limits_c.h>
 
@@ -11,10 +13,10 @@
 #include <set>
 #include <string>
 
-// - Extension functions ------------------------------------------------------------------------------
+// - Validation layers --------------------------------------------------------------------------------
 
 #ifdef IBEX3D_VULKAN_VALIDATION
-VkResult vkExtFunctions::CreateDebugUtilsMessengerEXT
+VkResult vkUtils::createDebugMessenger
 (
 	VkInstance instance,
 	const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
@@ -34,7 +36,7 @@ VkResult vkExtFunctions::CreateDebugUtilsMessengerEXT
 	}
 }
 
-void vkExtFunctions::DestroyDebugUtilsMessengerEXT
+void vkUtils::destroyDebugMessenger
 (
 	VkInstance instance,
 	VkDebugUtilsMessengerEXT debugMessenger,
@@ -48,11 +50,7 @@ void vkExtFunctions::DestroyDebugUtilsMessengerEXT
 		func(instance, debugMessenger, pAllocator);
 	}
 }
-#endif
 
-// - Validation layers --------------------------------------------------------------------------------
-
-#ifdef IBEX3D_VULKAN_VALIDATION
 void vkUtils::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& info)
 {
 	info = {};
@@ -102,21 +100,27 @@ VKAPI_ATTR VkBool32 VKAPI_CALL vkUtils::debugMessengerCallback
 // - Logging ------------------------------------------------------------------------------------------
 
 void vkUtils::logErrorWithResult(VkResult result, const char* desc, const char* file, size_t line)
-{	
-	auto descWithResult = std::string(desc) + " (VkResult: " + std::to_string(result) + ")";
+{		
+#ifdef IBEX3D_LOG_ERRORS
+	auto descWithResult = std::string(desc) + " (VkResult: " + std::string(string_VkResult(result)) + ")";
 	logger::logError(descWithResult.c_str(), file, line);
+#endif
 }
 
 void vkUtils::logWarningWithResult(VkResult result, const char* desc, const char* file, size_t line)
 {
-	auto descWithResult = std::string(desc) + " (VkResult: " + std::to_string(result) + ")";
+#ifdef IBEX3D_LOG_WARNINGS
+	auto descWithResult = std::string(desc) + " (VkResult: " + std::string(string_VkResult(result)) + ")";
 	logger::logWarning(descWithResult.c_str(), file, line);
+#endif
 }
 
 void vkUtils::logInfoWithResult(VkResult result, const char* desc, const char* file, size_t line)
 {
-	auto descWithResult = std::string(desc) + " (VkResult: " + std::to_string(result) + ")";
+#ifdef IBEX3D_LOG_INFOS
+	auto descWithResult = std::string(desc) + " (VkResult: " + std::string(string_VkResult(result)) + ")";
 	logger::logInfo(descWithResult.c_str(), file, line);
+#endif
 }
 
 // - Physical device and swapchain --------------------------------------------------------------------
@@ -369,8 +373,15 @@ VkCommandBuffer vkUtils::beginSingleTimeCommands(VkDevice device, VkCommandPool 
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
-	// TODO: Add error checking?
-	vkBeginCommandBuffer(commandBuffer, &beginInfo);
+	result = vkBeginCommandBuffer(commandBuffer, &beginInfo);
+
+	if (result != VK_SUCCESS)
+	{
+		vkUtils::logErrorWithResult(result, "vkUtils::beginSingleTimeCommands(): An error occured while trying to record the command buffer.", __FILE__, __LINE__ - 4);
+		
+		vkFreeCommandBuffers(device, pool, 1, &commandBuffer);
+		return nullptr;
+	}
 
 	return commandBuffer;
 }
@@ -541,10 +552,8 @@ VkImageView vkUtils::createImageView(VkDevice device, VkImage image, uint32_t mi
 	return imageView;
 }
 
-bool vkUtils::copyBufferToImage(VkDevice device, VkCommandPool cmdPool, VkQueue gfxQueue, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height)
+bool vkUtils::copyBufferToImage(VkDevice device, VkCommandBuffer cmdBuffer, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height)
 {
-	VkCommandBuffer commandBuffer = beginSingleTimeCommands(device, cmdPool);
-
 	VkBufferImageCopy copyRegion = {};
 	copyRegion.bufferOffset = 0;
 	copyRegion.bufferRowLength = 0;
@@ -558,7 +567,7 @@ bool vkUtils::copyBufferToImage(VkDevice device, VkCommandPool cmdPool, VkQueue 
 
 	vkCmdCopyBufferToImage
 	(
-		commandBuffer,
+		cmdBuffer,
 		buffer,
 		image,
 		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
@@ -566,15 +575,11 @@ bool vkUtils::copyBufferToImage(VkDevice device, VkCommandPool cmdPool, VkQueue 
 		&copyRegion
 	);
 
-	endSingleTimeCommands(device, cmdPool, gfxQueue, commandBuffer);
 	return true;
 }
 
-bool vkUtils::transitionImageLayout(VkDevice device, VkCommandPool cmdPool, VkQueue gfxQueue, VkImage image, uint32_t mipLevels, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout)
+bool vkUtils::transitionImageLayout(VkDevice device, VkCommandBuffer cmdBuffer, VkImage image, uint32_t mipLevels, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout)
 {
-	// TODO: Error checking?
-	VkCommandBuffer commandBuffer = beginSingleTimeCommands(device, cmdPool);
-
 	VkImageMemoryBarrier barrier = {};
 	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 	barrier.oldLayout = oldLayout;
@@ -627,15 +632,12 @@ bool vkUtils::transitionImageLayout(VkDevice device, VkCommandPool cmdPool, VkQu
 	else
 	{
 		logger::logError("vkUtils::transitionImageLayout(): Unsupported layout transition. Supported transitions include \"UNDEFINED -> TRANSFER_DST_OPTIMAL\" and \"TRANSFER_DST_OPTIMAL -> SHADER_READ_ONLY_OPTIMAL\".", __FILE__, __LINE__ - 4);
-		vkEndCommandBuffer(commandBuffer);
-		vkFreeCommandBuffers(device, cmdPool, 1, &commandBuffer);
-
 		return false;
 	}
 
 	vkCmdPipelineBarrier
 	(
-		commandBuffer,
+		cmdBuffer,
 		srcStage,
 		dstStage,
 		0,
@@ -644,11 +646,10 @@ bool vkUtils::transitionImageLayout(VkDevice device, VkCommandPool cmdPool, VkQu
 		1, &barrier
 	);
 
-	endSingleTimeCommands(device, cmdPool, gfxQueue, commandBuffer);
 	return true;
 }
 
-bool vkUtils::generateMipmaps(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue, VkImage image, VkFormat format, int32_t texWidth, int32_t texHeight, uint32_t mipLevels)
+bool vkUtils::generateMipmaps(VkDevice device, VkPhysicalDevice physDevice, VkCommandBuffer cmdBuffer, VkImage image, VkFormat format, int32_t texWidth, int32_t texHeight, uint32_t mipLevels)
 {
 	// Check if image format supports linear blitting
 	VkFormatProperties formatProperties = {};
@@ -659,8 +660,6 @@ bool vkUtils::generateMipmaps(VkDevice device, VkPhysicalDevice physDevice, VkCo
 		logger::logError("vkUtils::generateMipmaps(): Couldn't generate mipmaps because the image format does not support linear blitting.", __FILE__, __LINE__ - 4);
 		return false;
 	}
-
-	VkCommandBuffer cmdBuffer = beginSingleTimeCommands(device, cmdPool);
 
 	VkImageMemoryBarrier barrier = {};
 	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -768,6 +767,5 @@ bool vkUtils::generateMipmaps(VkDevice device, VkPhysicalDevice physDevice, VkCo
 		&barrier
 	);
 
-	endSingleTimeCommands(device, cmdPool, gfxQueue, cmdBuffer);
 	return true;
 }

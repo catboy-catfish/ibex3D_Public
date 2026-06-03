@@ -1,6 +1,6 @@
 #pragma once
 
-// - Class declaration --------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------
 
 struct vec4
 {
@@ -13,7 +13,7 @@ struct vec4
 	vec4(float inX, float inY, float inZ, float inW) : x(inX), y(inY), z(inZ), w(inW) {}
 	vec4(float inXYZW) : x(inXYZW), y(inXYZW), z(inXYZW), w(inXYZW) {}
 
-	// - Operator overrides -------------------------------------------------------------------------------
+	// ----------------------------------------------------------------------------------------------------
 
 	vec4 operator + (const vec4& other) const;
 	vec4 operator - (const vec4& other) const;
@@ -28,7 +28,7 @@ struct vec4
 	bool operator == (const vec4& other) const;
 	bool operator != (const vec4& other) const;
 
-	// - Advanced math and utility functions --------------------------------------------------------------
+	// ----------------------------------------------------------------------------------------------------
 
 	vec4 multipliedByFloat(float in) const;
 	void multiplyByFloat(float in);
@@ -46,7 +46,7 @@ struct vec4
 
 	float getDotProduct(const vec4& other) const;
 
-	// - Unsafe division functions ------------------------------------------------------------------------
+	// ----------------------------------------------------------------------------------------------------
 
 	vec4 unsafeDividedBy(const vec4& other) const;
 	vec4 unsafeDividedByFloat(float in) const;
