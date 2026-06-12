@@ -46,7 +46,7 @@ public:
 		const VkAllocationCallbacks* pAllocator
 	);
 
-	static void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& info);
+	static VkDebugUtilsMessengerCreateInfoEXT debugMessengerCreateInfo();
 
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debugMessengerCallback
 	(

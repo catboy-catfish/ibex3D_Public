@@ -51,9 +51,9 @@ void vkUtils::destroyDebugMessenger
 	}
 }
 
-void vkUtils::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& info)
+VkDebugUtilsMessengerCreateInfoEXT vkUtils::debugMessengerCreateInfo()
 {
-	info = {};
+	VkDebugUtilsMessengerCreateInfoEXT info = {};
 	info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
 
 	info.messageSeverity =
@@ -69,6 +69,8 @@ void vkUtils::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEX
 
 	info.pfnUserCallback = vkUtils::debugMessengerCallback;
 	info.pUserData = nullptr;
+
+	return info;
 }
 
 VKAPI_ATTR VkBool32 VKAPI_CALL vkUtils::debugMessengerCallback

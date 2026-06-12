@@ -191,13 +191,11 @@ bool vkRenderingContext::initInstance()
 	instanceInfo.enabledExtensionCount = static_cast<uint32_t>(instanceExtensions.size());
 
 #ifdef IBEX3D_VULKAN_VALIDATION
-	VkDebugUtilsMessengerCreateInfoEXT messengerInfo = {};
-	vkUtils::populateDebugMessengerCreateInfo(messengerInfo);
-
 	auto instanceLayers = getRequiredInstanceLayers();
-
 	instanceInfo.ppEnabledLayerNames = instanceLayers.data();
 	instanceInfo.enabledLayerCount = static_cast<uint32_t>(instanceLayers.size());
+	
+	VkDebugUtilsMessengerCreateInfoEXT messengerInfo = vkUtils::debugMessengerCreateInfo();
 	instanceInfo.pNext = &messengerInfo;
 #else
 	instanceInfo.enabledLayerCount = 0;
