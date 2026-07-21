@@ -1,399 +1,217 @@
-#include <ibex3D/core/runtime.h>
-#include <ibex3D/core/application.h>
-#include <ibex3D/core/win32.h>
+#include <ibex3D/core/runtime_win32.h>
+#include <ibex3D/core/application_win32.h>
 
-#include <ibex3D/utility/logger.h>
-#include <ibex3D/utility/bitUtils.h>
-
+#include <chrono>
 #include <stdio.h>
-#include <string>
-#include <exception>
 
-// ----------------------------------------------------------------------------------------------------
+#define WNDCLASS_NAME "ibex3D Window Class"
 
-#define WINDOW_CLASS_NAME "ibex3D Window Class"
-
-struct windowData_t
+static LRESULT CALLBACK wndProcWrapper(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	HINSTANCE hInstance = nullptr;
-	HWND hWnd = nullptr;
-};
+	auto rtPtr = reinterpret_cast<i3D_runtime_win32*>(GetWindowLongPtrA(hWnd, GWLP_USERDATA));
 
-static LRESULT CALLBACK windowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
-{	
-	// FIX: Exceptions thrown from this function are not caught by the try-catch block in runtime::run().
-
-	LONG_PTR rtLongPtr = GetWindowLongPtrA(hWnd, GWLP_USERDATA);
-	auto rtHandle = reinterpret_cast<runtime*>(GetWindowLongPtrA(hWnd, GWLP_USERDATA));
-
-	if (rtHandle == nullptr)
+	if (rtPtr != nullptr)
 	{
-		return DefWindowProcA(hWnd, msg, wParam, lParam);
-	}
-
-	switch (msg)
-	{
-		case WM_PAINT:
-		{
-			rtHandle->update();
-			return 0;
-		}
-		case WM_KEYDOWN:
-		{
-			// The 30th bit of lParam distinguishes between the initial key press (0) and subsequent auto-repeats while held (1).
-			
-			if (getNthBit(lParam, 30))
-			{
-				rtHandle->window_onKeyRepeatEvent(static_cast<unsigned int>(wParam));
-			}
-			else
-			{
-				rtHandle->window_onKeyDownEvent(static_cast<unsigned int>(wParam));
-			}
-			
-			break;
-		}
-		case WM_KEYUP:
-		{
-			rtHandle->window_onKeyUpEvent(static_cast<unsigned int>(wParam));
-			break;
-		}
-		case WM_SIZE:
-		{
-			auto newWidth = static_cast<unsigned int>(LOWORD(lParam));
-			auto newHeight = static_cast<unsigned int>(HIWORD(lParam));
-			
-			rtHandle->window_onResizeEvent(newWidth, newHeight);
-			break;
-		}
-		case WM_SETFOCUS:
-		{
-			rtHandle->window_onFocusEvent();
-			break;
-		}
-		case WM_KILLFOCUS:
-		{
-			rtHandle->window_onUnfocusEvent();
-			break;
-		}
-		case WM_CLOSE:
-		{
-			rtHandle->window_onCloseRequestedEvent();
-			break;
-		}
+		return rtPtr->wndProc(hWnd, msg, wParam, lParam);
 	}
 	
 	return DefWindowProcA(hWnd, msg, wParam, lParam);
 }
 
-// ----------------------------------------------------------------------------------------------------
-
-bool runtime::initialize(unsigned int wndWidth, unsigned int wndHeight, const char* wndTitle)
+bool i3D_runtime_win32::initWindow(int width, int height, const char* title)
 {
-	try
-	{
-		if (!initWindow(wndWidth, wndHeight, wndTitle))
-		{
-			return false;
-		}
-
-		if (!initApplication(wndWidth, wndHeight))
-		{
-			return false;
-		}
-	}
-	catch (const std::exception& e)
-	{
-		auto descString = std::string("runtime::initialize(): Caught an exception during the initialization stage! Details: ") + e.what() + std::string(".\n");
-		logger::logError(descString.c_str(), __FILE__, __LINE__ - 6);
-
-		return false;
-	}
-
-	return true;
-}
-
-void runtime::run()
-{
-	try
-	{
-		if (!isSafeToStartRunning()) return;
-
-		while (m_keepRunningFlag)
-		{
-			updateWindow();
-		}
-	}
-	catch (const std::exception& e)
-	{
-		// FIX: This doesn't catch any exceptions thrown by windowProc or deeper in the call stack. Investigate this!
-		
-		auto descString = std::string("runtime::run(): Caught an exception during the runtime stage! Details: ") + e.what() + std::string(".\n");
-		logger::logError(descString.c_str(), __FILE__, __LINE__ - 6);
-		
-		return;
-	}
-}
-
-void runtime::update()
-{	
-	auto endTime = std::chrono::high_resolution_clock::now();
-
-	float deltaTime = std::chrono::duration<float>(endTime - m_startTime).count();
-	m_startTime = endTime;
-
-	if (m_application != nullptr)
-	{
-		m_application->update(deltaTime);
-		m_application->render(deltaTime);
-	}
-
-	if (m_application->input_isKeyDown(VK_ESCAPE))
-	{
-		forceClose();
-	}
-}
-
-void runtime::forceClose()
-{
-	m_keepRunningFlag = false;
-
-	if (m_windowData != nullptr)
-	{
-		auto wndData = static_cast<windowData_t*>(m_windowData);
-
-		if (wndData->hWnd != nullptr)
-		{
-			DestroyWindow(wndData->hWnd);
-			wndData->hWnd = nullptr;
-		}
-	}
-}
-
-void runtime::cleanup()
-{
-	cleanupApplication();
-	cleanupWindow();
-}
-
-void runtime::window_onKeyDownEvent(unsigned int key)
-{
-	if (m_application != nullptr)
-	{
-		m_application->input_onKeyDownEvent(key);
-	}
-}
-
-void runtime::window_onKeyRepeatEvent(unsigned int key)
-{
-	if (m_application != nullptr)
-	{
-		m_application->input_onKeyRepeatEvent(key);
-	}
-}
-
-void runtime::window_onKeyUpEvent(unsigned int key)
-{
-	if (m_application != nullptr)
-	{
-		m_application->input_onKeyUpEvent(key);
-	}
-}
-
-// ----------------------------------------------------------------------------------------------------
-
-void runtime::window_onResizeEvent(unsigned int newWidth, unsigned int newHeight)
-{	
-	fprintf(stdout, "Window resized to dimensions { %i, %i }\n", newWidth, newHeight);
+	HINSTANCE hInstance = GetModuleHandleA(NULL);
 	
-	if (m_windowData != nullptr)
-	{
-		if (m_application != nullptr)
-		{
-			m_application->window_onResizeEvent(newWidth, newHeight);
-		}
-	}
-}
-
-void runtime::window_onFocusEvent()
-{
-	if (m_application != nullptr)
-	{
-		m_application->window_onFocusEvent();
-	}
-}
-
-void runtime::window_onUnfocusEvent()
-{
-	if (m_application != nullptr)
-	{
-		m_application->window_onUnfocusEvent();
-	}
-}
-
-void runtime::window_onCloseRequestedEvent()
-{
-	if (m_application != nullptr)
-	{
-		m_application->window_onCloseRequestedEvent();
-	}
-
-	m_keepRunningFlag = false;
-}
-
-// ----------------------------------------------------------------------------------------------------
-
-bool runtime::initWindow(unsigned int wndWidth, unsigned int wndHeight, const char* wndTitle)
-{
-	auto wndData = new windowData_t;
-	m_windowData = wndData;
-
-	wndData->hInstance = GetModuleHandleA(nullptr);
-
 	WNDCLASSEXA wndClass = {};
 	wndClass.cbSize = sizeof(WNDCLASSEXA);
-	wndClass.lpszClassName = WINDOW_CLASS_NAME;
-	wndClass.hInstance = wndData->hInstance;
-	wndClass.lpfnWndProc = windowProc;
-
+	wndClass.lpszClassName = WNDCLASS_NAME;
+	wndClass.hInstance = hInstance;
+	wndClass.lpfnWndProc = wndProcWrapper;
+	
 	if (RegisterClassExA(&wndClass) == 0)
 	{
-		logger::logError("runtime::initWindow(): An error occurred while trying to register the window class.", __FILE__, __LINE__ - 2);
+		fprintf(stderr, "WIN32 ERROR: Failed to register the window class.\n");
 		return false;
 	}
 
 	DWORD wndStyle = WS_OVERLAPPEDWINDOW;
 
-	RECT wndRect = { 0, 0, static_cast<LONG>(wndWidth), static_cast<LONG>(wndHeight)};
+	RECT wndRect = { 0, 0, width, height };
 	AdjustWindowRect(&wndRect, wndStyle, FALSE);
 
-	wndData->hWnd = CreateWindowExA
+	m_hWnd = CreateWindowExA
 	(
 		0,
-		WINDOW_CLASS_NAME,
-		wndTitle,
+		WNDCLASS_NAME, title,
 		wndStyle,
-		CW_USEDEFAULT,
-		CW_USEDEFAULT,
-		wndRect.right - wndRect.left,
-		wndRect.bottom - wndRect.top,
-		nullptr,
-		nullptr,
-		wndData->hInstance,
-		nullptr
+		CW_USEDEFAULT, CW_USEDEFAULT,
+		wndRect.right - wndRect.left, wndRect.bottom - wndRect.top,
+		NULL, NULL, hInstance, NULL
 	);
 
-	if (wndData->hWnd == nullptr)
+	if (m_hWnd == NULL)
 	{
-		logger::logError("runtime::initWindow(): An error occurred while trying to create the window.", __FILE__, __LINE__ - 18);
+		fprintf(stderr, "WIN32 ERROR: Failed to create the window.\n");
 		return false;
 	}
 
-	ShowWindow(wndData->hWnd, SW_SHOW);
-	SetFocus(wndData->hWnd);
+	SetWindowLongPtrA(m_hWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
 
-	SetWindowLongPtrA(wndData->hWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
+	ShowWindow(m_hWnd, SW_SHOW);
+	SetFocus(m_hWnd);
 
 	return true;
 }
 
-void runtime::updateWindow()
-{	
+void i3D_runtime_win32::updateWindow()
+{
 	MSG msg = {};
 
-	while (PeekMessageA(&msg, nullptr, 0, 0, PM_REMOVE))
+	while (PeekMessageA(&msg, m_hWnd, 0, 0, PM_REMOVE) > 0)
 	{
 		TranslateMessage(&msg);
 		DispatchMessageA(&msg);
 	}
 }
 
-void runtime::cleanupWindow()
+void i3D_runtime_win32::cleanupWindow()
 {
-	if (m_windowData != nullptr)
+	if (m_hWnd != nullptr)
 	{
-		auto wndData = static_cast<windowData_t*>(m_windowData);
-
-		if (wndData->hWnd != nullptr)
-		{
-			DestroyWindow(wndData->hWnd);
-			wndData->hWnd = nullptr;
-		}
-
-		if (wndData->hInstance != nullptr)
-		{
-			UnregisterClassA(WINDOW_CLASS_NAME, wndData->hInstance);
-			wndData->hInstance = nullptr;
-		}
-
-		delete wndData;
-		m_windowData = nullptr;
+		DestroyWindow(m_hWnd);
+		m_hWnd = nullptr;
 	}
+
+	HINSTANCE hInstance = GetModuleHandleA(NULL);
+	UnregisterClassA(WNDCLASS_NAME, hInstance);
 }
 
-// ----------------------------------------------------------------------------------------------------
-
-bool runtime::initApplication(unsigned int wndWidth, unsigned int wndHeight)
+bool i3D_runtime_win32::initApplication()
 {
-	m_application = new application;
-
-	auto wndData = static_cast<windowData_t*>(m_windowData);
-	if (!m_application->initialize(this, wndData->hWnd))
+	m_application = new i3D_application_win32;
+	
+	if (!m_application->initialize(this, m_hWnd))
 	{
-		logger::logError("runtime::initApplication(): The application failed to initialize.", __FILE__, __LINE__ - 2);
 		return false;
 	}
 
 	return true;
 }
 
-void runtime::cleanupApplication()
+void i3D_runtime_win32::updateApplication()
+{
+	auto startTime = std::chrono::high_resolution_clock::now();
+
+	if (m_application != nullptr)
+	{
+		m_application->update(m_deltaTime);
+		m_application->render(m_deltaTime);
+	}
+
+	auto endTime = std::chrono::high_resolution_clock::now();
+	m_deltaTime = std::chrono::duration<float>(endTime - startTime).count();
+}
+
+void i3D_runtime_win32::cleanupApplication()
 {
 	if (m_application != nullptr)
 	{
 		m_application->cleanup();
+
 		delete m_application;
 		m_application = nullptr;
 	}
 }
 
-// ----------------------------------------------------------------------------------------------------
-
-bool runtime::isSafeToStartRunning()
-{
-	if (m_windowData == nullptr)
+LRESULT i3D_runtime_win32::wndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{	
+	if (m_application != nullptr)
 	{
-		logger::logError("runtime::isSafeToStartRunning(): Not safe to start running because m_windowData is nullptr.", __FILE__, __LINE__ - 2);
+		switch (msg)
+		{
+			case WM_PAINT:
+			{
+				updateApplication();
+				return 0;
+			}
+			case WM_KEYDOWN:
+			{
+				// Isolating the 30th bit from lParam tells us whether or not the message is from an initial key press or auto-repeat
+				if ((lParam >> 30) & 1) {
+					m_application->onKeyAutoRepeat(wParam);
+				}
+				else {
+					m_application->onKeyDown(wParam);
+				}
+
+				break;
+			}
+			case WM_KEYUP:
+			{
+				m_application->onKeyUp(wParam);
+				break;
+			}
+			case WM_SIZE:
+			{
+				m_application->onWindowResize(LOWORD(lParam), HIWORD(lParam));
+				break;
+			}
+			case WM_SETFOCUS:
+			{
+				m_application->onWindowFocus();
+				break;
+			}
+			case WM_KILLFOCUS:
+			{
+				m_application->onWindowUnfocus();
+				break;
+			}
+			case WM_CLOSE:
+			{
+				close();
+				break;
+			}
+		}
+	}
+	
+	return DefWindowProcA(hWnd, msg, wParam, lParam);
+}
+
+bool i3D_runtime_win32::initialize(int wndWidth, int wndHeight, const char* wndTitle)
+{
+	if (!initWindow(wndWidth, wndHeight, wndTitle))
+	{
+		return false;
+	}
+
+	if (!initApplication())
+	{
 		return false;
 	}
 	
-	auto wndData = static_cast<windowData_t*>(m_windowData);
-
-	if (wndData->hInstance == nullptr)
-	{
-		logger::logError("runtime::isSafeToStartRunning(): Not safe to start running because m_windowData->hInstance is nullptr.", __FILE__, __LINE__ - 2);
-		return false;
-	}
-
-	if (wndData->hWnd == nullptr)
-	{
-		logger::logError("runtime::isSafeToStartRunning(): Not safe to start running because m_windowData->hWnd is nullptr.", __FILE__, __LINE__ - 2); 
-		return false;
-	}
-
-	if (m_application == nullptr)
-	{
-		logger::logError("runtime::isSafeToStartRunning(): Not safe to start running because m_application is nullptr.", __FILE__, __LINE__ - 2);
-		return false;
-	}
-	else
-	{
-		if (!m_application->isSafeToStartRunning())
-		{
-			logger::logError("runtime::isSafeToStartRunning(): Not safe to start running because m_application->isSafeToStartRunning() failed.", __FILE__, __LINE__ - 2);
-			return false;
-		}
-	}
-
 	return true;
+}
+
+void i3D_runtime_win32::startRunning()
+{
+	while (m_keepRunning)
+	{
+		updateWindow();
+	}
+}
+
+void i3D_runtime_win32::close()
+{
+	if (m_application != nullptr)
+	{
+		m_application->onWindowCloseRequest();
+	}
+	
+	m_keepRunning = false;
+}
+
+void i3D_runtime_win32::cleanup()
+{
+	cleanupApplication();
+	cleanupWindow();
 }

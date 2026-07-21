@@ -1,33 +1,31 @@
 #pragma once
 
+#include "win32.h"
+
 // ----------------------------------------------------------------------------------------------------
 
-class runtime;
+class i3D_runtime_win32;
 class vkRenderingContext;
 
 // ----------------------------------------------------------------------------------------------------
 
-class application
+class i3D_application_win32
 {
 public:
-	bool initialize(runtime* pRuntime, void* pWindow);
+	bool initialize(i3D_runtime_win32* pRuntime, HWND hWnd);
 	void update(float deltaTime);
 	void render(float deltaTime);
 	void cleanup();
 
-	void input_onKeyDownEvent(unsigned int key);
-	void input_onKeyRepeatEvent(unsigned int key);
-	void input_onKeyUpEvent(unsigned int key);
-	bool input_isKeyDown(unsigned int key);
+	void onKeyDown(WPARAM key);
+	void onKeyAutoRepeat(WPARAM key);
+	void onKeyUp(WPARAM key);
+	bool isKeyDown(int key);
 
-	void window_onResizeEvent(unsigned int wndWidth, unsigned int wndHeight);
-	void window_onFocusEvent();
-	void window_onUnfocusEvent();
-	void window_onCloseRequestedEvent();
-
-	bool isSafeToStartRunning();
-
-	// Example functions below - add or remove as needed
+	void onWindowResize(WORD wndWidth, WORD wndHeight);
+	void onWindowFocus();
+	void onWindowUnfocus();
+	void onWindowCloseRequest();
 
 	void updateFpsCounter(float deltaTime);
 	void updateMeshRotation(float deltaTime);
@@ -35,10 +33,8 @@ public:
 private:
 	bool m_keyStates[256] = { false };
 
-	runtime* m_runtime = nullptr;
+	i3D_runtime_win32* m_runtime = nullptr;
 	vkRenderingContext* m_renderingContext = nullptr;
-
-	// Example variables below - add or remove as needed
 
 	float m_meshRot = 0.0f;
 	float m_meshRotVel = 0.0f;

@@ -11,14 +11,13 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\ibex3D\core\runtime.h" />
-    <ClInclude Include="include\ibex3D\core\entryPoint.h" />
+    <ClInclude Include="include\ibex3D\core\entryPoint_win32.h" />
+    <ClInclude Include="include\ibex3D\core\runtime_win32.h" />
     <ClInclude Include="include\ibex3D\core\win32.h" />
     <ClInclude Include="include\ibex3D\math\vec2.h" />
     <ClInclude Include="include\ibex3D\math\vec3.h" />
     <ClInclude Include="include\ibex3D\math\vec4.h" />
     <ClInclude Include="include\ibex3D\math\vec4_simd.h" />
-    <ClInclude Include="include\ibex3D\utility\bitUtils.h" />
     <ClInclude Include="include\ibex3D\utility\logger.h" />
     <ClInclude Include="include\ibex3D\utility\memory.h" />
     <ClInclude Include="include\ibex3D\utility\miscellaneous.h" />
@@ -28,7 +27,7 @@
     <ClInclude Include="include\ibex3D\vulkan\swapchainObject.h" />
     <ClInclude Include="include\ibex3D\vulkan\textureObject.h" />
     <ClInclude Include="include\ibex3D\vulkan\utils.h" />
-    <ClInclude Include="include\ibex3D\core\application.h" />
+    <ClInclude Include="include\ibex3D\core\application_win32.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\ibex3D\core\runtime_win32.cpp" />
@@ -44,8 +43,8 @@
     <ClCompile Include="source\ibex3D\vulkan\swapchainObject.cpp" />
     <ClCompile Include="source\ibex3D\vulkan\textureObject.cpp" />
     <ClCompile Include="source\ibex3D\vulkan\utils.cpp" />
-    <ClCompile Include="source\ibex3D\core\application.cpp" />
-    <ClCompile Include="source\ibex3D\main.cpp" />
+    <ClCompile Include="source\ibex3D\core\application_win32.cpp" />
+    <ClCompile Include="source\ibex3D\main_win32.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\shaders\compile.bat" />
