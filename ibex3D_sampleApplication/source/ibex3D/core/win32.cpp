@@ -1,5 +1,4 @@
 #include <ibex3D/core/win32.h>
-#include <ibex3D/utility/logger.h>
 
 #include <comdef.h>
 #include <string>
@@ -7,11 +6,11 @@
 
 // ----------------------------------------------------------------------------------------------------
 
-bool win32Utils::getWindowDimensions(HWND hWnd, int& width, int& height)
+bool i3D_win32utils::getWindowDimensions(HWND hWnd, int& width, int& height)
 {
 	if (hWnd == nullptr)
 	{
-		logger::logError("win32Utils::getWindowDimensions(): Couldn't get the window dimensions because argument \"HWND hWnd\" is nullptr.", __FILE__, __LINE__ - 2);
+		fprintf(stderr, "WIN32 ERROR: Argument \"HWND hWnd\" of getWindowDimensions() is nullptr.\n");
 		return false;
 	}
 
@@ -19,7 +18,7 @@ bool win32Utils::getWindowDimensions(HWND hWnd, int& width, int& height)
 
 	if (GetClientRect(hWnd, &wndRect) == 0)
 	{
-		logger::logError("win32Utils::getWindowDimensions(): An error occured while trying to get the client window rect.", __FILE__, __LINE__ - 2);
+		fprintf(stderr, "WIN32 ERROR: Couldn't get the window dimensions because GetClientRect() failed.\n");
 		return false;
 	}
 
@@ -29,7 +28,7 @@ bool win32Utils::getWindowDimensions(HWND hWnd, int& width, int& height)
 	return true;
 }
 
-const char* win32Utils::hresultToText(HRESULT hr)
+const char* i3D_win32utils::hresultToText(HRESULT hr)
 {
 	// FIX: Text is only readable in release mode, not debug mode.
 

@@ -1,11 +1,13 @@
 #include <ibex3D/vulkan/bufferObject.h>
 #include <ibex3D/vulkan/utils.h>
 
-#include <ibex3D/utility/logger.h>
+#include <stdio.h>
+
+#include <vulkan/vk_enum_string_helper.h>
 
 // ----------------------------------------------------------------------------------------------------
 
-bool vkBufferObject::initialize(VkDevice device, VkPhysicalDevice physDevice, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags memProperties)
+bool i3D_vkBufferObject::initialize(VkDevice device, VkPhysicalDevice physDevice, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags memProperties)
 {
 	VkBufferCreateInfo bufferInfo = {};
 	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -17,7 +19,7 @@ bool vkBufferObject::initialize(VkDevice device, VkPhysicalDevice physDevice, Vk
 
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::logErrorWithResult(result, "vkBufferObject::initialize(): An error occured while trying to create the buffer.", __FILE__, __LINE__ - 4);
+		fprintf(stderr, "VULKAN ERROR: Failed to create the buffer. VkResult: %s\n", string_VkResult(result));
 		return false;
 	}
 
@@ -28,9 +30,9 @@ bool vkBufferObject::initialize(VkDevice device, VkPhysicalDevice physDevice, Vk
 
 	vkGetBufferMemoryRequirements(device, buffer, &memRequirements);
 
-	if (!vkUtils::findMemoryType(physDevice, memRequirements.memoryTypeBits, memProperties, memoryType))
+	if (!i3D_vkUtils::findMemoryType(physDevice, memRequirements.memoryTypeBits, memProperties, memoryType))
 	{
-		logger::logError("vkBufferObject::initialize(): Couldn't find a suitable type for the buffer memory.", __FILE__, __LINE__ - 2);
+		fprintf(stderr, "VULKAN ERROR: Couldn't find a suitable type for the buffer memory.\n");
 		return false;
 	}
 
@@ -43,7 +45,7 @@ bool vkBufferObject::initialize(VkDevice device, VkPhysicalDevice physDevice, Vk
 
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::logErrorWithResult(result, "vkBufferObject::initialize(): An error occured while trying to allocate the buffer memory.", __FILE__, __LINE__ - 4);
+		fprintf(stderr, "VULKAN ERROR: Failed to allocate the buffer memory. VkResult: %s\n", string_VkResult(result));
 		return false;
 	}
 
@@ -51,14 +53,14 @@ bool vkBufferObject::initialize(VkDevice device, VkPhysicalDevice physDevice, Vk
 
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::logErrorWithResult(result, "vkBufferObject::initialize(): An error occured while trying to bind the buffer memory.", __FILE__, __LINE__ - 4);
+		fprintf(stderr, "VULKAN ERROR: Failed to bind the buffer memory. VkResult: %s\n", string_VkResult(result));
 		return false;
 	}
 
 	return true;
 }
 
-void vkBufferObject::cleanup(VkDevice device)
+void i3D_vkBufferObject::cleanup(VkDevice device)
 {
 	if (buffer != nullptr)
 	{
@@ -75,30 +77,29 @@ void vkBufferObject::cleanup(VkDevice device)
 	bufferSize = 0;
 }
 
-bool vkBufferObject::mapBufferMemory(VkDevice device, VkDeviceSize regionOffset, VkDeviceSize regionSize, VkMemoryMapFlags mapFlags, void** ppData)
+bool i3D_vkBufferObject::mapBufferMemory(VkDevice device, VkDeviceSize regionOffset, VkDeviceSize regionSize, VkMemoryMapFlags mapFlags, void** ppData)
 {
 	VkResult result = vkMapMemory(device, bufferMemory, regionOffset, regionSize, mapFlags, ppData);
 	
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::logErrorWithResult(result, "vkBufferObject::mapBufferData(): An error occured while trying to map the buffer memory into application address space.", __FILE__, __LINE__ - 4);
+		fprintf(stderr, "VULKAN ERROR: Failed to map the buffer memory into application address space. VkResult: %s\n", string_VkResult(result));
 		return false;
 	}
 
 	return true;
 }
 
-void vkBufferObject::unmapBufferMemory(VkDevice device)
+void i3D_vkBufferObject::unmapBufferMemory(VkDevice device)
 {
 	vkUnmapMemory(device, bufferMemory);
 }
 
-bool vkBufferObject::updateBufferOnce(VkDevice device, VkDeviceSize regionOffset, VkDeviceSize regionSize, VkMemoryMapFlags mapFlags, void* newData)
+bool i3D_vkBufferObject::updateBufferOnce(VkDevice device, VkDeviceSize regionOffset, VkDeviceSize regionSize, VkMemoryMapFlags mapFlags, void* newData)
 {
 	void* data;
 	if (!mapBufferMemory(device, regionOffset, regionSize, mapFlags, &data))
 	{
-		logger::logError("vkBufferObject::updateBufferOnce(): Couldn't map the buffer memory.", __FILE__, __LINE__ - 2);
 		return false;
 	}
 	
@@ -108,14 +109,14 @@ bool vkBufferObject::updateBufferOnce(VkDevice device, VkDeviceSize regionOffset
 	return true;
 }
 
-bool vkBufferObject::cmdCopyBuffer(VkDevice device, VkCommandPool cmdPool, VkQueue gfxQueue, VkBuffer srcBuffer, VkDeviceSize srcOffset, VkDeviceSize dstOffset, VkDeviceSize regionSize)
+bool i3D_vkBufferObject::cmdCopyBuffer(VkDevice device, VkCommandPool cmdPool, VkQueue gfxQueue, VkBuffer srcBuffer, VkDeviceSize srcOffset, VkDeviceSize dstOffset, VkDeviceSize regionSize)
 {
-	VkCommandBuffer commandBuffer = vkUtils::beginSingleTimeCommands(device, cmdPool);
+	VkCommandBuffer commandBuffer = i3D_vkUtils::beginSingleTimeCommands(device, cmdPool);
 
 	if (commandBuffer == nullptr)
 	{
-		logger::logError("vkBufferObject::cmdCopyBuffer(): Couldn't begin the single-time commands.", __FILE__, __LINE__ - 4);
-		vkUtils::endSingleTimeCommands(device, cmdPool, gfxQueue, commandBuffer);
+		fprintf(stderr, "VULKAN ERROR: Couldn't begin the single-time commands for copying the buffer.\n");
+		i3D_vkUtils::endSingleTimeCommands(device, cmdPool, gfxQueue, commandBuffer);
 		return false;
 	}
 
@@ -126,6 +127,6 @@ bool vkBufferObject::cmdCopyBuffer(VkDevice device, VkCommandPool cmdPool, VkQue
 
 	vkCmdCopyBuffer(commandBuffer, srcBuffer, buffer, 1, &copyRegion);
 
-	vkUtils::endSingleTimeCommands(device, cmdPool, gfxQueue, commandBuffer);
+	i3D_vkUtils::endSingleTimeCommands(device, cmdPool, gfxQueue, commandBuffer);
 	return true;
 }

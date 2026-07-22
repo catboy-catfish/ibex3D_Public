@@ -4,7 +4,7 @@
 
 // ----------------------------------------------------------------------------------------------------
 
-struct vkBufferObject
+struct i3D_vkBufferObject
 {
 	VkBuffer buffer = nullptr;
 	VkDeviceMemory bufferMemory = nullptr;

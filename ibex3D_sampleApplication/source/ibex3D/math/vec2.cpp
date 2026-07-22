@@ -3,49 +3,49 @@
 
 // ----------------------------------------------------------------------------------------------------
 
-vec2 vec2::operator + (const vec2& other) const
+i3D_vec2 i3D_vec2::operator + (const i3D_vec2& other) const
 {
 	// TODO: Implement SIMD soon!
-	return vec2(x + other.x, y + other.y);
+	return i3D_vec2(x + other.x, y + other.y);
 }
 
-vec2 vec2::operator - (const vec2& other) const
+i3D_vec2 i3D_vec2::operator - (const i3D_vec2& other) const
 {
-	return vec2(x - other.x, y - other.y);
+	return i3D_vec2(x - other.x, y - other.y);
 }
 
-vec2 vec2::operator * (const vec2& other) const
+i3D_vec2 i3D_vec2::operator * (const i3D_vec2& other) const
 {
-	return vec2(x * other.x, y * other.y);
+	return i3D_vec2(x * other.x, y * other.y);
 }
 
-vec2 vec2::operator / (const vec2& other) const
+i3D_vec2 i3D_vec2::operator / (const i3D_vec2& other) const
 {
-	if (other.x == 0.0f) return vec2(0.0f);
-	if (other.y == 0.0f) return vec2(0.0f);
+	if (other.x == 0.0f) return i3D_vec2(0.0f);
+	if (other.y == 0.0f) return i3D_vec2(0.0f);
 
-	return vec2(x / other.x, y / other.y);
+	return i3D_vec2(x / other.x, y / other.y);
 }
 
-void vec2::operator += (const vec2& other)
+void i3D_vec2::operator += (const i3D_vec2& other)
 {
 	x += other.x;
 	y += other.y;
 }
 
-void vec2::operator -= (const vec2& other)
+void i3D_vec2::operator -= (const i3D_vec2& other)
 {
 	x -= other.x;
 	y -= other.y;
 }
 
-void vec2::operator *= (const vec2& other)
+void i3D_vec2::operator *= (const i3D_vec2& other)
 {
 	x *= other.x;
 	y *= other.y;
 }
 
-void vec2::operator /= (const vec2& other)
+void i3D_vec2::operator /= (const i3D_vec2& other)
 {
 	if (other.x != 0.0f)
 	{
@@ -61,14 +61,14 @@ void vec2::operator /= (const vec2& other)
 	y = 0.0f;
 }
 
-bool vec2::operator == (const vec2& other) const
+bool i3D_vec2::operator == (const i3D_vec2& other) const
 {
 	if (x != other.x) return false;
 	if (y != other.y) return false;
 	return true;
 }
 
-bool vec2::operator != (const vec2& other) const
+bool i3D_vec2::operator != (const i3D_vec2& other) const
 {
 	if (x != other.x) return true;
 	if (y != other.y) return true;
@@ -77,25 +77,25 @@ bool vec2::operator != (const vec2& other) const
 
 // ----------------------------------------------------------------------------------------------------
 
-vec2 vec2::multipliedByFloat(float in) const
+i3D_vec2 i3D_vec2::multipliedByFloat(float in) const
 {
-	return vec2(x * in, y * in);
+	return i3D_vec2(x * in, y * in);
 }
 
-void vec2::multiplyByFloat(float in)
+void i3D_vec2::multiplyByFloat(float in)
 {
 	x *= in;
 	y *= in;
 }
 
-vec2 vec2::dividedByFloat(float in) const
+i3D_vec2 i3D_vec2::dividedByFloat(float in) const
 {
-	if (in == 0.0f) return vec2(0.0f);
+	if (in == 0.0f) return i3D_vec2(0.0f);
 
-	return vec2(x / in, y / in);
+	return i3D_vec2(x / in, y / in);
 }
 
-void vec2::divideByFloat(float in)
+void i3D_vec2::divideByFloat(float in)
 {
 	if (in == 0.0f)
 	{
@@ -109,39 +109,39 @@ void vec2::divideByFloat(float in)
 	}
 }
 
-vec2 vec2::lerpedTo(const vec2& other, float amount) const
+i3D_vec2 i3D_vec2::lerpedTo(const i3D_vec2& other, float amount) const
 {
-	return vec2
+	return i3D_vec2
 	(
 		x + ((other.x - x) * amount),
 		y + ((other.y - y) * amount)
 	);
 }
 
-void vec2::lerpTo(const vec2& other, float amount)
+void i3D_vec2::lerpTo(const i3D_vec2& other, float amount)
 {
 	x += (other.x - x) * amount;
 	y += (other.y - y) * amount;
 }
 
-float vec2::getLength() const
+float i3D_vec2::getLength() const
 {
 	return sqrtf((x * x) + (y * y));
 }
 
-vec2 vec2::normalized() const
+i3D_vec2 i3D_vec2::normalized() const
 {
 	float len = getLength();
 
 	if (len == 0.0f)
 	{
-		return vec2(0.0f);
+		return i3D_vec2(0.0f);
 	}
 
-	return vec2(x / len, y / len);
+	return i3D_vec2(x / len, y / len);
 }
 
-void vec2::normalize()
+void i3D_vec2::normalize()
 {
 	float len = getLength();
 
@@ -157,42 +157,42 @@ void vec2::normalize()
 	}
 }
 
-float vec2::getDotProduct(const vec2& other) const
+float i3D_vec2::getDotProduct(const i3D_vec2& other) const
 {
 	return (x * other.x) + (y * other.y);
 }
 
 // ----------------------------------------------------------------------------------------------------
 
-vec2 vec2::unsafeDividedBy(const vec2& other) const
+i3D_vec2 i3D_vec2::unsafeDividedBy(const i3D_vec2& other) const
 {
-	return vec2(x / other.x, y / other.y);
+	return i3D_vec2(x / other.x, y / other.y);
 }
 
-vec2 vec2::unsafeDividedByFloat(float in) const
+i3D_vec2 i3D_vec2::unsafeDividedByFloat(float in) const
 {
-	return vec2(x / in, y / in);
+	return i3D_vec2(x / in, y / in);
 }
 
-void vec2::unsafeDivideBy(const vec2& other)
+void i3D_vec2::unsafeDivideBy(const i3D_vec2& other)
 {
 	x /= other.x;
 	y /= other.y;
 }
 
-void vec2::unsafeDivideByFloat(float in)
+void i3D_vec2::unsafeDivideByFloat(float in)
 {
 	x /= in;
 	y /= in;
 }
 
-vec2 vec2::unsafeNormalized() const
+i3D_vec2 i3D_vec2::unsafeNormalized() const
 {
 	float len = getLength();
-	return vec2(x / len, y / len);
+	return i3D_vec2(x / len, y / len);
 }
 
-void vec2::unsafeNormalize()
+void i3D_vec2::unsafeNormalize()
 {
 	float len = getLength();
 

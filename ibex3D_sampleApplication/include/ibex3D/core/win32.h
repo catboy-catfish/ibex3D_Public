@@ -6,7 +6,7 @@
 
 // ----------------------------------------------------------------------------------------------------
 
-class win32Utils
+class i3D_win32utils
 {
 public:
 	static bool getWindowDimensions(HWND hWnd, int& width, int& height);

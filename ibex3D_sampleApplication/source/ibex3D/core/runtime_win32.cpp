@@ -112,6 +112,16 @@ void i3D_runtime_win32::updateApplication()
 	m_deltaTime = std::chrono::duration<float>(endTime - startTime).count();
 }
 
+void i3D_runtime_win32::closeApplication()
+{
+	if (m_application != nullptr)
+	{
+		m_application->onWindowCloseRequest();
+	}
+
+	m_keepRunning = false;
+}
+
 void i3D_runtime_win32::cleanupApplication()
 {
 	if (m_application != nullptr)
@@ -136,11 +146,13 @@ LRESULT i3D_runtime_win32::wndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 			}
 			case WM_KEYDOWN:
 			{
-				// Isolating the 30th bit from lParam tells us whether or not the message is from an initial key press or auto-repeat
-				if ((lParam >> 30) & 1) {
+				// Isolating the 30th bit from lParam tells us whether or not the message is from an auto-repeat or initial key press
+				if ((lParam >> 30) & 1)
+				{
 					m_application->onKeyAutoRepeat(wParam);
 				}
-				else {
+				else
+				{
 					m_application->onKeyDown(wParam);
 				}
 
@@ -168,7 +180,7 @@ LRESULT i3D_runtime_win32::wndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 			}
 			case WM_CLOSE:
 			{
-				close();
+				closeApplication();
 				break;
 			}
 		}
@@ -200,18 +212,14 @@ void i3D_runtime_win32::startRunning()
 	}
 }
 
-void i3D_runtime_win32::close()
-{
-	if (m_application != nullptr)
-	{
-		m_application->onWindowCloseRequest();
-	}
-	
-	m_keepRunning = false;
-}
-
 void i3D_runtime_win32::cleanup()
 {
 	cleanupApplication();
 	cleanupWindow();
+}
+
+void i3D_runtime_win32::setCursorVisibility(bool value)
+{
+	// No way to clip the cursor yet
+	ShowCursor(value);
 }

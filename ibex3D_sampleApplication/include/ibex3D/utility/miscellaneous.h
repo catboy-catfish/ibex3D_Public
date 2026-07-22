@@ -4,7 +4,7 @@
 
 // ----------------------------------------------------------------------------------------------------
 
-#define IBEX3D_BASSERT(condition)	\
+#define I3D_BASSERT(condition)		\
 if (!condition)						\
 {									\
 	return false;					\
@@ -12,7 +12,7 @@ if (!condition)						\
 
 // ----------------------------------------------------------------------------------------------------
 
-class ibex3D_utilFunctions
+class i3D_utils
 {
 public:
 	// File reading

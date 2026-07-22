@@ -40,9 +40,6 @@
     <ClInclude Include="include\ibex3D\core\win32.h">
       <Filter>ibex3D\core\win32</Filter>
     </ClInclude>
-    <ClInclude Include="include\ibex3D\utility\logger.h">
-      <Filter>ibex3D\utility\logger</Filter>
-    </ClInclude>
     <ClInclude Include="include\ibex3D\vulkan\bufferObject.h">
       <Filter>ibex3D\vulkan\bufferObject</Filter>
     </ClInclude>
@@ -52,6 +49,7 @@
     <ClInclude Include="include\ibex3D\core\runtime_win32.h">
       <Filter>ibex3D\core\runtime_win32</Filter>
     </ClInclude>
+    <ClInclude Include="include\ibex3D\vulkan\meshTypes.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\ibex3D\vulkan\meshObject.cpp">
@@ -84,9 +82,6 @@
     <ClCompile Include="source\ibex3D\core\win32.cpp">
       <Filter>ibex3D\core\win32</Filter>
     </ClCompile>
-    <ClCompile Include="source\ibex3D\utility\logger.cpp">
-      <Filter>ibex3D\utility\logger</Filter>
-    </ClCompile>
     <ClCompile Include="source\ibex3D\vulkan\bufferObject.cpp">
       <Filter>ibex3D\vulkan\bufferObject</Filter>
     </ClCompile>
@@ -99,6 +94,7 @@
     <ClCompile Include="source\ibex3D\core\runtime_win32.cpp">
       <Filter>ibex3D\core\runtime_win32</Filter>
     </ClCompile>
+    <ClCompile Include="source\ibex3D\vulkan\meshTypes.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="ibex3D">
@@ -161,14 +157,8 @@
     <Filter Include="assets\shaders\include">
       <UniqueIdentifier>{8fc2c320-b6df-4123-b481-4cbea8d6e04c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ibex3D\utility\logger">
-      <UniqueIdentifier>{c5392e6d-58bf-45e6-b27b-3998bd02f8f2}</UniqueIdentifier>
-    </Filter>
     <Filter Include="ibex3D\vulkan\bufferObject">
       <UniqueIdentifier>{32595bcb-86c0-4180-8dcb-64ed4af6d986}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ibex3D\utility\bitUtils">
-      <UniqueIdentifier>{55026003-6fd7-4086-b9dc-42e62aca507c}</UniqueIdentifier>
     </Filter>
     <Filter Include="ibex3D\core\runtime_win32">
       <UniqueIdentifier>{bb91948a-f019-4d42-b0e0-a7f5ff250c38}</UniqueIdentifier>

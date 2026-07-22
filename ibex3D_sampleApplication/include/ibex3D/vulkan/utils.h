@@ -5,7 +5,7 @@
 
 // ----------------------------------------------------------------------------------------------------
 
-struct vkQueueFamilyIndices
+struct i3D_vkQueueFamilyIndices
 {
 	int graphicsFamily = -1;
 	int presentFamily = -1;
@@ -16,7 +16,7 @@ struct vkQueueFamilyIndices
 	}
 };
 
-struct vkSwapchainSupportInfo
+struct i3D_vkSwapchainSupportInfo
 {
 	VkSurfaceCapabilitiesKHR capabilities = {};
 	std::vector<VkSurfaceFormatKHR> formats;
@@ -25,12 +25,12 @@ struct vkSwapchainSupportInfo
 
 // ----------------------------------------------------------------------------------------------------
 
-class vkUtils
+class i3D_vkUtils
 {
 public:
 
 	// Validation layers
-#ifdef IBEX3D_VULKAN_VALIDATION
+#ifdef I3D_VULKAN_VALIDATION
 	static VkResult createDebugMessenger
 	(
 		VkInstance instance,
@@ -57,14 +57,9 @@ public:
 	);
 #endif
 
-	// Logging
-	static void logErrorWithResult(VkResult result, const char* desc, const char* file, size_t line);
-	static void logWarningWithResult(VkResult result, const char* desc, const char* file, size_t line);
-	static void logInfoWithResult(VkResult result, const char* desc, const char* file, size_t line);
-
 	// Physical device and swapchain
-	static vkQueueFamilyIndices findQueueFamilies(VkPhysicalDevice physDevice, VkSurfaceKHR surface);
-	static vkSwapchainSupportInfo querySwapchainSupport(VkPhysicalDevice physDevice, VkSurfaceKHR surface);
+	static i3D_vkQueueFamilyIndices findQueueFamilies(VkPhysicalDevice physDevice, VkSurfaceKHR surface);
+	static i3D_vkSwapchainSupportInfo querySwapchainSupport(VkPhysicalDevice physDevice, VkSurfaceKHR surface);
 	static VkSampleCountFlagBits getMaxUsableSampleCount(VkPhysicalDevice physDevice);
 	static int ratePhysicalDeviceSuitability(VkPhysicalDevice physDevice, VkSurfaceKHR surface, bool extSupport);
 

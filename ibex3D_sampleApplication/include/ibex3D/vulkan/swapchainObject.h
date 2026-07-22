@@ -5,7 +5,7 @@
 
 // ----------------------------------------------------------------------------------------------------
 
-struct vkSwapchainObject
+struct i3D_vkSwapchainObject
 {
 	VkSwapchainKHR swapchain = nullptr;
 

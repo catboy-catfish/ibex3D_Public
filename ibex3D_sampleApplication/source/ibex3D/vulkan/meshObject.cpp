@@ -1,93 +1,46 @@
 #include <ibex3D/vulkan/meshObject.h>
-#include <ibex3D/vulkan/utils.h>
 
-#include <ibex3D/utility/logger.h>
+#include <stdio.h>
+#include <unordered_map>
+
+#define TINYOBJLOADER_IMPLEMENTATION
+#include <thirdparty/tinyobjloader/tiny_obj_loader.h>	// includes map, string and vector
 
 #define GLM_ENABLE_EXPERIMENTAL
-#define TINYOBJLOADER_IMPLEMENTATION
 #include <thirdparty/glm/gtx/hash.hpp>
-#include <thirdparty/tinyobjloader/tiny_obj_loader.h>
-
-#include <string>
-#include <unordered_map>
 
 // ----------------------------------------------------------------------------------------------------
 
 namespace std
 {
-	template<> struct hash<vkVertex>
+	template<> struct hash<i3D_vkVertex>
 	{
-		size_t operator()(vkVertex const& vertex) const
+		size_t operator()(i3D_vkVertex const& vertex) const
 		{
-			// The ^ is the bitwise XOR operator
-			// TODO: Look into hashing to better understand this bullshit
-			// https://en.cppreference.com/cpp/utility/hash
+			// The ^ is the bitwise XOR operator.
+			// TODO: Look into hashing to better understand this bullshit. https://en.cppreference.com/cpp/utility/hash
 
-			return 
-				((hash<glm::vec3>()(vertex.vertexPosition) ^ 
-				(hash<glm::vec3>()(vertex.vertexNormal) << 1)) >> 1) ^ 
-				(hash<glm::vec2>()(vertex.textureCoord) << 1);
+			return ((hash<glm::vec3>()(vertex.vertexPosition) ^ (hash<glm::vec3>()(vertex.vertexNormal) << 1)) >> 1) ^ (hash<glm::vec2>()(vertex.textureCoord) << 1);
 		}
 	};
 }
 
 // ----------------------------------------------------------------------------------------------------
 
-VkVertexInputBindingDescription vkVertex::getBindingDesc()
-{
-	VkVertexInputBindingDescription bindingDesc = {};
-
-	bindingDesc.binding = 0;
-	bindingDesc.stride = sizeof(vkVertex);
-	bindingDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
-	return bindingDesc;
-}
-
-std::array<VkVertexInputAttributeDescription, 3> vkVertex::getAttributeDescs()
-{
-	std::array<VkVertexInputAttributeDescription, 3> attribDescs = {};
-	
-	// Position
-	attribDescs[0].binding = 0;
-	attribDescs[0].location = 0;
-	attribDescs[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-	attribDescs[0].offset = offsetof(vkVertex, vertexPosition);
-
-	// Normals
-	attribDescs[1].binding = 0;
-	attribDescs[1].location = 1;
-	attribDescs[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-	attribDescs[1].offset = offsetof(vkVertex, vertexNormal);
-
-	// Texture cordinates
-	attribDescs[2].binding = 0;
-	attribDescs[2].location = 2;
-	attribDescs[2].format = VK_FORMAT_R32G32_SFLOAT;
-	attribDescs[2].offset = offsetof(vkVertex, textureCoord);
-
-	return attribDescs;
-}
-
-// ----------------------------------------------------------------------------------------------------
-
-void vkMeshObject::initSimpleModel()
+void i3D_vkMeshObject::initSimpleModel()
 {
 	vertices =
 	{
-		{{-0.5f, -0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}},
-		{{ 0.5f, -0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}},
-		{{ 0.5f,  0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},
-		{{-0.5f,  0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}
+		{ { -0.5f, -0.5f,  0.0f }, { 1.0f, 1.0f, 1.0f }, { 1.0f, 0.0f } },
+		{ {  0.5f, -0.5f,  0.0f }, { 1.0f, 1.0f, 1.0f }, { 0.0f, 0.0f } },
+		{ {  0.5f,  0.5f,  0.0f }, { 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f } },
+		{ { -0.5f,  0.5f,  0.0f }, { 1.0f, 1.0f, 1.0f }, { 1.0f, 1.0f } }
 	};
 
-	indices =
-	{
-		0, 1, 2, 2, 3, 0
-	};
+	indices = { 0, 1, 2, 2, 3, 0 };
 }
 
-bool vkMeshObject::loadObjFromFile(const char* objFilePath)
+bool i3D_vkMeshObject::loadObjFromFile(const char* objFilePath)
 {
 	tinyobj::attrib_t attrib;
 	std::vector<tinyobj::shape_t> shapes;
@@ -96,17 +49,17 @@ bool vkMeshObject::loadObjFromFile(const char* objFilePath)
 
 	if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, objFilePath))
 	{
-		logger::logError("vkMeshObject::loadObjFromFile(): An error occured while trying to load the model file.", __FILE__, __LINE__ - 2);
+		fprintf(stderr, "VULKAN ERROR: Failed to load the Wavefront .obj model file at path \"%s\". Have you ensured that the provided model file path is correct?\n", objFilePath);
 		return false;
 	}
 
-	std::unordered_map<vkVertex, uint32_t> uniqueVertices{};
+	std::unordered_map<i3D_vkVertex, uint32_t> uniqueVertices{};
 
 	for (const auto& shape : shapes)
 	{
 		for (const auto& index : shape.mesh.indices)
 		{
-			vkVertex vertex = {};
+			i3D_vkVertex vertex = {};
 
 			int startVertexIdx = 3 * index.vertex_index;
 			int startNormalIdx = 3 * index.normal_index;
@@ -145,14 +98,14 @@ bool vkMeshObject::loadObjFromFile(const char* objFilePath)
 	return true;
 }
 
-bool vkMeshObject::initVertexIndexBuffer(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue)
+bool i3D_vkMeshObject::initVertexIndexBuffer(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue)
 {
 	vtxBufferSize = sizeof(vertices[0]) * vertices.size();
 	
 	VkDeviceSize idxBufferSize = sizeof(indices[0]) * indices.size();
 	VkDeviceSize combinedBufferSize = vtxBufferSize + idxBufferSize;
 
-	vkBufferObject stagingBuffer;
+	i3D_vkBufferObject stagingBuffer;
 
 	if (!stagingBuffer.initialize
 	(
@@ -163,17 +116,18 @@ bool vkMeshObject::initVertexIndexBuffer(VkDevice device, VkPhysicalDevice physD
 		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
 	))
 	{
-		logger::logError("vkMeshObject::initVertexIndexBuffer(): Couldn't create the staging buffer.", __FILE__, __LINE__ - 9);
+		fprintf(stderr, "VULKAN ERROR: Failed to create the staging buffer for the combined vertex-index buffer.\n");
 		return false;
 	}
 
 	void* data;
 	if (!stagingBuffer.mapBufferMemory(device, 0, combinedBufferSize, 0, &data))
 	{
-		logger::logError("vkMeshObject::initVertexIndexBuffer(): Couldn't map the staging buffer memory.", __FILE__, __LINE__ - 2);
+		fprintf(stderr, "VULKAN ERROR: Failed to map the staging buffer memory into application address space.\n");
+		stagingBuffer.cleanup(device);
 		return false;
 	}
-
+	
 	memcpy(data, vertices.data(), vtxBufferSize);
 	memcpy(static_cast<char*>(data) + vtxBufferSize, indices.data(), idxBufferSize);
 
@@ -188,14 +142,14 @@ bool vkMeshObject::initVertexIndexBuffer(VkDevice device, VkPhysicalDevice physD
 		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
 	))
 	{
-		logger::logError("vkMeshObject::initVertexIndexBuffer(): Couldn't create the combined vertex-index buffer.", __FILE__, __LINE__ - 9);
+		fprintf(stderr, "VULKAN ERROR: Failed to create the combined vertex-index buffer.\n");
 		stagingBuffer.cleanup(device);
 		return false;
 	}
 
 	if (!vtxIdxBuffer.cmdCopyBuffer(device, cmdPool, gfxQueue, stagingBuffer.buffer, 0, 0, combinedBufferSize))
 	{
-		logger::logError("vkMeshObject::initVertexIndexBuffer(): Couldn't copy the staging memory to the combined vertex-index buffer.", __FILE__, __LINE__ - 9);
+		fprintf(stderr, "VULKAN ERROR: Failed to copy the staging buffer memory to the combined vertex-index buffer.\n");
 		stagingBuffer.cleanup(device);
 		return false;
 	}
@@ -204,7 +158,7 @@ bool vkMeshObject::initVertexIndexBuffer(VkDevice device, VkPhysicalDevice physD
 	return true;
 }
 
-bool vkMeshObject::initialize(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue, const char* meshFilePath)
+bool i3D_vkMeshObject::initialize(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue, const char* meshFilePath)
 {
 	if (!loadObjFromFile(meshFilePath))
 	{
@@ -219,7 +173,7 @@ bool vkMeshObject::initialize(VkDevice device, VkPhysicalDevice physDevice, VkCo
 	return true;
 }
 
-void vkMeshObject::draw(VkCommandBuffer buffer, VkPipelineLayout pipelineLayout, VkDescriptorSet descriptorSet)
+void i3D_vkMeshObject::draw(VkCommandBuffer buffer, VkPipelineLayout pipelineLayout, VkDescriptorSet descriptorSet)
 {
 	VkDeviceSize offsets[] = { 0 };
 
@@ -230,7 +184,7 @@ void vkMeshObject::draw(VkCommandBuffer buffer, VkPipelineLayout pipelineLayout,
 	vkCmdDrawIndexed(buffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 }
 
-void vkMeshObject::cleanup(VkDevice device)
+void i3D_vkMeshObject::cleanup(VkDevice device)
 {	
 	vtxIdxBuffer.cleanup(device);
 }

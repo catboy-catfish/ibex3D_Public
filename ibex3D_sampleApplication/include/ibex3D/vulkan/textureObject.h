@@ -4,7 +4,7 @@
 
 // ----------------------------------------------------------------------------------------------------
 
-struct vkTextureObject
+struct i3D_vkTextureObject
 {
 	VkImage image = nullptr;
 	VkDeviceMemory imageMemory = nullptr;

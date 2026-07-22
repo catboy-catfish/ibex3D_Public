@@ -5,7 +5,7 @@
 
 // ----------------------------------------------------------------------------------------------------
 
-std::vector<char> ibex3D_utilFunctions::readFile(const char* filePath)
+std::vector<char> i3D_utils::readFile(const char* filePath)
 {
 	// Pick up from where you left off at https://youtu.be/Qbs9v1W7St8?si=guDlWk9bBXZzHxOe&t=476
 	
@@ -13,7 +13,7 @@ std::vector<char> ibex3D_utilFunctions::readFile(const char* filePath)
 
 	if (!file.is_open())
 	{
-		printf("UTILITY ERROR - ibex3D_utilFunctions::readFile(): Couldn't open file at path \"%s\".\n", filePath);
+		fprintf(stderr, "UTILITY ERROR: Couldn't open the file at path \"%s\". Have you ensured that the provided file path is correct?\n", filePath);
 		return std::vector<char>();
 	}
 

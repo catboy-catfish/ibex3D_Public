@@ -1,43 +1,16 @@
 #pragma once
 
 #include "bufferObject.h"
-
-#include <thirdparty/glm/glm.hpp>
-
-#include <array>
-#include <vector>
+#include "meshTypes.h"
 
 // ----------------------------------------------------------------------------------------------------
 
-struct vkVertex
-{
-	glm::vec3 vertexPosition;
-	glm::vec3 vertexNormal;
-	glm::vec2 textureCoord;
-
-	// ----------------------------------------------------------------------------------------------------
-	
-	bool operator == (const vkVertex& other) const
-	{
-		return (vertexPosition == other.vertexPosition)
-			&& (vertexNormal == other.vertexNormal)
-			&& (textureCoord == other.textureCoord);
-	}
-	
-	// ----------------------------------------------------------------------------------------------------
-
-	static VkVertexInputBindingDescription getBindingDesc();
-	static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescs();
-};
-
-// ----------------------------------------------------------------------------------------------------
-
-struct vkMeshObject
+struct i3D_vkMeshObject
 {	
-	vkBufferObject vtxIdxBuffer;
+	i3D_vkBufferObject vtxIdxBuffer;
 	VkDeviceSize vtxBufferSize = 0;
 
-	std::vector<vkVertex> vertices;
+	std::vector<i3D_vkVertex> vertices;
 	std::vector<uint32_t> indices;
 
 	// ----------------------------------------------------------------------------------------------------

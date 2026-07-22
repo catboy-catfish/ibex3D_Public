@@ -5,7 +5,7 @@
 // ----------------------------------------------------------------------------------------------------
 
 class i3D_runtime_win32;
-class vkRenderingContext;
+class i3D_vkRenderingContext;
 
 // ----------------------------------------------------------------------------------------------------
 
@@ -34,7 +34,7 @@ private:
 	bool m_keyStates[256] = { false };
 
 	i3D_runtime_win32* m_runtime = nullptr;
-	vkRenderingContext* m_renderingContext = nullptr;
+	i3D_vkRenderingContext* m_renderingContext = nullptr;
 
 	float m_meshRot = 0.0f;
 	float m_meshRotVel = 0.0f;

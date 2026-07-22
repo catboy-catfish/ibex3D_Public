@@ -20,11 +20,11 @@ bool i3D_application_win32::initialize(i3D_runtime_win32* pRuntime, HWND hWnd)
 	
 	m_runtime = pRuntime;
 
-	m_renderingContext = new vkRenderingContext;
+	m_renderingContext = new i3D_vkRenderingContext;
 	
 	if (!m_renderingContext->initialize(hWnd))
 	{
-		fprintf(stderr, "APPLICATION ERROR: Couldn't initialize the application because argument \"i3D_runtime_win32* pRuntime\" is nullptr. You must pass a valid pointer to the i3D_runtime_win32 instance that owns this i3D_application_win32 instance so that it can send messages back to the i3D_runtime_win32 instance.\n");
+		fprintf(stderr, "APPLICATION ERROR: Failed to initialize the Vulkan rendering context.\n");
 		return false;
 	}
 
@@ -35,9 +35,6 @@ void i3D_application_win32::update(float deltaTime)
 {
 	updateFpsCounter(deltaTime);
 	updateMeshRotation(deltaTime);
-
-	// FIX: This exception isn't caught by the try-catch block in runtime::run().
-	// throw std::bad_cast(); // make sure to #include <exception>!
 }
 
 void i3D_application_win32::render(float deltaTime)
@@ -100,22 +97,28 @@ void i3D_application_win32::onWindowCloseRequest()
 }
 
 void i3D_application_win32::updateFpsCounter(float deltaTime)
-{
+{	
 	m_elapsedFrames++;
 	m_elapsedTime += deltaTime;
 
 	if (m_elapsedTime >= 1.0f)
 	{		
-		printf("%zu frames have passed this second.\n", m_elapsedFrames);
+		// Mystery bug present since commit ac69e1c8: 
+		// This doesn't print while the window is minimized, but everything else I've checked seems to be working perfectly
+		
+		fprintf(stdout, "%zu frames have passed this second.\n", m_elapsedFrames);
+		
 		m_elapsedFrames = 0;
 		m_elapsedTime = 0.0f;
 	}
+
+	static size_t temp_count = 0;
+	temp_count++;
 }
 
 void i3D_application_win32::updateMeshRotation(float deltaTime)
 {
-	m_meshRotVel = (isKeyDown(KEY_A) * -m_meshRotSpd)
-		+ (isKeyDown(KEY_D) * m_meshRotSpd);
+	m_meshRotVel = (isKeyDown(KEY_A) * -m_meshRotSpd) + (isKeyDown(KEY_D) * m_meshRotSpd);
 
 	m_meshRot += m_meshRotVel * deltaTime;
 }

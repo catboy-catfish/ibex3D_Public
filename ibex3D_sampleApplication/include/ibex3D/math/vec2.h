@@ -2,52 +2,52 @@
 
 // ----------------------------------------------------------------------------------------------------
 
-struct vec2
+struct i3D_vec2
 {
 	float x = 0.0f;
 	float y = 0.0f;
 
-	vec2() = default;
-	vec2(float inX, float inY) : x(inX), y(inY) {}
-	vec2(float inXY) : x(inXY), y(inXY) {}
+	i3D_vec2() = default;
+	i3D_vec2(float inX, float inY) : x(inX), y(inY) {}
+	i3D_vec2(float inXY) : x(inXY), y(inXY) {}
 
 	// ----------------------------------------------------------------------------------------------------
 
-	vec2 operator + (const vec2& other) const;
-	vec2 operator - (const vec2& other) const;
-	vec2 operator * (const vec2& other) const;
-	vec2 operator / (const vec2& other) const;
-	void operator += (const vec2& other);
-	void operator -= (const vec2& other);
-	void operator *= (const vec2& other);
-	void operator /= (const vec2& other);
+	i3D_vec2 operator + (const i3D_vec2& other) const;
+	i3D_vec2 operator - (const i3D_vec2& other) const;
+	i3D_vec2 operator * (const i3D_vec2& other) const;
+	i3D_vec2 operator / (const i3D_vec2& other) const;
+	void operator += (const i3D_vec2& other);
+	void operator -= (const i3D_vec2& other);
+	void operator *= (const i3D_vec2& other);
+	void operator /= (const i3D_vec2& other);
 	
-	bool operator == (const vec2& other) const;
-	bool operator != (const vec2& other) const;
+	bool operator == (const i3D_vec2& other) const;
+	bool operator != (const i3D_vec2& other) const;
 
 	// ----------------------------------------------------------------------------------------------------
 
-	vec2 multipliedByFloat(float in) const;
+	i3D_vec2 multipliedByFloat(float in) const;
 	void multiplyByFloat(float in);
-	vec2 dividedByFloat(float in) const;
+	i3D_vec2 dividedByFloat(float in) const;
 	void divideByFloat(float in);
 
-	vec2 lerpedTo(const vec2& other, float amount) const;
-	void lerpTo(const vec2& other, float amount);
+	i3D_vec2 lerpedTo(const i3D_vec2& other, float amount) const;
+	void lerpTo(const i3D_vec2& other, float amount);
 
 	float getLength() const;
-	vec2 normalized() const;
+	i3D_vec2 normalized() const;
 	void normalize();
 
-	float getDotProduct(const vec2& other) const;
+	float getDotProduct(const i3D_vec2& other) const;
 
 	// ----------------------------------------------------------------------------------------------------
 
-	vec2 unsafeDividedBy(const vec2& other) const;
-	vec2 unsafeDividedByFloat(float in) const;
-	void unsafeDivideBy(const vec2& other);
+	i3D_vec2 unsafeDividedBy(const i3D_vec2& other) const;
+	i3D_vec2 unsafeDividedByFloat(float in) const;
+	void unsafeDivideBy(const i3D_vec2& other);
 	void unsafeDivideByFloat(float in);
 
-	vec2 unsafeNormalized() const;
+	i3D_vec2 unsafeNormalized() const;
 	void unsafeNormalize();
 };

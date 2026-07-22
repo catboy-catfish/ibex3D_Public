@@ -7,7 +7,7 @@
 
 // ----------------------------------------------------------------------------------------------------
 
-class vkRenderingContext
+class i3D_vkRenderingContext
 {
 public:
 	bool initialize(void* wndMemory);
@@ -56,7 +56,7 @@ private:
 	VkDevice m_logicalDevice = nullptr;
 	VkQueue m_graphicsQueue = nullptr;
 	VkQueue m_presentQueue = nullptr;
-	vkSwapchainObject m_swapchain;
+	i3D_vkSwapchainObject m_swapchain;
 	VkRenderPass m_renderPass = nullptr;
 	VkDescriptorSetLayout m_descriptorSetLayout = nullptr;
 	VkPipelineLayout m_pipelineLayout = nullptr;
@@ -68,7 +68,7 @@ private:
 	uint32_t m_currentFrame = 0;
 	
 	std::vector<VkFramebuffer> m_swapchainFramebuffers;
-	std::vector<vkBufferObject> m_uniformBuffers;
+	std::vector<i3D_vkBufferObject> m_uniformBuffers;
 	std::vector<void*> m_uniformBuffersMapped;
 	std::vector<VkDescriptorSet> m_descriptorSets;
 	std::vector<VkCommandBuffer> m_commandBuffers;
@@ -76,8 +76,8 @@ private:
 	std::vector<VkSemaphore> m_frameSemaphores;
 	std::vector<VkFence> m_frameFences;
 
-	vkTextureObject m_textureClass;
-	vkMeshObject m_meshClass;
+	i3D_vkTextureObject m_textureClass;
+	i3D_vkMeshObject m_meshClass;
 
 	float m_aspectRatio = 1.0f;
 	float m_currentMeshRotation = 0.0f;

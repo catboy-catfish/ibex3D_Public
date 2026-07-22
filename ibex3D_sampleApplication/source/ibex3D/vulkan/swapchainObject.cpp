@@ -1,19 +1,20 @@
 #include <ibex3D/vulkan/swapchainObject.h>
 #include <ibex3D/vulkan/utils.h>
 
-#include <ibex3D/utility/logger.h>
-
 #include <array>
+#include <stdio.h>
+
+#include <vulkan/vk_enum_string_helper.h>
 
 // ----------------------------------------------------------------------------------------------------
 
-bool vkSwapchainObject::initSwapchain(VkDevice device, VkPhysicalDevice physDevice, VkSurfaceKHR surface, int wndWidth, int wndHeight, bool vSync)
+bool i3D_vkSwapchainObject::initSwapchain(VkDevice device, VkPhysicalDevice physDevice, VkSurfaceKHR surface, int wndWidth, int wndHeight, bool vSync)
 {
-	vkSwapchainSupportInfo scSupport = vkUtils::querySwapchainSupport(physDevice, surface);
+	i3D_vkSwapchainSupportInfo scSupport = i3D_vkUtils::querySwapchainSupport(physDevice, surface);
 
-	VkSurfaceFormatKHR format = vkUtils::chooseSurfaceFormat(scSupport.formats);
-	VkPresentModeKHR presentMode = vkUtils::choosePresentMode(scSupport.presentModes, vSync);
-	VkExtent2D extent = vkUtils::chooseExtent(scSupport.capabilities, wndWidth, wndHeight);
+	VkSurfaceFormatKHR format = i3D_vkUtils::chooseSurfaceFormat(scSupport.formats);
+	VkPresentModeKHR presentMode = i3D_vkUtils::choosePresentMode(scSupport.presentModes, vSync);
+	VkExtent2D extent = i3D_vkUtils::chooseExtent(scSupport.capabilities, wndWidth, wndHeight);
 
 	imageCount = scSupport.capabilities.minImageCount + 1;
 
@@ -32,11 +33,11 @@ bool vkSwapchainObject::initSwapchain(VkDevice device, VkPhysicalDevice physDevi
 	swapchainInfo.imageArrayLayers = 1;
 	swapchainInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-	vkQueueFamilyIndices indices = vkUtils::findQueueFamilies(physDevice, surface);
+	i3D_vkQueueFamilyIndices indices = i3D_vkUtils::findQueueFamilies(physDevice, surface);
 
 	if (!indices.isComplete())
 	{
-		logger::logError("vkSwapchainObject::initSwapchain(): Couldn't create the swapchain because one or more of the required queue families are missing.", __FILE__, __LINE__ - 4);
+		fprintf(stderr, "VULKAN ERROR: Couldn't create the swapchain because one or more of the requred queue families are missing.\n");
 		return false;
 	}
 
@@ -69,7 +70,7 @@ bool vkSwapchainObject::initSwapchain(VkDevice device, VkPhysicalDevice physDevi
 	
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::logErrorWithResult(result, "vkSwapchainObject::initSwapchain(): An error occured while trying to create the swapchain.", __FILE__, __LINE__ - 4);
+		fprintf(stderr, "VULKAN ERROR: Failed to create the swapchain. VkResult: %s\n", string_VkResult(result));
 		return false;
 	}
 
@@ -77,7 +78,7 @@ bool vkSwapchainObject::initSwapchain(VkDevice device, VkPhysicalDevice physDevi
 
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::logErrorWithResult(result, "vkSwapchainObject::initSwapchain(): An error occured while trying to retrieve the number of swapchain images.", __FILE__, __LINE__ - 4);
+		fprintf(stderr, "VULKAN ERROR: Failed to retrieve the swapchain image count. VkResult: %s\n", string_VkResult(result));
 		return false;
 	}
 
@@ -87,7 +88,7 @@ bool vkSwapchainObject::initSwapchain(VkDevice device, VkPhysicalDevice physDevi
 
 	if (result != VK_SUCCESS)
 	{
-		vkUtils::logErrorWithResult(result, "vkSwapchainObject::initSwapchain(): An error occured while trying to retrieve the swapchain images.", __FILE__, __LINE__ - 4);
+		fprintf(stderr, "VULKAN ERROR: Failed to retrieve the swapchain images. VkResult: %s\n", string_VkResult(result));
 		return false;
 	}
 
@@ -100,11 +101,11 @@ bool vkSwapchainObject::initSwapchain(VkDevice device, VkPhysicalDevice physDevi
 
 	for (size_t i = 0; i < imageCount; i++)
 	{
-		swapchainImageViews[i] = vkUtils::createImageView(device, swapchainImages[i], 1, imageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
+		swapchainImageViews[i] = i3D_vkUtils::createImageView(device, swapchainImages[i], 1, imageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
 
 		if (swapchainImageViews[i] == nullptr)
 		{
-			logger::logError("vkSwapchainObject::initSwapchain(): Couldn't create one or more of the swapchain image views.", __FILE__, __LINE__ - 4);
+			fprintf(stderr, "VULKAN ERROR: Failed to create one of the swapchain image views.\n");
 			return false;
 		}
 	}
@@ -112,11 +113,11 @@ bool vkSwapchainObject::initSwapchain(VkDevice device, VkPhysicalDevice physDevi
 	return true;
 }
 
-bool vkSwapchainObject::initColorResources(VkDevice device, VkPhysicalDevice physDevice, VkSampleCountFlagBits msaaSamples)
+bool i3D_vkSwapchainObject::initColorResources(VkDevice device, VkPhysicalDevice physDevice, VkSampleCountFlagBits msaaSamples)
 {
 	VkFormat colorFormat = imageFormat;
 
-	if (!vkUtils::createImage
+	if (!i3D_vkUtils::createImage
 	(
 		device,
 		physDevice,
@@ -132,11 +133,11 @@ bool vkSwapchainObject::initColorResources(VkDevice device, VkPhysicalDevice phy
 		colorImageMemory
 	))
 	{
-		logger::logError("vkSwapchainObject::initColorResources(): Couldn't create the color image.", __FILE__, __LINE__ - 16);
+		fprintf(stderr, "VULKAN ERROR: Failed to create the swapchain color image.\n");
 		return false;
 	}
 
-	colorImageView = vkUtils::createImageView
+	colorImageView = i3D_vkUtils::createImageView
 	(
 		device,
 		colorImage,
@@ -147,24 +148,24 @@ bool vkSwapchainObject::initColorResources(VkDevice device, VkPhysicalDevice phy
 
 	if (colorImageView == nullptr)
 	{
-		logger::logError("vkSwapchainObject::initColorResources(): Couldn't create the color image view.", __FILE__, __LINE__ - 11);
+		fprintf(stderr, "VULKAN ERROR: Failed to create the swapchain color image view.\n");
 		return false;
 	}
 
 	return true;
 }
 
-bool vkSwapchainObject::initDepthResources(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue, VkSampleCountFlagBits msaaSamples)
+bool i3D_vkSwapchainObject::initDepthResources(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue, VkSampleCountFlagBits msaaSamples)
 {
 	VkFormat depthFormat;
 
-	if (!vkUtils::findDepthFormat(physDevice, depthFormat))
+	if (!i3D_vkUtils::findDepthFormat(physDevice, depthFormat))
 	{
-		logger::logError("vkSwapchainObject::initDepthResources(): Couldn't find a suitable format for the depth image.", __FILE__, __LINE__ - 2);
+		fprintf(stderr, "VULKAN ERROR: Couldn't find a suitable format for the swapchain depth image.\n");
 		return false;
 	}
 
-	if (!vkUtils::createImage
+	if (!i3D_vkUtils::createImage
 	(
 		device,
 		physDevice,
@@ -180,21 +181,21 @@ bool vkSwapchainObject::initDepthResources(VkDevice device, VkPhysicalDevice phy
 		depthImageMemory
 	))
 	{
-		logger::logError("vkSwapchainObject::initDepthResources(): Couldn't create the depth image.", __FILE__, __LINE__ - 16);
+		fprintf(stderr, "VULKAN ERROR: Failed to create the swapchain depth image.\n");
 		return false;
 	}
 
-	depthImageView = vkUtils::createImageView(device, depthImage, 1, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+	depthImageView = i3D_vkUtils::createImageView(device, depthImage, 1, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
 
 	if (depthImageView == nullptr)
 	{
-		logger::logError("vkSwapchainObject::initDepthResources(): Couldn't create the depth image view.", __FILE__, __LINE__ - 2);
+		fprintf(stderr, "VULKAN ERROR: Failed to create the swapchain depth image view.\n");
 		return false;
 	}
 
-	VkCommandBuffer cmdBuffer = vkUtils::beginSingleTimeCommands(device, cmdPool);
+	VkCommandBuffer cmdBuffer = i3D_vkUtils::beginSingleTimeCommands(device, cmdPool);
 
-	if (!vkUtils::transitionImageLayout
+	if (!i3D_vkUtils::transitionImageLayout
 	(
 		device,
 		cmdBuffer,
@@ -205,16 +206,16 @@ bool vkSwapchainObject::initDepthResources(VkDevice device, VkPhysicalDevice phy
 		VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
 	))
 	{
-		logger::logError("vkSwapchainObject::initDepthResources(): Couldn't transition the depth image layout.", __FILE__, __LINE__ - 11);
+		fprintf(stderr, "VULKAN ERROR: Failed to transition the swapchain depth image layout.\n");
 		return false;
 	}
 
-	vkUtils::endSingleTimeCommands(device, cmdPool, gfxQueue, cmdBuffer);
+	i3D_vkUtils::endSingleTimeCommands(device, cmdPool, gfxQueue, cmdBuffer);
 
 	return true;
 }
 
-void vkSwapchainObject::cleanupSwapchain(VkDevice device)
+void i3D_vkSwapchainObject::cleanupSwapchain(VkDevice device)
 {
 	for (auto imageView : swapchainImageViews)
 	{
@@ -233,7 +234,7 @@ void vkSwapchainObject::cleanupSwapchain(VkDevice device)
 	}
 }
 
-void vkSwapchainObject::cleanupColorResources(VkDevice device)
+void i3D_vkSwapchainObject::cleanupColorResources(VkDevice device)
 {
 	if (colorImageView != nullptr)
 	{
@@ -254,7 +255,7 @@ void vkSwapchainObject::cleanupColorResources(VkDevice device)
 	}
 }
 
-void vkSwapchainObject::cleanupDepthResources(VkDevice device)
+void i3D_vkSwapchainObject::cleanupDepthResources(VkDevice device)
 {
 	if (depthImageView != nullptr)
 	{
@@ -275,7 +276,7 @@ void vkSwapchainObject::cleanupDepthResources(VkDevice device)
 	}
 }
 
-float vkSwapchainObject::getAspectRatio()
+float i3D_vkSwapchainObject::getAspectRatio()
 {
 	return imageExtent.width / static_cast<float>(imageExtent.height);
 }

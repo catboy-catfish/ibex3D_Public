@@ -21,6 +21,7 @@ private:
 
 	bool initApplication();
 	void updateApplication();
+	void closeApplication();
 	void cleanupApplication();
 
 public:
@@ -28,6 +29,7 @@ public:
 
 	bool initialize(int wndWidth, int wndHeight, const char* wndTitle);
 	void startRunning();
-	void close();
 	void cleanup();
+
+	void setCursorVisibility(bool value);
 };
