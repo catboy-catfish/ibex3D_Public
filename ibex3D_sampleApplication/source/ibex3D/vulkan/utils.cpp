@@ -1,17 +1,17 @@
 #include <ibex3D/vulkan/utils.h>
 
-#include <ibex3D/utility/miscellaneous.h>
+#include <ibex3D/core/fileAccess.h>
 
 #include <vulkan/vk_enum_string_helper.h>
-
-#include <glslang/Include/glslang_c_interface.h>
-#include <glslang/Public/resource_limits_c.h>
 
 #include <algorithm>
 #include <limits>
 #include <set>
 #include <stdio.h>
 #include <string>
+
+#include <glslang/Include/glslang_c_interface.h>
+#include <glslang/Public/resource_limits_c.h>
 
 // - Validation layers --------------------------------------------------------------------------------
 

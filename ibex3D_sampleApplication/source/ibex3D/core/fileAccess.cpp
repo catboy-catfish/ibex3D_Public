@@ -1,11 +1,11 @@
-#include <ibex3D/utility/miscellaneous.h>
+#include <ibex3D/core/fileAccess.h>
+#include <ibex3D/core/logger.h>
 
 #include <fstream>
-#include <stdio.h>
 
 // ----------------------------------------------------------------------------------------------------
 
-std::vector<char> i3D_utils::readFile(const char* filePath)
+std::vector<char> i3D_fileUtils::getFileContents(const char* filePath)
 {
 	// Pick up from where you left off at https://youtu.be/Qbs9v1W7St8?si=guDlWk9bBXZzHxOe&t=476
 	
@@ -13,7 +13,7 @@ std::vector<char> i3D_utils::readFile(const char* filePath)
 
 	if (!file.is_open())
 	{
-		fprintf(stderr, "UTILITY ERROR: Couldn't open the file at path \"%s\". Have you ensured that the provided file path is correct?\n", filePath);
+		i3D_logErrorMessage("FILE READING ERROR: Couldn't open file at path \"%s\".\n", filePath);
 		return std::vector<char>();
 	}
 
@@ -25,5 +25,6 @@ std::vector<char> i3D_utils::readFile(const char* filePath)
 	file.read(buffer.data(), fileSize);
 
 	file.close();
+
 	return buffer;
 }

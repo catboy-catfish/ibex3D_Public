@@ -6,7 +6,7 @@
 
 // ----------------------------------------------------------------------------------------------------
 
-bool i3D_win32utils::getWindowDimensions(HWND hWnd, int& width, int& height)
+bool i3D_windowsUtils::getWindowDimensions(HWND hWnd, LONG& width, LONG& height)
 {
 	if (hWnd == nullptr)
 	{
@@ -22,13 +22,13 @@ bool i3D_win32utils::getWindowDimensions(HWND hWnd, int& width, int& height)
 		return false;
 	}
 
-	width = static_cast<int>(wndRect.right - wndRect.left);
-	height = static_cast<int>(wndRect.bottom - wndRect.top);
+	width = wndRect.right - wndRect.left;
+	height = wndRect.bottom - wndRect.top;
 
 	return true;
 }
 
-const char* i3D_win32utils::hresultToText(HRESULT hr)
+const char* i3D_windowsUtils::hresultToText(HRESULT hr)
 {
 	// FIX: Text is only readable in release mode, not debug mode.
 

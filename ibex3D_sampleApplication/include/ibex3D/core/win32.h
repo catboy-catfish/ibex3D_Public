@@ -6,9 +6,9 @@
 
 // ----------------------------------------------------------------------------------------------------
 
-class i3D_win32utils
+class i3D_windowsUtils
 {
 public:
-	static bool getWindowDimensions(HWND hWnd, int& width, int& height);
+	static bool getWindowDimensions(HWND hWnd, LONG& width, LONG& height);
 	static const char* hresultToText(HRESULT hr);
 };

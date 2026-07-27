@@ -1,3 +1,10 @@
+/*
+	DEPRECATION NOTICE
+
+	This header and its functions are deprecated because I don't find myself using them very often, and instead I just use the regular new and delete operators.
+	If you ever want to use this, go ahead. It's unlikely to be removed, but it's deprecated unless I revisit memory allocation tracking.
+*/
+
 #pragma once
 
 #include <new>
@@ -7,12 +14,12 @@
 
 // ----------------------------------------------------------------------------------------------------
 
-static size_t totalRamUsage = 0;
+size_t totalRamUsage = 0;
 
 // ----------------------------------------------------------------------------------------------------
 
 template <typename t>
-t* ibex3D_allocate()
+t* i3D_allocate()
 {
 	size_t memSize = sizeof(t);
 	totalRamUsage += memSize;
@@ -23,7 +30,7 @@ t* ibex3D_allocate()
 }
 
 template <typename t, typename u>
-t* ibex3D_allocate(u&& args)
+t* i3D_allocate(u&& args)
 {
 	size_t memSize = sizeof(t);
 	totalRamUsage += memSize;
@@ -34,7 +41,7 @@ t* ibex3D_allocate(u&& args)
 }
 
 template <typename t>
-void ibex3D_free(t* mem)
+void i3D_free(t* mem)
 {
 	size_t memSize = sizeof(t);
 	totalRamUsage -= memSize;

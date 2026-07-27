@@ -31,5 +31,6 @@ public:
 	void startRunning();
 	void cleanup();
 
+	void setWindowTitle(const char* value);
 	void setCursorVisibility(bool value);
 };

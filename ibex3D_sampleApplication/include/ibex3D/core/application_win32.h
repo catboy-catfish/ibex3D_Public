@@ -33,7 +33,7 @@ public:
 private:
 	bool m_keyStates[256] = { false };
 
-	i3D_runtime_win32* m_runtime = nullptr;
+	i3D_runtime_win32* m_runtimePtr = nullptr;
 	i3D_vkRenderingContext* m_renderingContext = nullptr;
 
 	float m_meshRot = 0.0f;

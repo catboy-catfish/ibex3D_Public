@@ -2,12 +2,11 @@
 #include <ibex3D/vulkan/utils.h>
 
 #include <ibex3D/core/win32.h>
-#include <ibex3D/utility/miscellaneous.h>
+#include <ibex3D/core/fileAccess.h>
 
 #include <map>
 #include <set>
 #include <stdio.h>
-#include <string>
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -22,6 +21,16 @@
 
 #define MAX_FRAMES_IN_FLIGHT 2
 
+// ----------------------------------------------------------------------------------------------------
+
+#define I3D_BASSERT(condition)		\
+if (!condition)						\
+{									\
+	return false;					\
+}									\
+
+// ----------------------------------------------------------------------------------------------------
+
 struct vkUniformBufferData
 {
 	glm::mat4 modelMatrix;
@@ -30,6 +39,8 @@ struct vkUniformBufferData
 	glm::vec3 cameraPosition;
 	float padding;
 };
+
+// ----------------------------------------------------------------------------------------------------
 
 static glm::mat4 getCameraViewMatrix(glm::vec3 position, glm::vec3 rotation)
 {
@@ -54,8 +65,8 @@ static glm::mat4 getCameraProjMatrix(float fovRadians, float aspectRatio)
 
 bool i3D_vkRenderingContext::initialize(void* wndMemory)
 {
-	int wndWidth, wndHeight;
-	I3D_BASSERT(i3D_win32utils::getWindowDimensions(static_cast<HWND>(wndMemory), wndWidth, wndHeight));
+	LONG wndWidth, wndHeight;
+	I3D_BASSERT(i3D_windowsUtils::getWindowDimensions(static_cast<HWND>(wndMemory), wndWidth, wndHeight));
 
 	I3D_BASSERT(initInstance());
 	I3D_BASSERT(initSurface(wndMemory));
@@ -501,10 +512,10 @@ bool i3D_vkRenderingContext::initDescriptorSetLayout()
 bool i3D_vkRenderingContext::initGraphicsPipeline()
 {		
 	// TODO: Figure out how to compile the GLSL shaders into SPIR-V at runtime using glslang or shaderc
-	auto vtxShaderBytecode = i3D_utils::readFile("assets/shaders/shader_vert.spv");
+	auto vtxShaderBytecode = i3D_fileUtils::getFileContents("assets/shaders/shader_vert.spv");
 	if (vtxShaderBytecode.empty()) return false;
 
-	auto frgShaderBytecode = i3D_utils::readFile("assets/shaders/shader_frag.spv");
+	auto frgShaderBytecode = i3D_fileUtils::getFileContents("assets/shaders/shader_frag.spv");
 	if (frgShaderBytecode.empty()) return false;
 
 	VkShaderModule vtxShaderModule = i3D_vkUtils::createShaderModuleFromSPIRV(m_logicalDevice, vtxShaderBytecode);
@@ -1076,10 +1087,9 @@ bool i3D_vkRenderingContext::recordCommandBuffer(VkCommandBuffer buffer, uint32_
 
 bool i3D_vkRenderingContext::recreateSwapchain()
 {
-	int wndWidth = 0;
-	int wndHeight = 0;
+	LONG wndWidth, wndHeight;
 	
-	if (!i3D_win32utils::getWindowDimensions(static_cast<HWND>(m_wndMemory), wndWidth, wndHeight))
+	if (!i3D_windowsUtils::getWindowDimensions(static_cast<HWND>(m_wndMemory), wndWidth, wndHeight))
 	{
 		return false;
 	}

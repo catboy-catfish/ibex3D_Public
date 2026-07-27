@@ -1,7 +1,9 @@
 #include <ibex3D/core/runtime_win32.h>
 #include <ibex3D/core/entryPoint_win32.h>
 
-int ibex3D_entryPoint()
+// ----------------------------------------------------------------------------------------------------
+
+int ibex3D_entryPoint() // Fuck off VCR003
 {		
 	auto pRuntime = new i3D_runtime_win32;
 

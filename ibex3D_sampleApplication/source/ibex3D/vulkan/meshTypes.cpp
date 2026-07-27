@@ -1,6 +1,6 @@
 #include <ibex3D/vulkan/meshTypes.h>
 
-
+// ----------------------------------------------------------------------------------------------------
 
 VkVertexInputBindingDescription i3D_vkVertex::getBindingDesc()
 {

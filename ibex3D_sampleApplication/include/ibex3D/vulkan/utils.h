@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
+
 #include <vector>
 
 // ----------------------------------------------------------------------------------------------------
@@ -70,7 +71,7 @@ public:
 
 	// Shader loading
 	static VkShaderModule createShaderModuleFromSPIRV(VkDevice device, const std::vector<char>& spirvBytecode);
-	static VkShaderModule createShaderModuleFromGLSL(VkDevice device, const char* fileName);			// NOT IMPLEMENTED!!!
+	static VkShaderModule createShaderModuleFromGLSL(VkDevice device, const char* fileName); // NOT IMPLEMENTED!!!
 
 	// Command buffers
 	static VkCommandBuffer beginSingleTimeCommands(VkDevice device, VkCommandPool pool);

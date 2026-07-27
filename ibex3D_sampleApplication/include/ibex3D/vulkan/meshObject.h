@@ -3,6 +3,8 @@
 #include "bufferObject.h"
 #include "meshTypes.h"
 
+#include <vector>
+
 // ----------------------------------------------------------------------------------------------------
 
 struct i3D_vkMeshObject
