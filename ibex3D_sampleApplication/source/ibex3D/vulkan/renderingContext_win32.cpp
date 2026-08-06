@@ -10,7 +10,6 @@
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#include <thirdparty/glm/glm.hpp>
 #include <thirdparty/glm/ext/matrix_transform.hpp>
 #include <thirdparty/glm/ext/matrix_clip_space.hpp>
 
@@ -70,13 +69,13 @@ bool i3D_vkRenderingContext::initialize(void* wndMemory)
 
 	I3D_BASSERT(initInstance());
 	I3D_BASSERT(initSurface(wndMemory));
-	I3D_BASSERT(initPhysicalDevice(VK_SAMPLE_COUNT_1_BIT));
+	I3D_BASSERT(initPhysicalDevice(VK_SAMPLE_COUNT_4_BIT));
 	I3D_BASSERT(initLogicalDevice());
 	I3D_BASSERT(initSwapchain(wndWidth, wndHeight));
 	I3D_BASSERT(initRenderPass());
 	I3D_BASSERT(initDescriptorSetLayout());
 	I3D_BASSERT(initGraphicsPipeline());
-	I3D_BASSERT(initCommandPoolAndBuffers());
+	I3D_BASSERT(initCommands());
 	I3D_BASSERT(initSwapchainResources());
 	I3D_BASSERT(initFramebuffers());
 	I3D_BASSERT(initModelAndTexture());
@@ -108,6 +107,7 @@ bool i3D_vkRenderingContext::drawFrame(float meshRotation)
 
 	vkResetFences(m_logicalDevice, 1, &m_frameFences[m_currentFrame]);
 	vkResetCommandBuffer(m_commandBuffers[m_currentFrame], 0);
+
 	updateUniformBuffer(m_currentFrame);
 	recordCommandBuffer(m_commandBuffers[m_currentFrame], imageIndex);
 
@@ -123,7 +123,7 @@ bool i3D_vkRenderingContext::drawFrame(float meshRotation)
 	submitInfo.pWaitSemaphores = &m_frameSemaphores[m_currentFrame];
 	submitInfo.pSignalSemaphores = &m_swapchainSemaphores[imageIndex];
 	submitInfo.pCommandBuffers = &m_commandBuffers[m_currentFrame];
-	submitInfo.pWaitDstStageMask = &waitStage;
+	submitInfo.pWaitDstStageMask = &waitStage;							// I don't get why this is a pointer either
 
 	result = vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, m_frameFences[m_currentFrame]);
 
@@ -183,6 +183,7 @@ bool i3D_vkRenderingContext::initInstance()
 		return false;
 	}
 #endif
+
 	VkApplicationInfo applicationInfo = {};
 	applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
 	applicationInfo.pApplicationName = "No name";
@@ -512,20 +513,15 @@ bool i3D_vkRenderingContext::initDescriptorSetLayout()
 bool i3D_vkRenderingContext::initGraphicsPipeline()
 {		
 	// TODO: Figure out how to compile the GLSL shaders into SPIR-V at runtime using glslang or shaderc
-	auto vtxShaderBytecode = i3D_fileUtils::getFileContents("assets/shaders/shader_vert.spv");
-	if (vtxShaderBytecode.empty()) return false;
-
-	auto frgShaderBytecode = i3D_fileUtils::getFileContents("assets/shaders/shader_frag.spv");
-	if (frgShaderBytecode.empty()) return false;
-
-	VkShaderModule vtxShaderModule = i3D_vkUtils::createShaderModuleFromSPIRV(m_logicalDevice, vtxShaderBytecode);
-
+	
+	VkShaderModule vtxShaderModule = i3D_vkUtils::createShaderModuleFromSPIRV(m_logicalDevice, "assets/shaders/shader_vert.spv");
+	
 	if (vtxShaderModule == nullptr)
 	{
 		return false;
 	}
 
-	VkShaderModule frgShaderModule = i3D_vkUtils::createShaderModuleFromSPIRV(m_logicalDevice, frgShaderBytecode);
+	VkShaderModule frgShaderModule = i3D_vkUtils::createShaderModuleFromSPIRV(m_logicalDevice, "assets/shaders/shader_frag.spv");
 
 	if (frgShaderModule == nullptr)
 	{
@@ -743,7 +739,7 @@ bool i3D_vkRenderingContext::initGraphicsPipeline()
 	return true;
 }
 
-bool i3D_vkRenderingContext::initCommandPoolAndBuffers()
+bool i3D_vkRenderingContext::initCommands()
 {
 	i3D_vkQueueFamilyIndices indices = i3D_vkUtils::findQueueFamilies(m_physicalDevice, m_surface);
 
@@ -753,34 +749,44 @@ bool i3D_vkRenderingContext::initCommandPoolAndBuffers()
 		return false;
 	}
 
+	m_commandPools.resize(MAX_FRAMES_IN_FLIGHT);
+	m_commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+
 	VkCommandPoolCreateInfo commandPoolInfo = {};
 	commandPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 	commandPoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 	commandPoolInfo.queueFamilyIndex = indices.graphicsFamily;
 
-	VkResult result = vkCreateCommandPool(m_logicalDevice, &commandPoolInfo, nullptr, &m_commandPool);;
-
-	if (result != VK_SUCCESS)
+	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to create the command pool. VkResult: %s\n", string_VkResult(result));
-		return false;
+		VkResult result = vkCreateCommandPool(m_logicalDevice, &commandPoolInfo, nullptr, &m_commandPools[i]);
+
+		if (result != VK_SUCCESS)
+		{
+			fprintf(stderr, "VULKAN ERROR: Failed to create the command pool for one of the frames in flight. VkResult: %s\n", string_VkResult(result));
+			return false;
+		}
+
+		VkCommandBufferAllocateInfo commandBufferInfo = {};
+		commandBufferInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+		commandBufferInfo.commandPool = m_commandPools[i];
+		commandBufferInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		commandBufferInfo.commandBufferCount = 1;
+
+		result = vkAllocateCommandBuffers(m_logicalDevice, &commandBufferInfo, &m_commandBuffers[i]);
+
+		if (result != VK_SUCCESS)
+		{
+			fprintf(stderr, "VULKAN ERROR: Failed to allocate the command buffer for one of the frames in flight. VkResult: %s\n", string_VkResult(result));
+			return false;
+		}
 	}
 
-	// ----------------------------------------------------------------------------------------------------
-
-	m_commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
-
-	VkCommandBufferAllocateInfo commandBufferInfo = {};
-	commandBufferInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-	commandBufferInfo.commandPool = m_commandPool;
-	commandBufferInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	commandBufferInfo.commandBufferCount = static_cast<uint32_t>(m_commandBuffers.size());
-
-	result = vkAllocateCommandBuffers(m_logicalDevice, &commandBufferInfo, m_commandBuffers.data());
+	VkResult result = vkCreateCommandPool(m_logicalDevice, &commandPoolInfo, nullptr, &m_immCommandPool);
 
 	if (result != VK_SUCCESS)
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to allocate the command buffers. VkResult: %s\n", string_VkResult(result));
+		fprintf(stderr, "VULKAN ERROR: Failed to create the command pool used for one-time submits. VkResult: %s\n", string_VkResult(result));
 		return false;
 	}
 
@@ -794,7 +800,7 @@ bool i3D_vkRenderingContext::initSwapchainResources()
 		return false;
 	}
 	
-	if (!m_swapchain.initDepthResources(m_logicalDevice, m_physicalDevice, m_commandPool, m_graphicsQueue, m_msaaSamples))
+	if (!m_swapchain.initDepthResources(m_logicalDevice, m_physicalDevice, m_immCommandPool, m_graphicsQueue, m_msaaSamples))
 	{
 		return false;
 	}
@@ -838,15 +844,8 @@ bool i3D_vkRenderingContext::initFramebuffers()
 
 bool i3D_vkRenderingContext::initModelAndTexture()
 {	
-	if (!m_textureClass.initialize(m_logicalDevice, m_physicalDevice, m_commandPool, m_graphicsQueue, "assets/images/texture.jpg"))
-	{
-		return false;
-	}
-	
-	if (!m_meshClass.initialize(m_logicalDevice, m_physicalDevice, m_commandPool, m_graphicsQueue, "assets/models/export3dcoat.obj"))
-	{
-		return false;
-	}
+	I3D_BASSERT(m_textureClass.initialize(m_logicalDevice, m_physicalDevice, m_immCommandPool, m_graphicsQueue, "assets/images/texture.jpg"));
+	I3D_BASSERT(m_meshClass.initialize(m_logicalDevice, m_physicalDevice, m_immCommandPool, m_graphicsQueue, "assets/models/export3dcoat.obj"));
 
 	return true;
 }
@@ -886,8 +885,10 @@ bool i3D_vkRenderingContext::initUniformBuffers()
 bool i3D_vkRenderingContext::initDescriptorPoolAndSets()
 {
 	std::array<VkDescriptorPoolSize, 2> poolSizes = {};
+
 	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	poolSizes[0].descriptorCount = MAX_FRAMES_IN_FLIGHT;
+	
 	poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 	poolSizes[1].descriptorCount = poolSizes[0].descriptorCount;
 
@@ -1192,32 +1193,50 @@ void i3D_vkRenderingContext::cleanupLogicalDevice()
 
 		for (auto& semaphore : m_swapchainSemaphores)
 		{
-			vkDestroySemaphore(m_logicalDevice, semaphore, nullptr);
-			semaphore = nullptr;
+			if (semaphore != nullptr)
+			{
+				vkDestroySemaphore(m_logicalDevice, semaphore, nullptr);
+				semaphore = nullptr;
+			}
 		}
 
 		m_swapchainSemaphores.clear();
 
 		for (auto& semaphore : m_frameSemaphores)
 		{
-			vkDestroySemaphore(m_logicalDevice, semaphore, nullptr);
-			semaphore = nullptr;
+			if (semaphore != nullptr)
+			{
+				vkDestroySemaphore(m_logicalDevice, semaphore, nullptr);
+				semaphore = nullptr;
+			}
 		}
 
 		m_frameSemaphores.clear();
 
 		for (auto& fence : m_frameFences)
 		{
-			vkDestroyFence(m_logicalDevice, fence, nullptr);
-			fence = nullptr;
+			if (fence != nullptr)
+			{
+				vkDestroyFence(m_logicalDevice, fence, nullptr);
+				fence = nullptr;
+			}
 		}
 
 		m_frameFences.clear();
 
-		if (m_commandPool != nullptr)
+		for (auto& pool : m_commandPools)
 		{
-			vkDestroyCommandPool(m_logicalDevice, m_commandPool, nullptr);
-			m_commandPool = nullptr;
+			if (pool != nullptr)
+			{
+				vkDestroyCommandPool(m_logicalDevice, pool, nullptr);
+				pool = nullptr;
+			}
+		}
+
+		if (m_immCommandPool != nullptr)
+		{
+			vkDestroyCommandPool(m_logicalDevice, m_immCommandPool, nullptr);
+			m_immCommandPool = nullptr;
 		}
 
 		vkDestroyDevice(m_logicalDevice, nullptr);

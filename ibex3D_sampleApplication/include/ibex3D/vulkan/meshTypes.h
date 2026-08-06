@@ -4,7 +4,8 @@
 
 #include <array>
 
-#include <thirdparty/glm/glm.hpp>
+#include <thirdparty/glm/vec2.hpp>
+#include <thirdparty/glm/vec3.hpp>
 
 // ----------------------------------------------------------------------------------------------------
 

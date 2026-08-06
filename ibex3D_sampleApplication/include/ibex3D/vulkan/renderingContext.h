@@ -24,7 +24,7 @@ private:
 	bool initRenderPass();
 	bool initDescriptorSetLayout();
 	bool initGraphicsPipeline();
-	bool initCommandPoolAndBuffers();
+	bool initCommands();
 	bool initSwapchainResources();
 	bool initFramebuffers();
 	bool initModelAndTexture();
@@ -61,7 +61,7 @@ private:
 	VkDescriptorSetLayout m_descriptorSetLayout = nullptr;
 	VkPipelineLayout m_pipelineLayout = nullptr;
 	VkPipeline m_graphicsPipeline = nullptr;
-	VkCommandPool m_commandPool = nullptr;
+	VkCommandPool m_immCommandPool = nullptr;
 	VkDescriptorPool m_descriptorPool = nullptr;
 
 	VkSampleCountFlagBits m_msaaSamples = VK_SAMPLE_COUNT_1_BIT;
@@ -71,6 +71,7 @@ private:
 	std::vector<i3D_vkBufferObject> m_uniformBuffers;
 	std::vector<void*> m_uniformBuffersMapped;
 	std::vector<VkDescriptorSet> m_descriptorSets;
+	std::vector<VkCommandPool> m_commandPools;
 	std::vector<VkCommandBuffer> m_commandBuffers;
 	std::vector<VkSemaphore> m_swapchainSemaphores;
 	std::vector<VkSemaphore> m_frameSemaphores;

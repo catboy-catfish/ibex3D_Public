@@ -47,8 +47,6 @@ public:
 		const VkAllocationCallbacks* pAllocator
 	);
 
-	static VkDebugUtilsMessengerCreateInfoEXT debugMessengerCreateInfo();
-
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debugMessengerCallback
 	(
 		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -56,6 +54,8 @@ public:
 		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
 		void* pUserData
 	);
+
+	static VkDebugUtilsMessengerCreateInfoEXT debugMessengerCreateInfo();
 #endif
 
 	// Physical device and swapchain
@@ -70,8 +70,8 @@ public:
 	static VkExtent2D chooseExtent(const VkSurfaceCapabilitiesKHR& surfaceCaps, int width, int height);
 
 	// Shader loading
-	static VkShaderModule createShaderModuleFromSPIRV(VkDevice device, const std::vector<char>& spirvBytecode);
-	static VkShaderModule createShaderModuleFromGLSL(VkDevice device, const char* fileName); // NOT IMPLEMENTED!!!
+	static VkShaderModule createShaderModuleFromSPIRV(VkDevice device, const char* filePath);
+	static VkShaderModule createShaderModuleFromGLSL(VkDevice device, const char* filePath); // NOT IMPLEMENTED!!!
 
 	// Command buffers
 	static VkCommandBuffer beginSingleTimeCommands(VkDevice device, VkCommandPool pool);

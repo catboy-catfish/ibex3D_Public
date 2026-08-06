@@ -1,4 +1,5 @@
 #include <ibex3D/vulkan/meshObject.h>
+#include <ibex3D/vulkan/utils.h>
 
 #include <stdio.h>
 #include <unordered_map>
@@ -147,12 +148,16 @@ bool i3D_vkMeshObject::initVertexIndexBuffer(VkDevice device, VkPhysicalDevice p
 		return false;
 	}
 
-	if (!vtxIdxBuffer.cmdCopyBuffer(device, cmdPool, gfxQueue, stagingBuffer.buffer, 0, 0, combinedBufferSize))
+	VkCommandBuffer cmdBuffer = i3D_vkUtils::beginSingleTimeCommands(device, cmdPool);
+
+	if (!vtxIdxBuffer.cmdCopyBuffer(device, cmdBuffer, stagingBuffer.buffer, 0, 0, combinedBufferSize))
 	{
 		fprintf(stderr, "VULKAN ERROR: Failed to copy the staging buffer memory to the combined vertex-index buffer.\n");
 		stagingBuffer.cleanup(device);
 		return false;
 	}
+
+	i3D_vkUtils::endSingleTimeCommands(device, cmdPool, gfxQueue, cmdBuffer);
 
 	stagingBuffer.cleanup(device);
 	return true;

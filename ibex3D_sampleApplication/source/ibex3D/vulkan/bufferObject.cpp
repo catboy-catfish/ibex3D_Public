@@ -109,24 +109,13 @@ bool i3D_vkBufferObject::updateBufferOnce(VkDevice device, VkDeviceSize regionOf
 	return true;
 }
 
-bool i3D_vkBufferObject::cmdCopyBuffer(VkDevice device, VkCommandPool cmdPool, VkQueue gfxQueue, VkBuffer srcBuffer, VkDeviceSize srcOffset, VkDeviceSize dstOffset, VkDeviceSize regionSize)
+bool i3D_vkBufferObject::cmdCopyBuffer(VkDevice device, VkCommandBuffer cmdBuffer, VkBuffer srcBuffer, VkDeviceSize srcOffset, VkDeviceSize dstOffset, VkDeviceSize regionSize)
 {
-	VkCommandBuffer commandBuffer = i3D_vkUtils::beginSingleTimeCommands(device, cmdPool);
-
-	if (commandBuffer == nullptr)
-	{
-		fprintf(stderr, "VULKAN ERROR: Couldn't begin the single-time commands for copying the buffer.\n");
-		i3D_vkUtils::endSingleTimeCommands(device, cmdPool, gfxQueue, commandBuffer);
-		return false;
-	}
-
 	VkBufferCopy copyRegion = {};
 	copyRegion.srcOffset = srcOffset;
 	copyRegion.dstOffset = dstOffset;
 	copyRegion.size = regionSize;
 
-	vkCmdCopyBuffer(commandBuffer, srcBuffer, buffer, 1, &copyRegion);
-
-	i3D_vkUtils::endSingleTimeCommands(device, cmdPool, gfxQueue, commandBuffer);
+	vkCmdCopyBuffer(cmdBuffer, srcBuffer, buffer, 1, &copyRegion);
 	return true;
 }

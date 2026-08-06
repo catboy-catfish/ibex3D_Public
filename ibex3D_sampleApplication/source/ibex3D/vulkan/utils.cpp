@@ -51,6 +51,31 @@ void i3D_vkUtils::destroyDebugMessenger
 	}
 }
 
+VKAPI_ATTR VkBool32 VKAPI_CALL i3D_vkUtils::debugMessengerCallback
+(
+	VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+	VkDebugUtilsMessageTypeFlagsEXT messageType,
+	const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+	void* pUserData
+)
+{
+	switch (messageSeverity)
+	{
+		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
+		{
+			fprintf(stdout, "VULKAN WARNING (Validation): %s\n\n", pCallbackData->pMessage);
+			break;
+		}
+		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
+		{
+			fprintf(stderr, "VULKAN ERROR (Validation): %s\n\n", pCallbackData->pMessage);
+			break;
+		}
+	}
+
+	return VK_FALSE;
+}
+
 VkDebugUtilsMessengerCreateInfoEXT i3D_vkUtils::debugMessengerCreateInfo()
 {
 	VkDebugUtilsMessengerCreateInfoEXT info = {};
@@ -71,31 +96,6 @@ VkDebugUtilsMessengerCreateInfoEXT i3D_vkUtils::debugMessengerCreateInfo()
 	info.pUserData = nullptr;
 
 	return info;
-}
-
-VKAPI_ATTR VkBool32 VKAPI_CALL i3D_vkUtils::debugMessengerCallback
-(
-	VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-	VkDebugUtilsMessageTypeFlagsEXT messageType,
-	const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-	void* pUserData
-)
-{
-	switch (messageSeverity)
-	{
-		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
-		{	
-			fprintf(stdout, "VULKAN WARNING (Validation): %s\n\n", pCallbackData->pMessage);
-			break;
-		}
-		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
-		{
-			fprintf(stderr, "VULKAN ERROR (Validation): %s\n\n", pCallbackData->pMessage);
-			break;
-		}
-	}
-
-	return VK_FALSE;
 }
 #endif
 
@@ -269,8 +269,8 @@ VkExtent2D i3D_vkUtils::chooseExtent(const VkSurfaceCapabilitiesKHR& surfaceCaps
 {
 	if (surfaceCaps.currentExtent.width == UINT_MAX)
 	{
-		/* on Wayland */
-		
+		/* On Wayland */
+
 		VkExtent2D actualExtent =
 		{
 			static_cast<uint32_t>(width),
@@ -285,17 +285,20 @@ VkExtent2D i3D_vkUtils::chooseExtent(const VkSurfaceCapabilitiesKHR& surfaceCaps
 	else
 	{
 		/* Not on Wayland */
+
 		return surfaceCaps.currentExtent;
 	}
 }
 
 // - Shader loading -----------------------------------------------------------------------------------
 
-VkShaderModule i3D_vkUtils::createShaderModuleFromSPIRV(VkDevice device, const std::vector<char>& spirvBytecode)
+VkShaderModule i3D_vkUtils::createShaderModuleFromSPIRV(VkDevice device, const char* filePath)
 {
+	std::vector<char> spirvBytecode = i3D_fileUtils::getFileContents(filePath);
+	
 	if (spirvBytecode.empty())
 	{
-		fprintf(stderr, "VULKAN ERROR: Couldn't create the shader module from SPIR-V because argument \"const std::vector<char>& spirvBytecode\" is empty.\n");
+		fprintf(stderr, "VULKAN ERROR: Couldn't create the shader module from SPIR-V because the file at path \"%s\" couldn't be loaded.\n", filePath);
 		return nullptr;
 	}
 
@@ -316,7 +319,7 @@ VkShaderModule i3D_vkUtils::createShaderModuleFromSPIRV(VkDevice device, const s
 	return shaderModule;
 }
 
-VkShaderModule i3D_vkUtils::createShaderModuleFromGLSL(VkDevice device, const char* fileName)
+VkShaderModule i3D_vkUtils::createShaderModuleFromGLSL(VkDevice device, const char* filePath)
 {
 	/*
 		Pick up from where you left off at https://youtu.be/Qbs9v1W7St8?t=416
