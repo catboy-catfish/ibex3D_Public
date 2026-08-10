@@ -22,7 +22,7 @@ struct i3D_vkSwapchainObject
 
 	uint32_t imageCount = 0;
 	VkFormat imageFormat = VK_FORMAT_UNDEFINED;
-	VkExtent2D imageExtent = { 0, 0 };
+	VkExtent2D imageExtent = {};
 
 	// ----------------------------------------------------------------------------------------------------
 
