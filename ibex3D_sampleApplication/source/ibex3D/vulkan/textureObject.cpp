@@ -2,14 +2,15 @@
 #include <ibex3D/vulkan/bufferObject.h>
 #include <ibex3D/vulkan/utils.h>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include <thirdparty/stb/image.h>
+#include <ibex3D/core/logger.h>
 
 #include <algorithm>
 #include <cmath>
-#include <stdio.h>
 
 #include <vulkan/vk_enum_string_helper.h>
+
+#define STB_IMAGE_IMPLEMENTATION
+#include <thirdparty/stb/image.h>
 
 // ----------------------------------------------------------------------------------------------------
 
@@ -20,7 +21,7 @@ bool i3D_vkTextureObject::initImageAndView(VkDevice device, VkPhysicalDevice phy
 
 	if (pixels == nullptr)
 	{
-		fprintf(stderr, "VULKAN ERROR: Couldn't load the data from the image file at path \"%s\". Have you ensured that the path to the image file is correct?\n", imgFilePath);
+		i3D_logErrorMessage("VULKAN ERROR: Couldn't load the data from the image file at path \"%s\". Have you ensured that the path to the image file is correct?\n", imgFilePath);
 		return false;
 	}
 
@@ -36,7 +37,7 @@ bool i3D_vkTextureObject::initImageAndView(VkDevice device, VkPhysicalDevice phy
 		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
 	))
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to initialize the staging buffer for the texture object.\n");
+		i3D_logErrorMessage("VULKAN ERROR: Failed to initialize the staging buffer for the texture object.\n");
 		stbi_image_free(pixels);
 		return false;
 	}
@@ -45,7 +46,7 @@ bool i3D_vkTextureObject::initImageAndView(VkDevice device, VkPhysicalDevice phy
 
 	if (!stagingBuffer.mapBufferMemory(device, 0, imageSize, 0, &data))
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to map the staging buffer memory.\n");
+		i3D_logErrorMessage("VULKAN ERROR: Failed to map the staging buffer memory.\n");
 		return false;
 	}
 	
@@ -65,7 +66,7 @@ bool i3D_vkTextureObject::initImageAndView(VkDevice device, VkPhysicalDevice phy
 		image, imageMemory
 	))
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to create the texture image.\n");
+		i3D_logErrorMessage("VULKAN ERROR: Failed to create the texture image.\n");
 		stagingBuffer.cleanup(device);
 		return false;
 	}
@@ -82,7 +83,7 @@ bool i3D_vkTextureObject::initImageAndView(VkDevice device, VkPhysicalDevice phy
 		VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
 	))
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to transition the texture image layout.\n");
+		i3D_logErrorMessage("VULKAN ERROR: Failed to transition the texture image layout.\n");
 		stagingBuffer.cleanup(device);
 		return false;
 	}
@@ -97,7 +98,7 @@ bool i3D_vkTextureObject::initImageAndView(VkDevice device, VkPhysicalDevice phy
 		static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight)
 	))
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to copy the staging buffer data to the texture image.\n");
+		i3D_logErrorMessage("VULKAN ERROR: Failed to copy the staging buffer data to the texture image.\n");
 		stagingBuffer.cleanup(device);
 		return false;
 	}
@@ -111,7 +112,7 @@ bool i3D_vkTextureObject::initImageAndView(VkDevice device, VkPhysicalDevice phy
 		image, VK_FORMAT_R8G8B8A8_SRGB, texWidth, texHeight, mipLevels
 	))
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to generate the mipmaps for the texture image.\n");
+		i3D_logErrorMessage("VULKAN ERROR: Failed to generate the mipmaps for the texture image.\n");
 		stagingBuffer.cleanup(device);
 		return false;
 	}
@@ -125,7 +126,7 @@ bool i3D_vkTextureObject::initImageAndView(VkDevice device, VkPhysicalDevice phy
 
 	if (imageView == nullptr)
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to create the texture image view.\n");
+		i3D_logErrorMessage("VULKAN ERROR: Failed to create the texture image view.\n");
 		return false;
 	}
 
@@ -157,7 +158,7 @@ bool i3D_vkTextureObject::initSampler(VkDevice device, VkPhysicalDevice physDevi
 
 	if (result != VK_SUCCESS)
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to create the texture image sampler. VkResult: %s\n", string_VkResult(result));
+		i3D_logErrorMessage("VULKAN ERROR: Failed to create the texture image sampler. VkResult: %s\n", string_VkResult(result));
 		return false;
 	}
 

@@ -1,103 +1,17 @@
 #include <ibex3D/vulkan/utils.h>
 
+#include <ibex3D/core/logger.h>
 #include <ibex3D/core/fileAccess.h>
-
-#include <vulkan/vk_enum_string_helper.h>
 
 #include <algorithm>
 #include <limits>
 #include <set>
-#include <stdio.h>
 #include <string>
+
+#include <vulkan/vk_enum_string_helper.h>
 
 #include <glslang/Include/glslang_c_interface.h>
 #include <glslang/Public/resource_limits_c.h>
-
-// - Validation layers --------------------------------------------------------------------------------
-
-#ifdef I3D_VULKAN_VALIDATION
-VkResult i3D_vkUtils::createDebugMessenger
-(
-	VkInstance instance,
-	const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
-	const VkAllocationCallbacks* pAllocator,
-	VkDebugUtilsMessengerEXT* pDebugMessenger
-)
-{
-	auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
-
-	if (func != nullptr)
-	{
-		return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
-	}
-	else
-	{
-		return VK_ERROR_EXTENSION_NOT_PRESENT;
-	}
-}
-
-void i3D_vkUtils::destroyDebugMessenger
-(
-	VkInstance instance,
-	VkDebugUtilsMessengerEXT debugMessenger,
-	const VkAllocationCallbacks* pAllocator
-)
-{
-	auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
-
-	if (func != nullptr)
-	{
-		func(instance, debugMessenger, pAllocator);
-	}
-}
-
-VKAPI_ATTR VkBool32 VKAPI_CALL i3D_vkUtils::debugMessengerCallback
-(
-	VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-	VkDebugUtilsMessageTypeFlagsEXT messageType,
-	const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-	void* pUserData
-)
-{
-	switch (messageSeverity)
-	{
-		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
-		{
-			fprintf(stdout, "VULKAN WARNING (Validation): %s\n\n", pCallbackData->pMessage);
-			break;
-		}
-		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
-		{
-			fprintf(stderr, "VULKAN ERROR (Validation): %s\n\n", pCallbackData->pMessage);
-			break;
-		}
-	}
-
-	return VK_FALSE;
-}
-
-VkDebugUtilsMessengerCreateInfoEXT i3D_vkUtils::debugMessengerCreateInfo()
-{
-	VkDebugUtilsMessengerCreateInfoEXT info = {};
-	info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-
-	info.messageSeverity =
-		VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
-		VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
-		VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
-		VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-
-	info.messageType =
-		VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
-		VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
-		VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-
-	info.pfnUserCallback = i3D_vkUtils::debugMessengerCallback;
-	info.pUserData = nullptr;
-
-	return info;
-}
-#endif
 
 // - Physical device and swapchain --------------------------------------------------------------------
 
@@ -161,135 +75,6 @@ i3D_vkSwapchainSupportInfo i3D_vkUtils::querySwapchainSupport(VkPhysicalDevice p
 	return info;
 }
 
-VkSampleCountFlagBits i3D_vkUtils::getMaxUsableSampleCount(VkPhysicalDevice physDevice)
-{
-	VkPhysicalDeviceProperties pdProperties = {};
-	vkGetPhysicalDeviceProperties(physDevice, &pdProperties);
-
-	VkSampleCountFlags counts =
-		pdProperties.limits.framebufferColorSampleCounts & 
-		pdProperties.limits.framebufferDepthSampleCounts;
-
-	if (counts & VK_SAMPLE_COUNT_64_BIT) { return VK_SAMPLE_COUNT_64_BIT; }
-	if (counts & VK_SAMPLE_COUNT_32_BIT) { return VK_SAMPLE_COUNT_32_BIT; }
-	if (counts & VK_SAMPLE_COUNT_16_BIT) { return VK_SAMPLE_COUNT_16_BIT; }
-	if (counts & VK_SAMPLE_COUNT_8_BIT) { return VK_SAMPLE_COUNT_8_BIT; }
-	if (counts & VK_SAMPLE_COUNT_4_BIT) { return VK_SAMPLE_COUNT_4_BIT; }
-	if (counts & VK_SAMPLE_COUNT_2_BIT) { return VK_SAMPLE_COUNT_2_BIT; }
-	return VK_SAMPLE_COUNT_1_BIT;
-}
-
-int i3D_vkUtils::ratePhysicalDeviceSuitability(VkPhysicalDevice physDevice, VkSurfaceKHR surface, bool extSupport)
-{
-	if (!extSupport)
-	{
-		fprintf(stderr, "VULKAN ERROR: This GPU is unsuitable because it doesn't support the required Vulkan extensions.\n");
-		return 0;
-	}
-	
-	int score = 0;
-
-	VkPhysicalDeviceProperties2 deviceProperties = {};
-	deviceProperties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
-
-	vkGetPhysicalDeviceProperties2(physDevice, &deviceProperties);
-
-	if (deviceProperties.properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
-	{
-		score += 1000;
-	}
-
-	score += deviceProperties.properties.limits.maxImageDimension2D;
-
-	VkPhysicalDeviceFeatures deviceFeatures = {};
-	vkGetPhysicalDeviceFeatures(physDevice, &deviceFeatures);
-
-	if (!deviceFeatures.geometryShader)
-	{
-		fprintf(stderr, "VULKAN ERROR: This GPU is unsuitable because it doesn't support geometry shaders.\n");
-		return 0;
-	}
-
-	if (!deviceFeatures.samplerAnisotropy)
-	{
-		fprintf(stderr, "VULKAN ERROR: This GPU is unsuitable because it doesn't support anisotropic texture filtering.\n");
-		return 0;
-	}
-
-	i3D_vkSwapchainSupportInfo info = querySwapchainSupport(physDevice, surface);
-
-	if ((info.formats.empty() || info.presentModes.empty()))
-	{
-		fprintf(stderr, "VULKAN ERROR: This GPU is unsuitable because it doesn't support the required swapchain formats or presentation modes.\n");
-		return 0;
-	}
-
-	i3D_vkQueueFamilyIndices indices = findQueueFamilies(physDevice, surface);
-
-	if (!indices.isComplete())
-	{
-		fprintf(stderr, "VULKAN ERROR: This GPU is unsuitable because one or more required queue families are missing.\n");
-		return 0;
-	}
-
-	return score;
-}
-
-// - Swapchain ----------------------------------------------------------------------------------------
-
-VkSurfaceFormatKHR i3D_vkUtils::chooseSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
-{
-	for (const auto& availableFormat : availableFormats)
-	{
-		if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
-		{
-			return availableFormat;
-		}
-	}
-
-	return availableFormats[0];
-}
-
-VkPresentModeKHR i3D_vkUtils::choosePresentMode(const std::vector<VkPresentModeKHR>& availableModes, bool vSync)
-{
-	VkPresentModeKHR targetMode = (vSync ? VK_PRESENT_MODE_MAILBOX_KHR : VK_PRESENT_MODE_IMMEDIATE_KHR);
-	
-	for (const auto& mode : availableModes)
-	{	
-		if (mode == targetMode)
-		{
-			return mode;
-		}
-	}
-
-	return VK_PRESENT_MODE_FIFO_KHR;
-}
-
-VkExtent2D i3D_vkUtils::chooseExtent(const VkSurfaceCapabilitiesKHR& surfaceCaps, int width, int height)
-{
-	if (surfaceCaps.currentExtent.width == UINT_MAX)
-	{
-		/* On Wayland */
-
-		VkExtent2D actualExtent =
-		{
-			static_cast<uint32_t>(width),
-			static_cast<uint32_t>(height)
-		};
-
-		actualExtent.width = std::clamp(actualExtent.width, surfaceCaps.minImageExtent.width, surfaceCaps.maxImageExtent.width);
-		actualExtent.height = std::clamp(actualExtent.height, surfaceCaps.minImageExtent.height, surfaceCaps.maxImageExtent.height);
-
-		return actualExtent;
-	}
-	else
-	{
-		/* Not on Wayland */
-
-		return surfaceCaps.currentExtent;
-	}
-}
-
 // - Shader loading -----------------------------------------------------------------------------------
 
 VkShaderModule i3D_vkUtils::createShaderModuleFromSPIRV(VkDevice device, const char* filePath)
@@ -298,7 +83,7 @@ VkShaderModule i3D_vkUtils::createShaderModuleFromSPIRV(VkDevice device, const c
 	
 	if (spirvBytecode.empty())
 	{
-		fprintf(stderr, "VULKAN ERROR: Couldn't create the shader module from SPIR-V because the file at path \"%s\" couldn't be loaded.\n", filePath);
+		i3D_logErrorMessage("VULKAN ERROR: Couldn't create the shader module from SPIR-V because the file at path \"%s\" couldn't be loaded.\n", filePath);
 		return nullptr;
 	}
 
@@ -312,7 +97,7 @@ VkShaderModule i3D_vkUtils::createShaderModuleFromSPIRV(VkDevice device, const c
 
 	if (result != VK_SUCCESS)
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to create the shader module from SPIR-V. VkResult: %s\n", string_VkResult(result));
+		i3D_logErrorMessage("VULKAN ERROR: Failed to create the shader module from SPIR-V. VkResult: %s\n", string_VkResult(result));
 		return nullptr;
 	}
 
@@ -344,7 +129,7 @@ VkCommandBuffer i3D_vkUtils::beginSingleTimeCommands(VkDevice device, VkCommandP
 
 	if (result != VK_SUCCESS)
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to allocate the command buffer for the single-time commands. VkResult: %s\n", string_VkResult(result));
+		i3D_logErrorMessage("VULKAN ERROR: Failed to allocate the command buffer for the single-time commands. VkResult: %s\n", string_VkResult(result));
 		return nullptr;
 	}
 
@@ -356,7 +141,7 @@ VkCommandBuffer i3D_vkUtils::beginSingleTimeCommands(VkDevice device, VkCommandP
 
 	if (result != VK_SUCCESS)
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to record the command buffer for the single-time commands. VkResult: %s\n", string_VkResult(result));
+		i3D_logErrorMessage("VULKAN ERROR: Failed to record the command buffer for the single-time commands. VkResult: %s\n", string_VkResult(result));
 		
 		vkFreeCommandBuffers(device, pool, 1, &commandBuffer);
 		return nullptr;
@@ -397,7 +182,7 @@ bool i3D_vkUtils::findMemoryType(VkPhysicalDevice physDevice, uint32_t typeFilte
 		}
 	}
 
-	fprintf(stderr, "VULKAN ERROR: Failed to find a suitable memory type.\n");
+	i3D_logErrorMessage("VULKAN ERROR: Failed to find a suitable memory type.\n");
 	return false;
 }
 
@@ -422,7 +207,7 @@ bool i3D_vkUtils::findSupportedFormat(VkPhysicalDevice physDevice, const std::ve
 		}
 	}
 
-	fprintf(stderr, "VULKAN ERROR: Failed to find a suitable format.\n");
+	i3D_logErrorMessage("VULKAN ERROR: Failed to find a suitable format.\n");
 	return false;
 }
 
@@ -467,7 +252,7 @@ bool i3D_vkUtils::createImage(VkDevice device, VkPhysicalDevice physDevice, uint
 
 	if (result != VK_SUCCESS)
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to create the image. VkResult: %s\n", string_VkResult(result));
+		i3D_logErrorMessage("VULKAN ERROR: Failed to create the image. VkResult: %s\n", string_VkResult(result));
 		return false;
 	}
 
@@ -484,7 +269,7 @@ bool i3D_vkUtils::createImage(VkDevice device, VkPhysicalDevice physDevice, uint
 		memoryType
 	))
 	{
-		fprintf(stderr, "VULKAN ERROR: Couldn't find a suitable type for the image memory.\n");
+		i3D_logErrorMessage("VULKAN ERROR: Couldn't find a suitable type for the image memory.\n");
 		return false;
 	}
 
@@ -497,7 +282,7 @@ bool i3D_vkUtils::createImage(VkDevice device, VkPhysicalDevice physDevice, uint
 
 	if (result != VK_SUCCESS)
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to allocate the image memory. VkResult: %s\n", string_VkResult(result));
+		i3D_logErrorMessage("VULKAN ERROR: Failed to allocate the image memory. VkResult: %s\n", string_VkResult(result));
 		return false;
 	}
 
@@ -524,7 +309,7 @@ VkImageView i3D_vkUtils::createImageView(VkDevice device, VkImage image, uint32_
 
 	if (result != VK_SUCCESS)
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to create the image view. VkResult: %s\n", string_VkResult(result));
+		i3D_logErrorMessage("VULKAN ERROR: Failed to create the image view. VkResult: %s\n", string_VkResult(result));
 		return nullptr;
 	}
 
@@ -610,7 +395,7 @@ bool i3D_vkUtils::transitionImageLayout(VkDevice device, VkCommandBuffer cmdBuff
 	}
 	else
 	{
-		fprintf(stderr, "VULKAN ERROR: Image layout transition \"%s -> %s\" is unsupported. Supported transitions include \"UNDEFINED -> TRANSFER_DST_OPTIMAL\", \"TRANSFER_DST_OPTIMAL -> SHADER_READ_ONLY_OPTIMAL\" and \"UNDEFINED -> DEPTH_STENCIL_ATTACHMENT_OPTIMAL\".\n", string_VkImageLayout(oldLayout), string_VkImageLayout(newLayout));
+		i3D_logErrorMessage("VULKAN ERROR: Image layout transition \"%s -> %s\" is unsupported. Supported transitions include \"UNDEFINED -> TRANSFER_DST_OPTIMAL\", \"TRANSFER_DST_OPTIMAL -> SHADER_READ_ONLY_OPTIMAL\" and \"UNDEFINED -> DEPTH_STENCIL_ATTACHMENT_OPTIMAL\".\n", string_VkImageLayout(oldLayout), string_VkImageLayout(newLayout));
 		return false;
 	}
 
@@ -630,13 +415,12 @@ bool i3D_vkUtils::transitionImageLayout(VkDevice device, VkCommandBuffer cmdBuff
 
 bool i3D_vkUtils::generateMipmaps(VkDevice device, VkPhysicalDevice physDevice, VkCommandBuffer cmdBuffer, VkImage image, VkFormat format, int32_t texWidth, int32_t texHeight, uint32_t mipLevels)
 {
-	// Check if image format supports linear blitting
 	VkFormatProperties formatProperties = {};
 	vkGetPhysicalDeviceFormatProperties(physDevice, format, &formatProperties);
 
 	if (!(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT))
 	{
-		fprintf(stderr, "VULKAN ERROR: Couldn't generate mipmaps because the image format does not support linear blitting.\n");
+		i3D_logErrorMessage("VULKAN ERROR: Couldn't generate mipmaps because the image format does not support linear blitting.\n");
 		return false;
 	}
 

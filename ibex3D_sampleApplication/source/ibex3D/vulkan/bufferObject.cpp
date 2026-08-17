@@ -1,7 +1,7 @@
 #include <ibex3D/vulkan/bufferObject.h>
 #include <ibex3D/vulkan/utils.h>
 
-#include <stdio.h>
+#include <ibex3D/core/logger.h>
 
 #include <vulkan/vk_enum_string_helper.h>
 
@@ -19,7 +19,7 @@ bool i3D_vkBufferObject::initialize(VkDevice device, VkPhysicalDevice physDevice
 
 	if (result != VK_SUCCESS)
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to create the buffer. VkResult: %s\n", string_VkResult(result));
+		i3D_logErrorMessage("VULKAN ERROR: Failed to create the buffer. VkResult: %s\n", string_VkResult(result));
 		return false;
 	}
 
@@ -32,7 +32,7 @@ bool i3D_vkBufferObject::initialize(VkDevice device, VkPhysicalDevice physDevice
 
 	if (!i3D_vkUtils::findMemoryType(physDevice, memRequirements.memoryTypeBits, memProperties, memoryType))
 	{
-		fprintf(stderr, "VULKAN ERROR: Couldn't find a suitable type for the buffer memory.\n");
+		i3D_logErrorMessage("VULKAN ERROR: Couldn't find a suitable type for the buffer memory.\n");
 		return false;
 	}
 
@@ -45,7 +45,7 @@ bool i3D_vkBufferObject::initialize(VkDevice device, VkPhysicalDevice physDevice
 
 	if (result != VK_SUCCESS)
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to allocate the buffer memory. VkResult: %s\n", string_VkResult(result));
+		i3D_logErrorMessage("VULKAN ERROR: Failed to allocate the buffer memory. VkResult: %s\n", string_VkResult(result));
 		return false;
 	}
 
@@ -53,7 +53,7 @@ bool i3D_vkBufferObject::initialize(VkDevice device, VkPhysicalDevice physDevice
 
 	if (result != VK_SUCCESS)
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to bind the buffer memory. VkResult: %s\n", string_VkResult(result));
+		i3D_logErrorMessage("VULKAN ERROR: Failed to bind the buffer memory. VkResult: %s\n", string_VkResult(result));
 		return false;
 	}
 
@@ -83,7 +83,7 @@ bool i3D_vkBufferObject::mapBufferMemory(VkDevice device, VkDeviceSize regionOff
 	
 	if (result != VK_SUCCESS)
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to map the buffer memory into application address space. VkResult: %s\n", string_VkResult(result));
+		i3D_logErrorMessage("VULKAN ERROR: Failed to map the buffer memory into application address space. VkResult: %s\n", string_VkResult(result));
 		return false;
 	}
 

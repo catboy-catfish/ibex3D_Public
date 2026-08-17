@@ -13,7 +13,8 @@
   <ItemGroup>
     <ClInclude Include="include\ibex3D\core\entryPoint_win32.h" />
     <ClInclude Include="include\ibex3D\core\runtime_win32.h" />
-    <ClInclude Include="include\ibex3D\core\win32.h" />
+    <ClInclude Include="include\ibex3D\core\ibexWindows.h" />
+    <ClInclude Include="include\ibex3D\core\windowsUtils.h" />
     <ClInclude Include="include\ibex3D\math\vec2.h" />
     <ClInclude Include="include\ibex3D\math\vec3.h" />
     <ClInclude Include="include\ibex3D\math\vec4.h" />
@@ -23,16 +24,16 @@
     <ClInclude Include="include\ibex3D\core\fileAccess.h" />
     <ClInclude Include="include\ibex3D\vulkan\meshObject.h" />
     <ClInclude Include="include\ibex3D\vulkan\bufferObject.h" />
-    <ClInclude Include="include\ibex3D\vulkan\meshTypes.h" />
     <ClInclude Include="include\ibex3D\vulkan\renderingContext.h" />
     <ClInclude Include="include\ibex3D\vulkan\swapchainObject.h" />
     <ClInclude Include="include\ibex3D\vulkan\textureObject.h" />
     <ClInclude Include="include\ibex3D\vulkan\utils.h" />
     <ClInclude Include="include\ibex3D\core\application_win32.h" />
+    <ClInclude Include="include\ibex3D\vulkan\validation.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\ibex3D\core\runtime_win32.cpp" />
-    <ClCompile Include="source\ibex3D\core\win32.cpp" />
+    <ClCompile Include="source\ibex3D\core\windowsUtils.cpp" />
     <ClCompile Include="source\ibex3D\math\vec2.cpp" />
     <ClCompile Include="source\ibex3D\math\vec3.cpp" />
     <ClCompile Include="source\ibex3D\math\vec4.cpp" />
@@ -40,13 +41,13 @@
     <ClCompile Include="source\ibex3D\core\fileAccess.cpp" />
     <ClCompile Include="source\ibex3D\vulkan\meshObject.cpp" />
     <ClCompile Include="source\ibex3D\vulkan\bufferObject.cpp" />
-    <ClCompile Include="source\ibex3D\vulkan\meshTypes.cpp" />
     <ClCompile Include="source\ibex3D\vulkan\renderingContext_win32.cpp" />
     <ClCompile Include="source\ibex3D\vulkan\swapchainObject.cpp" />
     <ClCompile Include="source\ibex3D\vulkan\textureObject.cpp" />
     <ClCompile Include="source\ibex3D\vulkan\utils.cpp" />
     <ClCompile Include="source\ibex3D\core\application_win32.cpp" />
     <ClCompile Include="source\ibex3D\main_win32.cpp" />
+    <ClCompile Include="source\ibex3D\vulkan\validation.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\shaders\compile.bat" />

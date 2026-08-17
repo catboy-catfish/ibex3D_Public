@@ -1,7 +1,8 @@
 #include <ibex3D/vulkan/meshObject.h>
 #include <ibex3D/vulkan/utils.h>
 
-#include <stdio.h>
+#include <ibex3D/core/logger.h>
+
 #include <unordered_map>
 
 #define TINYOBJLOADER_IMPLEMENTATION
@@ -28,6 +29,44 @@ namespace std
 
 // ----------------------------------------------------------------------------------------------------
 
+VkVertexInputBindingDescription i3D_vkVertex::getBindingDesc()
+{
+	VkVertexInputBindingDescription bindingDesc = {};
+
+	bindingDesc.binding = 0;
+	bindingDesc.stride = sizeof(i3D_vkVertex);
+	bindingDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+	return bindingDesc;
+}
+
+std::array<VkVertexInputAttributeDescription, 3> i3D_vkVertex::getAttributeDescs()
+{
+	std::array<VkVertexInputAttributeDescription, 3> attribDescs = {};
+
+	// Position
+	attribDescs[0].binding = 0;
+	attribDescs[0].location = 0;
+	attribDescs[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+	attribDescs[0].offset = offsetof(i3D_vkVertex, vertexPosition);
+
+	// Normals
+	attribDescs[1].binding = 0;
+	attribDescs[1].location = 1;
+	attribDescs[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+	attribDescs[1].offset = offsetof(i3D_vkVertex, vertexNormal);
+
+	// Texture cordinates
+	attribDescs[2].binding = 0;
+	attribDescs[2].location = 2;
+	attribDescs[2].format = VK_FORMAT_R32G32_SFLOAT;
+	attribDescs[2].offset = offsetof(i3D_vkVertex, textureCoord);
+
+	return attribDescs;
+}
+
+// ----------------------------------------------------------------------------------------------------
+
 void i3D_vkMeshObject::initSimpleModel()
 {
 	vertices =
@@ -50,7 +89,7 @@ bool i3D_vkMeshObject::loadObjFromFile(const char* objFilePath)
 
 	if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, objFilePath))
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to load the Wavefront .obj model file at path \"%s\". Have you ensured that the provided model file path is correct?\n", objFilePath);
+		i3D_logErrorMessage("VULKAN ERROR: Failed to load the Wavefront .obj model file at path \"%s\". Have you ensured that the provided model file path is correct?\n", objFilePath);
 		return false;
 	}
 
@@ -117,14 +156,14 @@ bool i3D_vkMeshObject::initVertexIndexBuffer(VkDevice device, VkPhysicalDevice p
 		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
 	))
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to create the staging buffer for the combined vertex-index buffer.\n");
+		i3D_logErrorMessage("VULKAN ERROR: Failed to create the staging buffer for the combined vertex-index buffer.\n");
 		return false;
 	}
 
 	void* data;
 	if (!stagingBuffer.mapBufferMemory(device, 0, combinedBufferSize, 0, &data))
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to map the staging buffer memory into application address space.\n");
+		i3D_logErrorMessage("VULKAN ERROR: Failed to map the staging buffer memory into application address space.\n");
 		stagingBuffer.cleanup(device);
 		return false;
 	}
@@ -143,7 +182,7 @@ bool i3D_vkMeshObject::initVertexIndexBuffer(VkDevice device, VkPhysicalDevice p
 		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
 	))
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to create the combined vertex-index buffer.\n");
+		i3D_logErrorMessage("VULKAN ERROR: Failed to create the combined vertex-index buffer.\n");
 		stagingBuffer.cleanup(device);
 		return false;
 	}
@@ -152,7 +191,7 @@ bool i3D_vkMeshObject::initVertexIndexBuffer(VkDevice device, VkPhysicalDevice p
 
 	if (!vtxIdxBuffer.cmdCopyBuffer(device, cmdBuffer, stagingBuffer.buffer, 0, 0, combinedBufferSize))
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to copy the staging buffer memory to the combined vertex-index buffer.\n");
+		i3D_logErrorMessage("VULKAN ERROR: Failed to copy the staging buffer memory to the combined vertex-index buffer.\n");
 		stagingBuffer.cleanup(device);
 		return false;
 	}

@@ -1,10 +1,63 @@
 #include <ibex3D/vulkan/swapchainObject.h>
 #include <ibex3D/vulkan/utils.h>
 
-#include <array>
-#include <stdio.h>
+#include <ibex3D/core/logger.h>
+
+#include <algorithm>
 
 #include <vulkan/vk_enum_string_helper.h>
+
+// ----------------------------------------------------------------------------------------------------
+
+static VkSurfaceFormatKHR chooseSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
+{
+	for (const auto& availableFormat : availableFormats)
+	{
+		if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+		{
+			return availableFormat;
+		}
+	}
+
+	return availableFormats[0];
+}
+
+static VkPresentModeKHR choosePresentMode(const std::vector<VkPresentModeKHR>& availableModes, bool vSync)
+{
+	VkPresentModeKHR targetMode = (vSync ? VK_PRESENT_MODE_MAILBOX_KHR : VK_PRESENT_MODE_IMMEDIATE_KHR);
+
+	for (const auto& mode : availableModes)
+	{
+		if (mode == targetMode)
+		{
+			return mode;
+		}
+	}
+
+	return VK_PRESENT_MODE_FIFO_KHR;
+}
+
+
+static VkExtent2D chooseExtent(const VkSurfaceCapabilitiesKHR& surfaceCaps, int width, int height)
+{
+	if (surfaceCaps.currentExtent.width == UINT_MAX)
+	{
+		VkExtent2D actualExtent =
+		{
+			static_cast<uint32_t>(width),
+			static_cast<uint32_t>(height)
+		};
+
+		actualExtent.width = std::clamp(actualExtent.width, surfaceCaps.minImageExtent.width, surfaceCaps.maxImageExtent.width);
+		actualExtent.height = std::clamp(actualExtent.height, surfaceCaps.minImageExtent.height, surfaceCaps.maxImageExtent.height);
+
+		return actualExtent;
+	}
+	else
+	{
+		return surfaceCaps.currentExtent;
+	}
+}
 
 // ----------------------------------------------------------------------------------------------------
 
@@ -12,9 +65,9 @@ bool i3D_vkSwapchainObject::initSwapchain(VkDevice device, VkPhysicalDevice phys
 {
 	i3D_vkSwapchainSupportInfo scSupport = i3D_vkUtils::querySwapchainSupport(physDevice, surface);
 
-	VkSurfaceFormatKHR format = i3D_vkUtils::chooseSurfaceFormat(scSupport.formats);
-	VkPresentModeKHR presentMode = i3D_vkUtils::choosePresentMode(scSupport.presentModes, vSync);
-	VkExtent2D extent = i3D_vkUtils::chooseExtent(scSupport.capabilities, wndWidth, wndHeight);
+	VkSurfaceFormatKHR format = chooseSurfaceFormat(scSupport.formats);
+	VkPresentModeKHR presentMode = choosePresentMode(scSupport.presentModes, vSync);
+	VkExtent2D extent = chooseExtent(scSupport.capabilities, wndWidth, wndHeight);
 
 	imageCount = scSupport.capabilities.minImageCount + 1;
 
@@ -37,7 +90,7 @@ bool i3D_vkSwapchainObject::initSwapchain(VkDevice device, VkPhysicalDevice phys
 
 	if (!indices.isComplete())
 	{
-		fprintf(stderr, "VULKAN ERROR: Couldn't create the swapchain because one or more of the requred queue families are missing.\n");
+		i3D_logErrorMessage("VULKAN ERROR: Couldn't create the swapchain because one or more of the requred queue families are missing.\n");
 		return false;
 	}
 
@@ -70,7 +123,7 @@ bool i3D_vkSwapchainObject::initSwapchain(VkDevice device, VkPhysicalDevice phys
 	
 	if (result != VK_SUCCESS)
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to create the swapchain. VkResult: %s\n", string_VkResult(result));
+		i3D_logErrorMessage("VULKAN ERROR: Failed to create the swapchain. VkResult: %s\n", string_VkResult(result));
 		return false;
 	}
 
@@ -78,7 +131,7 @@ bool i3D_vkSwapchainObject::initSwapchain(VkDevice device, VkPhysicalDevice phys
 
 	if (result != VK_SUCCESS)
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to retrieve the swapchain image count. VkResult: %s\n", string_VkResult(result));
+		i3D_logErrorMessage("VULKAN ERROR: Failed to retrieve the swapchain image count. VkResult: %s\n", string_VkResult(result));
 		return false;
 	}
 
@@ -88,7 +141,7 @@ bool i3D_vkSwapchainObject::initSwapchain(VkDevice device, VkPhysicalDevice phys
 
 	if (result != VK_SUCCESS)
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to retrieve the swapchain images. VkResult: %s\n", string_VkResult(result));
+		i3D_logErrorMessage("VULKAN ERROR: Failed to retrieve the swapchain images. VkResult: %s\n", string_VkResult(result));
 		return false;
 	}
 
@@ -105,7 +158,7 @@ bool i3D_vkSwapchainObject::initSwapchain(VkDevice device, VkPhysicalDevice phys
 
 		if (swapchainImageViews[i] == nullptr)
 		{
-			fprintf(stderr, "VULKAN ERROR: Failed to create one of the swapchain image views.\n");
+			i3D_logErrorMessage("VULKAN ERROR: Failed to create one of the swapchain image views.\n");
 			return false;
 		}
 	}
@@ -133,7 +186,7 @@ bool i3D_vkSwapchainObject::initColorResources(VkDevice device, VkPhysicalDevice
 		colorImageMemory
 	))
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to create the swapchain color image.\n");
+		i3D_logErrorMessage("VULKAN ERROR: Failed to create the swapchain color image.\n");
 		return false;
 	}
 
@@ -148,7 +201,7 @@ bool i3D_vkSwapchainObject::initColorResources(VkDevice device, VkPhysicalDevice
 
 	if (colorImageView == nullptr)
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to create the swapchain color image view.\n");
+		i3D_logErrorMessage("VULKAN ERROR: Failed to create the swapchain color image view.\n");
 		return false;
 	}
 
@@ -161,7 +214,7 @@ bool i3D_vkSwapchainObject::initDepthResources(VkDevice device, VkPhysicalDevice
 
 	if (!i3D_vkUtils::findDepthFormat(physDevice, depthFormat))
 	{
-		fprintf(stderr, "VULKAN ERROR: Couldn't find a suitable format for the swapchain depth image.\n");
+		i3D_logErrorMessage("VULKAN ERROR: Couldn't find a suitable format for the swapchain depth image.\n");
 		return false;
 	}
 
@@ -181,7 +234,7 @@ bool i3D_vkSwapchainObject::initDepthResources(VkDevice device, VkPhysicalDevice
 		depthImageMemory
 	))
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to create the swapchain depth image.\n");
+		i3D_logErrorMessage("VULKAN ERROR: Failed to create the swapchain depth image.\n");
 		return false;
 	}
 
@@ -189,7 +242,7 @@ bool i3D_vkSwapchainObject::initDepthResources(VkDevice device, VkPhysicalDevice
 
 	if (depthImageView == nullptr)
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to create the swapchain depth image view.\n");
+		i3D_logErrorMessage("VULKAN ERROR: Failed to create the swapchain depth image view.\n");
 		return false;
 	}
 
@@ -206,7 +259,7 @@ bool i3D_vkSwapchainObject::initDepthResources(VkDevice device, VkPhysicalDevice
 		VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
 	))
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to transition the swapchain depth image layout.\n");
+		i3D_logErrorMessage("VULKAN ERROR: Failed to transition the swapchain depth image layout.\n");
 		return false;
 	}
 

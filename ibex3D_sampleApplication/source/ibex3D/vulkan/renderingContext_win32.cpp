@@ -1,12 +1,13 @@
 #include <ibex3D/vulkan/renderingContext.h>
+#include <ibex3D/vulkan/validation.h>
 #include <ibex3D/vulkan/utils.h>
 
-#include <ibex3D/core/win32.h>
+#include <ibex3D/core/logger.h>
 #include <ibex3D/core/fileAccess.h>
+#include <ibex3D/core/windowsUtils.h>
 
 #include <map>
 #include <set>
-#include <stdio.h>
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -41,6 +42,174 @@ struct vkUniformBufferData
 
 // ----------------------------------------------------------------------------------------------------
 
+static std::vector<const char*> getRequiredInstanceExtensions()
+{
+	std::vector<const char*> requiredExtensions =
+	{
+		VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
+		VK_KHR_SURFACE_EXTENSION_NAME,
+#ifdef I3D_VULKAN_VALIDATION
+		VK_EXT_DEBUG_UTILS_EXTENSION_NAME
+#endif
+	};
+
+	return requiredExtensions;
+}
+
+static std::vector<const char*> getRequiredInstanceLayers()
+{
+#ifdef I3D_VULKAN_VALIDATION
+	std::vector<const char*> layers =
+	{
+		"VK_LAYER_KHRONOS_validation"
+	};
+
+	return layers;
+#else
+	return std::vector<const char*>();
+#endif
+}
+
+static std::vector<const char*> getRequiredDeviceExtensions()
+{
+	std::vector<const char*> requiredExtensions =
+	{
+		VK_KHR_SWAPCHAIN_EXTENSION_NAME
+	};
+
+	return requiredExtensions;
+}
+
+static bool checkInstanceLayerSupport()
+{
+	auto instanceLayers = getRequiredInstanceLayers();
+
+	uint32_t layerCount = 0;
+	vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
+
+	std::vector<VkLayerProperties> availableLayers(layerCount);
+	vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
+
+	for (const char* layerName : instanceLayers)
+	{
+		bool layerFound = false;
+
+		for (const auto& layerProperties : availableLayers)
+		{
+			if (strcmp(layerName, layerProperties.layerName) == 0)
+			{
+				layerFound = true;
+				break;
+			}
+		}
+
+		if (!layerFound)
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+static bool checkPhysDeviceExtensionSupport(VkPhysicalDevice physDevice)
+{
+	auto deviceExtensions = getRequiredDeviceExtensions();
+
+	uint32_t extensionCount = 0;
+	vkEnumerateDeviceExtensionProperties(physDevice, nullptr, &extensionCount, nullptr);
+
+	std::vector<VkExtensionProperties> availableExtensions(extensionCount);
+	vkEnumerateDeviceExtensionProperties(physDevice, nullptr, &extensionCount, availableExtensions.data());
+
+	std::set<std::string> extensions
+	(
+		deviceExtensions.begin(),
+		deviceExtensions.end()
+	);
+
+	for (const auto& extension : availableExtensions)
+	{
+		extensions.erase(extension.extensionName);
+	}
+
+	return extensions.empty();
+}
+
+static int ratePhysicalDeviceSuitability(VkPhysicalDevice physDevice, VkSurfaceKHR surface)
+{
+	if (!checkPhysDeviceExtensionSupport(physDevice))
+	{
+		i3D_logErrorMessage("VULKAN ERROR: This GPU is unsuitable because it doesn't support the required Vulkan extensions.\n");
+		return 0;
+	}
+
+	int score = 0;
+
+	VkPhysicalDeviceProperties2 deviceProperties = {};
+	deviceProperties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+
+	vkGetPhysicalDeviceProperties2(physDevice, &deviceProperties);
+
+	if (deviceProperties.properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+	{
+		score += 1000;
+	}
+
+	score += deviceProperties.properties.limits.maxImageDimension2D;
+
+	VkPhysicalDeviceFeatures deviceFeatures = {};
+	vkGetPhysicalDeviceFeatures(physDevice, &deviceFeatures);
+
+	if (!deviceFeatures.geometryShader)
+	{
+		i3D_logErrorMessage("VULKAN ERROR: This GPU is unsuitable because it doesn't support geometry shaders.\n");
+		return 0;
+	}
+
+	if (!deviceFeatures.samplerAnisotropy)
+	{
+		i3D_logErrorMessage("VULKAN ERROR: This GPU is unsuitable because it doesn't support anisotropic texture filtering.\n");
+		return 0;
+	}
+
+	i3D_vkSwapchainSupportInfo info = i3D_vkUtils::querySwapchainSupport(physDevice, surface);
+
+	if ((info.formats.empty() || info.presentModes.empty()))
+	{
+		i3D_logErrorMessage("VULKAN ERROR: This GPU is unsuitable because it doesn't support the required swapchain formats or presentation modes.\n");
+		return 0;
+	}
+
+	i3D_vkQueueFamilyIndices indices = i3D_vkUtils::findQueueFamilies(physDevice, surface);
+
+	if (!indices.isComplete())
+	{
+		i3D_logErrorMessage("VULKAN ERROR: This GPU is unsuitable because one or more required queue families are missing.\n");
+		return 0;
+	}
+
+	return score;
+}
+
+static VkSampleCountFlagBits getMaxUsableSampleCount(VkPhysicalDevice physDevice)
+{
+	VkPhysicalDeviceProperties pdProperties = {};
+	vkGetPhysicalDeviceProperties(physDevice, &pdProperties);
+
+	VkSampleCountFlags counts =
+		pdProperties.limits.framebufferColorSampleCounts &
+		pdProperties.limits.framebufferDepthSampleCounts;
+
+	if (counts & VK_SAMPLE_COUNT_64_BIT) { return VK_SAMPLE_COUNT_64_BIT; }
+	if (counts & VK_SAMPLE_COUNT_32_BIT) { return VK_SAMPLE_COUNT_32_BIT; }
+	if (counts & VK_SAMPLE_COUNT_16_BIT) { return VK_SAMPLE_COUNT_16_BIT; }
+	if (counts & VK_SAMPLE_COUNT_8_BIT) { return VK_SAMPLE_COUNT_8_BIT; }
+	if (counts & VK_SAMPLE_COUNT_4_BIT) { return VK_SAMPLE_COUNT_4_BIT; }
+	if (counts & VK_SAMPLE_COUNT_2_BIT) { return VK_SAMPLE_COUNT_2_BIT; }
+	return VK_SAMPLE_COUNT_1_BIT;
+}
+
 static glm::mat4 getCameraViewMatrix(glm::vec3 position, glm::vec3 rotation)
 {
 	glm::mat4 viewMatrix = glm::rotate(glm::mat4(1.0f), rotation.y, glm::vec3(0.0f, 0.0f, 1.0f));	// Roll
@@ -69,7 +238,7 @@ bool i3D_vkRenderingContext::initialize(void* wndMemory)
 
 	I3D_BASSERT(initInstance());
 	I3D_BASSERT(initSurface(wndMemory));
-	I3D_BASSERT(initPhysicalDevice(VK_SAMPLE_COUNT_4_BIT));
+	I3D_BASSERT(initPhysicalDevice());
 	I3D_BASSERT(initLogicalDevice());
 	I3D_BASSERT(initSwapchain(wndWidth, wndHeight));
 	I3D_BASSERT(initRenderPass());
@@ -101,7 +270,7 @@ bool i3D_vkRenderingContext::drawFrame(float meshRotation)
 	}
 	else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to acquire the swapchain image. VkResult: %s\n", string_VkResult(result));
+		i3D_logErrorMessage("VULKAN ERROR: Failed to acquire the swapchain image. VkResult: %s\n", string_VkResult(result));
 		return false;
 	}
 
@@ -123,13 +292,13 @@ bool i3D_vkRenderingContext::drawFrame(float meshRotation)
 	submitInfo.pWaitSemaphores = &m_frameSemaphores[m_currentFrame];
 	submitInfo.pSignalSemaphores = &m_swapchainSemaphores[imageIndex];
 	submitInfo.pCommandBuffers = &m_commandBuffers[m_currentFrame];
-	submitInfo.pWaitDstStageMask = &waitStage;							// I don't get why this is a pointer either
+	submitInfo.pWaitDstStageMask = &waitStage;
 
 	result = vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, m_frameFences[m_currentFrame]);
 
 	if (result != VK_SUCCESS)
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to submit the rendering commands to the command buffer. VkResult: %s\n", string_VkResult(result));
+		i3D_logErrorMessage("VULKAN ERROR: Failed to submit the rendering commands to the command buffer. VkResult: %s\n", string_VkResult(result));
 		return false;
 	}
 
@@ -153,7 +322,7 @@ bool i3D_vkRenderingContext::drawFrame(float meshRotation)
 	}
 	else if (result != VK_SUCCESS)
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to enqueue the image for presentation. VkResult: %s\n", string_VkResult(result));
+		i3D_logErrorMessage("VULKAN ERROR: Failed to enqueue the image for presentation. VkResult: %s\n", string_VkResult(result));
 		return false;
 	}
 
@@ -179,7 +348,7 @@ bool i3D_vkRenderingContext::initInstance()
 #ifdef I3D_VULKAN_VALIDATION
 	if (!checkInstanceLayerSupport())
 	{
-		fprintf(stderr, "VULKAN ERROR: I3D_VULKAN_VALIDATION is enabled, but the required validation layers for this are unavailable on this device.\n");
+		i3D_logErrorMessage("VULKAN ERROR: I3D_VULKAN_VALIDATION is enabled, but the required validation layers for this are unavailable on this device.\n");
 		return false;
 	}
 #endif
@@ -205,27 +374,24 @@ bool i3D_vkRenderingContext::initInstance()
 	instanceInfo.ppEnabledLayerNames = instanceLayers.data();
 	instanceInfo.enabledLayerCount = static_cast<uint32_t>(instanceLayers.size());
 	
-	VkDebugUtilsMessengerCreateInfoEXT messengerInfo = i3D_vkUtils::debugMessengerCreateInfo();
+	auto messengerInfo = i3D_vkValidation::debugMessengerCreateInfo();
 	instanceInfo.pNext = &messengerInfo;
-#else
-	instanceInfo.enabledLayerCount = 0;
-	instanceInfo.pNext = nullptr;
 #endif
 
 	VkResult result = vkCreateInstance(&instanceInfo, nullptr, &m_instance);
 
 	if (result != VK_SUCCESS)
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to create the Vulkan instance. VkResult: %s\n", string_VkResult(result));
+		i3D_logErrorMessage("VULKAN ERROR: Failed to create the Vulkan instance. VkResult: %s\n", string_VkResult(result));
 		return false;
 	}
 
 #ifdef I3D_VULKAN_VALIDATION
-	result = i3D_vkUtils::createDebugMessenger(m_instance, &messengerInfo, nullptr, &m_debugMessenger);
+	result = i3D_vkValidation::createDebugMessenger(m_instance, &messengerInfo, nullptr, &m_debugMessenger);
 
 	if (result != VK_SUCCESS)
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to create the debug messenger. VkResult: %s\n", string_VkResult(result));
+		i3D_logErrorMessage("VULKAN ERROR: Failed to create the debug messenger. VkResult: %s\n", string_VkResult(result));
 		return false;
 	}
 #endif
@@ -237,7 +403,7 @@ bool i3D_vkRenderingContext::initSurface(void* wndMemory)
 {
 	if (wndMemory == nullptr)
 	{
-		fprintf(stderr, "VULKAN ERROR: Couldn't create the Vulkan surface because argument \"void* wndMemory\" is nullptr. You must pass the application window memory address (this would be an HWND on Windows) in order to use this function.\n");
+		i3D_logErrorMessage("VULKAN ERROR: Couldn't create the Vulkan surface because argument \"void* wndMemory\" is nullptr. You must pass the application window memory address (this would be an HWND on Windows) in order to use this function.\n");
 		return false;
 	}
 
@@ -252,21 +418,23 @@ bool i3D_vkRenderingContext::initSurface(void* wndMemory)
 
 	if (result != VK_SUCCESS)
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to create the Vulkan Win32 window surface. VkResult: %s\n", string_VkResult(result));
+		i3D_logErrorMessage("VULKAN ERROR: Failed to create the Vulkan Win32 window surface. VkResult: %s\n", string_VkResult(result));
 		return false;
 	}
 	
 	return true;
 }
 
-bool i3D_vkRenderingContext::initPhysicalDevice(VkSampleCountFlagBits msaaSamplesUsed)
+bool i3D_vkRenderingContext::initPhysicalDevice()
 {
+	VkSampleCountFlagBits targetMsaaSamples = VK_SAMPLE_COUNT_4_BIT;
+	
 	uint32_t numDevices = 0;
 	vkEnumeratePhysicalDevices(m_instance, &numDevices, nullptr);
 
 	if (numDevices == 0)
 	{
-		fprintf(stderr, "VULKAN ERROR: Couldn't find any GPUs with Vulkan support.\n");
+		i3D_logErrorMessage("VULKAN ERROR: Couldn't find any GPUs with Vulkan support.\n");
 		return false;
 	}
 
@@ -277,9 +445,7 @@ bool i3D_vkRenderingContext::initPhysicalDevice(VkSampleCountFlagBits msaaSample
 
 	for (const auto& device : devices)
 	{
-		bool extensionsSupported = checkPhysDeviceExtensionSupport(device);
-		
-		int score = i3D_vkUtils::ratePhysicalDeviceSuitability(device, m_surface, extensionsSupported);
+		int score = ratePhysicalDeviceSuitability(device, m_surface);
 		candidates.insert(std::make_pair(score, device));
 	}
 
@@ -287,12 +453,12 @@ bool i3D_vkRenderingContext::initPhysicalDevice(VkSampleCountFlagBits msaaSample
 	{
 		m_physicalDevice = candidates.rbegin()->second;
 
-		auto maxMsaaSamples = i3D_vkUtils::getMaxUsableSampleCount(m_physicalDevice);
-		m_msaaSamples = (msaaSamplesUsed > maxMsaaSamples) ? maxMsaaSamples : msaaSamplesUsed;
+		auto maxMsaaSamples = getMaxUsableSampleCount(m_physicalDevice);
+		m_msaaSamples = (targetMsaaSamples > maxMsaaSamples) ? maxMsaaSamples : targetMsaaSamples;
 	}
 	else
 	{
-		fprintf(stderr, "VULKAN ERROR: Couldn't find any suitable GPU to use.\n");
+		i3D_logErrorMessage("VULKAN ERROR: Couldn't find any suitable GPU to use.\n");
 		return false;
 	}
 
@@ -305,7 +471,7 @@ bool i3D_vkRenderingContext::initLogicalDevice()
 
 	if (!indices.isComplete())
 	{
-		fprintf(stderr, "VULKAN ERROR: Couldn't create the logical device because one or more of the required queue families are missing.\n");
+		i3D_logErrorMessage("VULKAN ERROR: Couldn't create the logical device because one or more of the required queue families are missing.\n");
 		return false;
 	}
 
@@ -356,7 +522,7 @@ bool i3D_vkRenderingContext::initLogicalDevice()
 
 	if (result != VK_SUCCESS)
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to create the logical device. VkResult: %s\n", string_VkResult(result));
+		i3D_logErrorMessage("VULKAN ERROR: Failed to create the logical device. VkResult: %s\n", string_VkResult(result));
 		return false;
 	}
 
@@ -398,7 +564,7 @@ bool i3D_vkRenderingContext::initRenderPass()
 
 	if (!i3D_vkUtils::findDepthFormat(m_physicalDevice, depthAttachment.format))
 	{
-		fprintf(stderr, "VULKAN ERROR: Couldn't find a suitable format for the render pass depth attachment.\n");
+		i3D_logErrorMessage("VULKAN ERROR: Couldn't find a suitable format for the render pass depth attachment.\n");
 		return false;
 	}
 
@@ -463,7 +629,7 @@ bool i3D_vkRenderingContext::initRenderPass()
 
 	if (result != VK_SUCCESS)
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to create the render pass. VkResult: %s\n", string_VkResult(result));
+		i3D_logErrorMessage("VULKAN ERROR: Failed to create the render pass. VkResult: %s\n", string_VkResult(result));
 		return false;
 	}
 
@@ -503,7 +669,7 @@ bool i3D_vkRenderingContext::initDescriptorSetLayout()
 
 	if (result != VK_SUCCESS)
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to create the descriptor set layout for the uniform buffer. VkResult: %s\n", string_VkResult(result));
+		i3D_logErrorMessage("VULKAN ERROR: Failed to create the descriptor set layout for the uniform buffer. VkResult: %s\n", string_VkResult(result));
 		return false;
 	}
 
@@ -663,7 +829,7 @@ bool i3D_vkRenderingContext::initGraphicsPipeline()
 
 	if (result != VK_SUCCESS)
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to create the graphics pipeline layout. VkResult: %s\n", string_VkResult(result));
+		i3D_logErrorMessage("VULKAN ERROR: Failed to create the graphics pipeline layout. VkResult: %s\n", string_VkResult(result));
 		
 		if (frgShaderModule != nullptr)
 		{
@@ -708,7 +874,7 @@ bool i3D_vkRenderingContext::initGraphicsPipeline()
 
 	if (result != VK_SUCCESS)
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to create the graphics pipeline. VkResult: %s\n", string_VkResult(result));
+		i3D_logErrorMessage("VULKAN ERROR: Failed to create the graphics pipeline. VkResult: %s\n", string_VkResult(result));
 
 		if (frgShaderModule != nullptr)
 		{
@@ -745,7 +911,7 @@ bool i3D_vkRenderingContext::initCommands()
 
 	if (!indices.isComplete())
 	{
-		fprintf(stderr, "VULKAN ERROR: Couldn't create the command pool because one or more required queue families are missing.\n");
+		i3D_logErrorMessage("VULKAN ERROR: Couldn't create the command pool because one or more required queue families are missing.\n");
 		return false;
 	}
 
@@ -763,7 +929,7 @@ bool i3D_vkRenderingContext::initCommands()
 
 		if (result != VK_SUCCESS)
 		{
-			fprintf(stderr, "VULKAN ERROR: Failed to create the command pool for one of the frames in flight. VkResult: %s\n", string_VkResult(result));
+			i3D_logErrorMessage("VULKAN ERROR: Failed to create the command pool for one of the frames in flight. VkResult: %s\n", string_VkResult(result));
 			return false;
 		}
 
@@ -777,7 +943,7 @@ bool i3D_vkRenderingContext::initCommands()
 
 		if (result != VK_SUCCESS)
 		{
-			fprintf(stderr, "VULKAN ERROR: Failed to allocate the command buffer for one of the frames in flight. VkResult: %s\n", string_VkResult(result));
+			i3D_logErrorMessage("VULKAN ERROR: Failed to allocate the command buffer for one of the frames in flight. VkResult: %s\n", string_VkResult(result));
 			return false;
 		}
 	}
@@ -786,7 +952,7 @@ bool i3D_vkRenderingContext::initCommands()
 
 	if (result != VK_SUCCESS)
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to create the command pool used for one-time submits. VkResult: %s\n", string_VkResult(result));
+		i3D_logErrorMessage("VULKAN ERROR: Failed to create the command pool used for one-time submits. VkResult: %s\n", string_VkResult(result));
 		return false;
 	}
 
@@ -834,7 +1000,7 @@ bool i3D_vkRenderingContext::initFramebuffers()
 
 		if (result != VK_SUCCESS)
 		{
-			fprintf(stderr, "VULKAN ERROR: Failed to create one or more of the required framebuffers. VkResult: %s\n", string_VkResult(result));
+			i3D_logErrorMessage("VULKAN ERROR: Failed to create one or more of the required framebuffers. VkResult: %s\n", string_VkResult(result));
 			return false;
 		}
 	}
@@ -868,13 +1034,13 @@ bool i3D_vkRenderingContext::initUniformBuffers()
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
 		))
 		{
-			fprintf(stderr, "VULKAN ERROR: Failed to create one or more of the uniform buffers.\n");
+			i3D_logErrorMessage("VULKAN ERROR: Failed to create one or more of the uniform buffers.\n");
 			return false;
 		}
 
 		if (!m_uniformBuffers[i].mapBufferMemory(m_logicalDevice, 0, bufferSize, 0, &m_uniformBuffersMapped[i]))
 		{
-			fprintf(stderr, "VULKAN ERROR: Failed to map the memory for one or more of the uniform buffers.\n");
+			i3D_logErrorMessage("VULKAN ERROR: Failed to map the memory for one or more of the uniform buffers.\n");
 			return false;
 		}
 	}
@@ -890,7 +1056,7 @@ bool i3D_vkRenderingContext::initDescriptorPoolAndSets()
 	poolSizes[0].descriptorCount = MAX_FRAMES_IN_FLIGHT;
 	
 	poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	poolSizes[1].descriptorCount = poolSizes[0].descriptorCount;
+	poolSizes[1].descriptorCount = MAX_FRAMES_IN_FLIGHT;
 
 	VkDescriptorPoolCreateInfo poolInfo = {};
 	poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -902,7 +1068,7 @@ bool i3D_vkRenderingContext::initDescriptorPoolAndSets()
 
 	if (result != VK_SUCCESS)
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to create the descriptor pool. VkResult: %s\n", string_VkResult(result));
+		i3D_logErrorMessage("VULKAN ERROR: Failed to create the descriptor pool. VkResult: %s\n", string_VkResult(result));
 		return false;
 	}
 
@@ -922,7 +1088,7 @@ bool i3D_vkRenderingContext::initDescriptorPoolAndSets()
 
 	if (result != VK_SUCCESS)
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to allocate the descriptor sets. VkResult: %s\n", string_VkResult(result));
+		i3D_logErrorMessage("VULKAN ERROR: Failed to allocate the descriptor sets. VkResult: %s\n", string_VkResult(result));
 		return false;
 	}
 
@@ -981,7 +1147,7 @@ bool i3D_vkRenderingContext::initSyncObjects()
 
 		if (result != VK_SUCCESS)
 		{
-			fprintf(stderr, "VULKAN ERROR: Failed to create the semaphore for one of the swapchain images. VkResult: %s\n", string_VkResult(result));
+			i3D_logErrorMessage("VULKAN ERROR: Failed to create the semaphore for one of the swapchain images. VkResult: %s\n", string_VkResult(result));
 			return false;
 		}
 	}
@@ -992,7 +1158,7 @@ bool i3D_vkRenderingContext::initSyncObjects()
 
 		if (result != VK_SUCCESS)
 		{
-			fprintf(stderr, "VULKAN ERROR: Failed to create the semaphore for one of the frames in flight. VkResult: %s\n", string_VkResult(result));
+			i3D_logErrorMessage("VULKAN ERROR: Failed to create the semaphore for one of the frames in flight. VkResult: %s\n", string_VkResult(result));
 			return false;
 		}
 
@@ -1000,7 +1166,7 @@ bool i3D_vkRenderingContext::initSyncObjects()
 
 		if (result != VK_SUCCESS)
 		{
-			fprintf(stderr, "VULKAN ERROR: Failed to create the fence for one of the frames in flight. VkResult: %s\n", string_VkResult(result));
+			i3D_logErrorMessage("VULKAN ERROR: Failed to create the fence for one of the frames in flight. VkResult: %s\n", string_VkResult(result));
 			return false;
 		}
 	}
@@ -1037,7 +1203,7 @@ bool i3D_vkRenderingContext::recordCommandBuffer(VkCommandBuffer buffer, uint32_
 
 	if (result != VK_SUCCESS)
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to begin the command buffer. VkResult: %s\n", string_VkResult(result));
+		i3D_logErrorMessage("VULKAN ERROR: Failed to begin the command buffer. VkResult: %s\n", string_VkResult(result));
 		return false;
 	}
 
@@ -1079,7 +1245,7 @@ bool i3D_vkRenderingContext::recordCommandBuffer(VkCommandBuffer buffer, uint32_
 
 	if (result != VK_SUCCESS)
 	{
-		fprintf(stderr, "VULKAN ERROR: Failed to end the command buffer. VkResult: %s\n", string_VkResult(result));
+		i3D_logErrorMessage("VULKAN ERROR: Failed to end the command buffer. VkResult: %s\n", string_VkResult(result));
 		return false;
 	}
 
@@ -1251,7 +1417,7 @@ void i3D_vkRenderingContext::cleanupInstance()
 #ifdef I3D_VULKAN_VALIDATION
 		if (m_debugMessenger != nullptr)
 		{
-			i3D_vkUtils::destroyDebugMessenger(m_instance, m_debugMessenger, nullptr);
+			i3D_vkValidation::destroyDebugMessenger(m_instance, m_debugMessenger, nullptr);
 			m_debugMessenger = nullptr;
 		}
 #endif
@@ -1266,102 +1432,4 @@ void i3D_vkRenderingContext::cleanupInstance()
 	}
 
 	m_wndMemory = nullptr;
-}
-
-// ----------------------------------------------------------------------------------------------------
-
-bool i3D_vkRenderingContext::checkInstanceLayerSupport()
-{
-#ifdef I3D_VULKAN_VALIDATION
-	auto instanceLayers = getRequiredInstanceLayers();
-
-	uint32_t layerCount = 0;
-	vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
-
-	std::vector<VkLayerProperties> availableLayers(layerCount);
-	vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
-
-	for (const char* layerName : instanceLayers)
-	{
-		bool layerFound = false;
-		
-		for (const auto& layerProperties : availableLayers)
-		{
-			if (strcmp(layerName, layerProperties.layerName) == 0)
-			{
-				layerFound = true;
-				break;
-			}
-		}
-
-		if (!layerFound)
-		{
-			return false;
-		}
-	}
-#endif
-
-	return true;
-}
-
-bool i3D_vkRenderingContext::checkPhysDeviceExtensionSupport(VkPhysicalDevice physDevice)
-{
-	auto deviceExtensions = getRequiredDeviceExtensions();
-	
-	uint32_t extensionCount = 0;
-	vkEnumerateDeviceExtensionProperties(physDevice, nullptr, &extensionCount, nullptr);
-
-	std::vector<VkExtensionProperties> availableExtensions(extensionCount);
-	vkEnumerateDeviceExtensionProperties(physDevice, nullptr, &extensionCount, availableExtensions.data());
-
-	std::set<std::string> extensions
-	(
-		deviceExtensions.begin(),
-		deviceExtensions.end()
-	);
-
-	for (const auto& extension : availableExtensions)
-	{
-		extensions.erase(extension.extensionName);
-	}
-
-	return extensions.empty();
-}
-
-std::vector<const char*> i3D_vkRenderingContext::getRequiredInstanceExtensions()
-{
-	std::vector<const char*> requiredExtensions =
-	{
-		VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
-		VK_KHR_SURFACE_EXTENSION_NAME,
-#ifdef I3D_VULKAN_VALIDATION
-		VK_EXT_DEBUG_UTILS_EXTENSION_NAME
-#endif
-	};
-
-	return requiredExtensions;
-}
-
-std::vector<const char*> i3D_vkRenderingContext::getRequiredInstanceLayers()
-{
-#ifdef I3D_VULKAN_VALIDATION
-	std::vector<const char*> layers =
-	{
-		"VK_LAYER_KHRONOS_validation"
-	};
-
-	return layers;
-#else
-	return std::vector<const char*>();
-#endif
-}
-
-std::vector<const char*> i3D_vkRenderingContext::getRequiredDeviceExtensions()
-{
-	std::vector<const char*> requiredExtensions =
-	{
-		VK_KHR_SWAPCHAIN_EXTENSION_NAME
-	};
-
-	return requiredExtensions;
 }

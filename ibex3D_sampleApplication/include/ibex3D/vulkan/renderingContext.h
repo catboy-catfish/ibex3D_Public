@@ -18,7 +18,7 @@ public:
 private:
 	bool initInstance();
 	bool initSurface(void* wndMemory);
-	bool initPhysicalDevice(VkSampleCountFlagBits msaaSamplesUsed);
+	bool initPhysicalDevice();
 	bool initLogicalDevice();
 	bool initSwapchain(int wndWidth, int wndHeight);
 	bool initRenderPass();
@@ -39,13 +39,6 @@ private:
 	void cleanupSwapchain();
 	void cleanupLogicalDevice();
 	void cleanupInstance();
-	
-	static bool checkInstanceLayerSupport();
-	static bool checkPhysDeviceExtensionSupport(VkPhysicalDevice physDevice);
-
-	static std::vector<const char*> getRequiredInstanceExtensions();
-	static std::vector<const char*> getRequiredInstanceLayers();
-	static std::vector<const char*> getRequiredDeviceExtensions();
 
 private:
 	void* m_wndMemory = nullptr;

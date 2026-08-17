@@ -1,4 +1,4 @@
-#include <ibex3D/core/win32.h>
+#include <ibex3D/core/windowsUtils.h>
 
 #include <comdef.h>
 #include <string>

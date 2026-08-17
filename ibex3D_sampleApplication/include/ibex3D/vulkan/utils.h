@@ -13,7 +13,7 @@ struct i3D_vkQueueFamilyIndices
 
 	bool isComplete() const
 	{
-		return (graphicsFamily > -1) && (presentFamily > -1);
+		return (graphicsFamily >= 0) && (presentFamily >= 0);
 	}
 };
 
@@ -29,45 +29,9 @@ struct i3D_vkSwapchainSupportInfo
 class i3D_vkUtils
 {
 public:
-
-	// Validation layers
-#ifdef I3D_VULKAN_VALIDATION
-	static VkResult createDebugMessenger
-	(
-		VkInstance instance,
-		const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
-		const VkAllocationCallbacks* pAllocator,
-		VkDebugUtilsMessengerEXT* pDebugMessenger
-	);
-
-	static void destroyDebugMessenger
-	(
-		VkInstance instance,
-		VkDebugUtilsMessengerEXT debugMessenger,
-		const VkAllocationCallbacks* pAllocator
-	);
-
-	static VKAPI_ATTR VkBool32 VKAPI_CALL debugMessengerCallback
-	(
-		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-		VkDebugUtilsMessageTypeFlagsEXT messageType,
-		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-		void* pUserData
-	);
-
-	static VkDebugUtilsMessengerCreateInfoEXT debugMessengerCreateInfo();
-#endif
-
 	// Physical device and swapchain
 	static i3D_vkQueueFamilyIndices findQueueFamilies(VkPhysicalDevice physDevice, VkSurfaceKHR surface);
 	static i3D_vkSwapchainSupportInfo querySwapchainSupport(VkPhysicalDevice physDevice, VkSurfaceKHR surface);
-	static VkSampleCountFlagBits getMaxUsableSampleCount(VkPhysicalDevice physDevice);
-	static int ratePhysicalDeviceSuitability(VkPhysicalDevice physDevice, VkSurfaceKHR surface, bool extSupport);
-
-	// Swapchain
-	static VkSurfaceFormatKHR chooseSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
-	static VkPresentModeKHR choosePresentMode(const std::vector<VkPresentModeKHR>& availableModes, bool vSync);
-	static VkExtent2D chooseExtent(const VkSurfaceCapabilitiesKHR& surfaceCaps, int width, int height);
 
 	// Shader loading
 	static VkShaderModule createShaderModuleFromSPIRV(VkDevice device, const char* filePath);

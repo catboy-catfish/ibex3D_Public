@@ -5,13 +5,13 @@
       <Filter>ibex3D\core\entryPoint_win32</Filter>
     </ClInclude>
     <ClInclude Include="include\ibex3D\core\memory.h">
-      <Filter>ibex3D\utility\memory</Filter>
+      <Filter>ibex3D\core\memory</Filter>
     </ClInclude>
     <ClInclude Include="include\ibex3D\vulkan\meshObject.h">
       <Filter>ibex3D\vulkan\meshObject</Filter>
     </ClInclude>
     <ClInclude Include="include\ibex3D\core\fileAccess.h">
-      <Filter>ibex3D\utility\miscellaneous</Filter>
+      <Filter>ibex3D\core\fileAccess</Filter>
     </ClInclude>
     <ClInclude Include="include\ibex3D\vulkan\renderingContext.h">
       <Filter>ibex3D\vulkan\renderingContext</Filter>
@@ -37,9 +37,6 @@
     <ClInclude Include="include\ibex3D\math\vec4_simd.h">
       <Filter>ibex3D\math\vec4_simd</Filter>
     </ClInclude>
-    <ClInclude Include="include\ibex3D\core\win32.h">
-      <Filter>ibex3D\core\win32</Filter>
-    </ClInclude>
     <ClInclude Include="include\ibex3D\vulkan\bufferObject.h">
       <Filter>ibex3D\vulkan\bufferObject</Filter>
     </ClInclude>
@@ -50,10 +47,16 @@
       <Filter>ibex3D\core\runtime_win32</Filter>
     </ClInclude>
     <ClInclude Include="include\ibex3D\core\logger.h">
-      <Filter>ibex3D\utility\logger</Filter>
+      <Filter>ibex3D\core\logger</Filter>
     </ClInclude>
-    <ClInclude Include="include\ibex3D\vulkan\meshTypes.h">
-      <Filter>ibex3D\vulkan\meshTypes</Filter>
+    <ClInclude Include="include\ibex3D\core\ibexWindows.h">
+      <Filter>ibex3D\core\ibexWindows</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ibex3D\core\windowsUtils.h">
+      <Filter>ibex3D\core\windowsUtils</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ibex3D\vulkan\validation.h">
+      <Filter>ibex3D\vulkan\validation</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -61,7 +64,7 @@
       <Filter>ibex3D\vulkan\meshObject</Filter>
     </ClCompile>
     <ClCompile Include="source\ibex3D\core\fileAccess.cpp">
-      <Filter>ibex3D\utility\miscellaneous</Filter>
+      <Filter>ibex3D\core\fileAccess</Filter>
     </ClCompile>
     <ClCompile Include="source\ibex3D\vulkan\renderingContext_win32.cpp">
       <Filter>ibex3D\vulkan\renderingContext</Filter>
@@ -84,8 +87,8 @@
     <ClCompile Include="source\ibex3D\math\vec4.cpp">
       <Filter>ibex3D\math\vec4</Filter>
     </ClCompile>
-    <ClCompile Include="source\ibex3D\core\win32.cpp">
-      <Filter>ibex3D\core\win32</Filter>
+    <ClCompile Include="source\ibex3D\core\windowsUtils.cpp">
+      <Filter>ibex3D\core\windowsUtils</Filter>
     </ClCompile>
     <ClCompile Include="source\ibex3D\vulkan\bufferObject.cpp">
       <Filter>ibex3D\vulkan\bufferObject</Filter>
@@ -100,10 +103,10 @@
       <Filter>ibex3D\core\runtime_win32</Filter>
     </ClCompile>
     <ClCompile Include="source\ibex3D\core\logger.cpp">
-      <Filter>ibex3D\utility\logger</Filter>
+      <Filter>ibex3D\core\logger</Filter>
     </ClCompile>
-    <ClCompile Include="source\ibex3D\vulkan\meshTypes.cpp">
-      <Filter>ibex3D\vulkan\meshTypes</Filter>
+    <ClCompile Include="source\ibex3D\vulkan\validation.cpp">
+      <Filter>ibex3D\vulkan\validation</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -112,9 +115,6 @@
     </Filter>
     <Filter Include="ibex3D\core">
       <UniqueIdentifier>{a022e727-1164-4ba6-8707-c30e32a623ad}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ibex3D\core\win32">
-      <UniqueIdentifier>{8040b7d1-c50b-4479-9044-e6c563321fe2}</UniqueIdentifier>
     </Filter>
     <Filter Include="ibex3D\math">
       <UniqueIdentifier>{152557e3-b13a-46a7-ab5d-1ea327fd8d8e}</UniqueIdentifier>
@@ -130,15 +130,6 @@
     </Filter>
     <Filter Include="ibex3D\math\vec4_simd">
       <UniqueIdentifier>{c1983a1f-d743-4213-b8bb-a7286964c079}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ibex3D\utility">
-      <UniqueIdentifier>{76441df9-c22d-498c-a797-6981a7d4ca9d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ibex3D\utility\memory">
-      <UniqueIdentifier>{3705bff3-d57b-44c5-bcb0-bde8db5e3d02}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ibex3D\utility\miscellaneous">
-      <UniqueIdentifier>{833d363c-93da-422d-b42f-eae938220e7b}</UniqueIdentifier>
     </Filter>
     <Filter Include="ibex3D\vulkan">
       <UniqueIdentifier>{775354c9-aac6-4e75-8dd0-11b6a450d4f6}</UniqueIdentifier>
@@ -179,11 +170,23 @@
     <Filter Include="ibex3D\core\entryPoint_win32">
       <UniqueIdentifier>{72d1f6a3-58ce-4213-8675-cade4220991a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ibex3D\utility\logger">
+    <Filter Include="ibex3D\core\logger">
       <UniqueIdentifier>{550be31b-703b-4424-b287-906d13a60eed}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ibex3D\vulkan\meshTypes">
-      <UniqueIdentifier>{d44e45fa-6b28-4d10-9ef6-aa70922bd0d8}</UniqueIdentifier>
+    <Filter Include="ibex3D\core\memory">
+      <UniqueIdentifier>{3705bff3-d57b-44c5-bcb0-bde8db5e3d02}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\core\fileAccess">
+      <UniqueIdentifier>{833d363c-93da-422d-b42f-eae938220e7b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\core\ibexWindows">
+      <UniqueIdentifier>{0e3c2ba9-be51-4491-8179-30a20bcd53a4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\core\windowsUtils">
+      <UniqueIdentifier>{8040b7d1-c50b-4479-9044-e6c563321fe2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\vulkan\validation">
+      <UniqueIdentifier>{f7ba240e-5df3-42c3-8993-455dd1234e03}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
