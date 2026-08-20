@@ -22,8 +22,10 @@
     <ClInclude Include="include\ibex3D\core\logger.h" />
     <ClInclude Include="include\ibex3D\core\memory.h" />
     <ClInclude Include="include\ibex3D\core\fileAccess.h" />
+    <ClInclude Include="include\ibex3D\vulkan\descriptors.h" />
     <ClInclude Include="include\ibex3D\vulkan\meshObject.h" />
     <ClInclude Include="include\ibex3D\vulkan\bufferObject.h" />
+    <ClInclude Include="include\ibex3D\vulkan\gfxPipelineBuilder.h" />
     <ClInclude Include="include\ibex3D\vulkan\renderingContext.h" />
     <ClInclude Include="include\ibex3D\vulkan\swapchainObject.h" />
     <ClInclude Include="include\ibex3D\vulkan\textureObject.h" />
@@ -39,8 +41,10 @@
     <ClCompile Include="source\ibex3D\math\vec4.cpp" />
     <ClCompile Include="source\ibex3D\core\logger.cpp" />
     <ClCompile Include="source\ibex3D\core\fileAccess.cpp" />
+    <ClCompile Include="source\ibex3D\vulkan\descriptors.cpp" />
     <ClCompile Include="source\ibex3D\vulkan\meshObject.cpp" />
     <ClCompile Include="source\ibex3D\vulkan\bufferObject.cpp" />
+    <ClCompile Include="source\ibex3D\vulkan\gfxPipelineBuilder.cpp" />
     <ClCompile Include="source\ibex3D\vulkan\renderingContext_win32.cpp" />
     <ClCompile Include="source\ibex3D\vulkan\swapchainObject.cpp" />
     <ClCompile Include="source\ibex3D\vulkan\textureObject.cpp" />
@@ -51,6 +55,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\shaders\compile.bat" />
+    <None Include="assets\shaders\gradient.comp" />
     <None Include="assets\shaders\include\basicLighting.glsl" />
     <None Include="assets\shaders\include\commonStructs.glsl" />
     <None Include="assets\shaders\shader.frag" />

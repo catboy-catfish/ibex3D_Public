@@ -76,5 +76,4 @@ private:
 	float m_aspectRatio = 1.0f;
 	float m_currentMeshRotation = 0.0f;
 	bool m_refreshSwapchain = false;
-	bool m_useVsync = true;
 };

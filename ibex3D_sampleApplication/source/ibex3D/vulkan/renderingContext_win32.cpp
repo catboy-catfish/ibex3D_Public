@@ -1,5 +1,6 @@
 #include <ibex3D/vulkan/renderingContext.h>
 #include <ibex3D/vulkan/validation.h>
+#include <ibex3D/vulkan/gfxPipelineBuilder.h>
 #include <ibex3D/vulkan/utils.h>
 
 #include <ibex3D/core/logger.h>
@@ -534,7 +535,7 @@ bool i3D_vkRenderingContext::initLogicalDevice()
 
 bool i3D_vkRenderingContext::initSwapchain(int wndWidth, int wndHeight)
 {	
-	if (!m_swapchain.initSwapchain(m_logicalDevice, m_physicalDevice, m_surface, wndWidth, wndHeight, m_useVsync))
+	if (!m_swapchain.initSwapchain(m_logicalDevice, m_physicalDevice, m_surface, wndWidth, wndHeight, true))
 	{
 		return false;
 	}
@@ -678,10 +679,38 @@ bool i3D_vkRenderingContext::initDescriptorSetLayout()
 
 bool i3D_vkRenderingContext::initGraphicsPipeline()
 {		
-	// TODO: Figure out how to compile the GLSL shaders into SPIR-V at runtime using glslang or shaderc
-	
+	i3D_vkGfxPipelineBuilder pipelineBuilder;
+	pipelineBuilder.clearEverything();
+
+	std::vector<VkDynamicState> dynamicStates =
+	{
+		VK_DYNAMIC_STATE_VIEWPORT,
+		VK_DYNAMIC_STATE_SCISSOR
+	};
+
+	pipelineBuilder.initDynamicState(static_cast<uint32_t>(dynamicStates.size()), dynamicStates.data());
+
+	auto bindingDesc = i3D_vkVertex::getBindingDesc();
+	auto attribDescs = i3D_vkVertex::getAttributeDescs();
+
+	pipelineBuilder.initVertexInputState(1, &bindingDesc, static_cast<uint32_t>(attribDescs.size()), attribDescs.data());
+	pipelineBuilder.initInputAssemblyState(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+	pipelineBuilder.initViewportState(m_swapchain.imageExtent);
+	pipelineBuilder.initRasterState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE);
+	pipelineBuilder.initMultisampleState_enabled(m_msaaSamples, VK_TRUE, VK_FALSE, VK_FALSE);
+	pipelineBuilder.initColorBlendState_disabled();
+	pipelineBuilder.initDepthStencilState_enabled(VK_TRUE, VK_COMPARE_OP_LESS);
+
+	m_pipelineLayout = pipelineBuilder.buildPipelineLayout(m_logicalDevice, 1, &m_descriptorSetLayout, 0, nullptr);
+
+	if (m_pipelineLayout == nullptr)
+	{
+		i3D_logErrorMessage("VULKAN ERROR: Failed to create the graphics pipeline layout.\n");
+		return false;
+	}
+
 	VkShaderModule vtxShaderModule = i3D_vkUtils::createShaderModuleFromSPIRV(m_logicalDevice, "assets/shaders/shader_vert.spv");
-	
+
 	if (vtxShaderModule == nullptr)
 	{
 		return false;
@@ -700,181 +729,23 @@ bool i3D_vkRenderingContext::initGraphicsPipeline()
 		return false;
 	}
 
-	VkPipelineShaderStageCreateInfo vtxShaderStageInfo = {};
-	vtxShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-	vtxShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
-	vtxShaderStageInfo.module = vtxShaderModule;
-	vtxShaderStageInfo.pName = "main";
+	VkPipelineShaderStageCreateInfo shaderStages[2] = {};
 
-	VkPipelineShaderStageCreateInfo frgShaderStageInfo = {};
-	frgShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-	frgShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-	frgShaderStageInfo.module = frgShaderModule;
-	frgShaderStageInfo.pName = "main";
-
-	std::vector<VkDynamicState> dynamicStates =
-	{
-		VK_DYNAMIC_STATE_VIEWPORT,
-		VK_DYNAMIC_STATE_SCISSOR
-	};
-
-	VkPipelineDynamicStateCreateInfo dynamicStateInfo = {};
-	dynamicStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-	dynamicStateInfo.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
-	dynamicStateInfo.pDynamicStates = dynamicStates.data();
-
-	auto bindingDesc = i3D_vkVertex::getBindingDesc();
-	auto attribDescs = i3D_vkVertex::getAttributeDescs();
-
-	VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
-	vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-	vertexInputInfo.vertexBindingDescriptionCount = 1;
-	vertexInputInfo.pVertexBindingDescriptions = &bindingDesc;
-	vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attribDescs.size());
-	vertexInputInfo.pVertexAttributeDescriptions = attribDescs.data();
-
-	VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo = {};
-	inputAssemblyInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-	inputAssemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-	inputAssemblyInfo.primitiveRestartEnable = VK_FALSE;
-
-	VkViewport viewport = {};
-	viewport.x = 0.0f;
-	viewport.y = 0.0f;
-	viewport.width = static_cast<float>(m_swapchain.imageExtent.width);
-	viewport.height = static_cast<float>(m_swapchain.imageExtent.height);
-	viewport.minDepth = 0.0f;
-	viewport.maxDepth = 1.0f;
-
-	VkRect2D scissor = {};
-	scissor.offset = { 0, 0 };
-	scissor.extent = m_swapchain.imageExtent;
-
-	VkPipelineViewportStateCreateInfo viewportStateInfo = {};
-	viewportStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-	viewportStateInfo.viewportCount = 1;
-	viewportStateInfo.pViewports = &viewport;
-	viewportStateInfo.scissorCount = 1;
-	viewportStateInfo.pScissors = &scissor;
-
-	VkPipelineRasterizationStateCreateInfo rasterStateInfo = {};
-	rasterStateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;	// The length of this thing holy fuck
-	rasterStateInfo.depthClampEnable = VK_FALSE;
-	rasterStateInfo.rasterizerDiscardEnable = false;
-	rasterStateInfo.polygonMode = VK_POLYGON_MODE_FILL;
-	rasterStateInfo.lineWidth = 1.0f;
-	rasterStateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
-	rasterStateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
-	rasterStateInfo.depthBiasEnable = VK_FALSE;
-	rasterStateInfo.depthBiasConstantFactor = 0.0f;
-	rasterStateInfo.depthBiasClamp = 0.0f;
-	rasterStateInfo.depthBiasSlopeFactor = 0.0f;
-
-	VkPipelineMultisampleStateCreateInfo multisamplingInfo = {};
-	multisamplingInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-	multisamplingInfo.rasterizationSamples = m_msaaSamples;
-	multisamplingInfo.sampleShadingEnable = VK_TRUE;
-	multisamplingInfo.minSampleShading = 0.2f;
-	multisamplingInfo.pSampleMask = nullptr;
-	multisamplingInfo.alphaToCoverageEnable = VK_FALSE;
-	multisamplingInfo.alphaToOneEnable = VK_FALSE;
-
-	// Revisit this if you want to implement alpha blending!
-	VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
-	colorBlendAttachment.blendEnable = VK_FALSE;
-	colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
-	colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;
-	colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
-	colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-	colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-	colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
-
-	colorBlendAttachment.colorWriteMask =
-		VK_COLOR_COMPONENT_R_BIT | 
-		VK_COLOR_COMPONENT_G_BIT | 
-		VK_COLOR_COMPONENT_B_BIT | 
-		VK_COLOR_COMPONENT_A_BIT;
-
-	VkPipelineColorBlendStateCreateInfo colorBlendInfo = {};
-	colorBlendInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-	colorBlendInfo.logicOpEnable = VK_FALSE;
-	colorBlendInfo.logicOp = VK_LOGIC_OP_COPY;
-	colorBlendInfo.attachmentCount = 1;
-	colorBlendInfo.pAttachments = &colorBlendAttachment;
-	colorBlendInfo.blendConstants[0] = 0.0f;
-	colorBlendInfo.blendConstants[1] = 0.0f;
-	colorBlendInfo.blendConstants[2] = 0.0f;
-	colorBlendInfo.blendConstants[3] = 0.0f;
-
-	VkPipelineDepthStencilStateCreateInfo depthStencilInfo = {};
-	depthStencilInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-	depthStencilInfo.depthTestEnable = VK_TRUE;
-	depthStencilInfo.depthWriteEnable = VK_TRUE;
-	depthStencilInfo.depthCompareOp = VK_COMPARE_OP_LESS;
-	depthStencilInfo.depthBoundsTestEnable = VK_FALSE;
-	depthStencilInfo.minDepthBounds = 0.0f;
-	depthStencilInfo.maxDepthBounds = 1.0f;
-	depthStencilInfo.stencilTestEnable = VK_FALSE;
-	depthStencilInfo.front = {};
-	depthStencilInfo.back = {};
-
-	VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
-	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	pipelineLayoutInfo.setLayoutCount = 1;
-	pipelineLayoutInfo.pSetLayouts = &m_descriptorSetLayout;
-	pipelineLayoutInfo.pushConstantRangeCount = 0;
-	pipelineLayoutInfo.pPushConstantRanges = nullptr;
-
-	VkResult result = vkCreatePipelineLayout(m_logicalDevice, &pipelineLayoutInfo, nullptr, &m_pipelineLayout);
-
-	if (result != VK_SUCCESS)
-	{
-		i3D_logErrorMessage("VULKAN ERROR: Failed to create the graphics pipeline layout. VkResult: %s\n", string_VkResult(result));
-		
-		if (frgShaderModule != nullptr)
-		{
-			vkDestroyShaderModule(m_logicalDevice, frgShaderModule, nullptr);
-			frgShaderModule = nullptr;
-		}
-
-		if (vtxShaderModule != nullptr)
-		{
-			vkDestroyShaderModule(m_logicalDevice, vtxShaderModule, nullptr);
-			vtxShaderModule = nullptr;
-		}
-
-		return false;
-	}
-
-	VkPipelineShaderStageCreateInfo shaderStages[] =
-	{
-		vtxShaderStageInfo,
-		frgShaderStageInfo
-	};
+	shaderStages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	shaderStages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
+	shaderStages[0].module = vtxShaderModule;
+	shaderStages[0].pName = "main";
 	
-	VkGraphicsPipelineCreateInfo pipelineInfo = {};
-	pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-	pipelineInfo.stageCount = 2;
-	pipelineInfo.pStages = shaderStages;
-	pipelineInfo.pVertexInputState = &vertexInputInfo;
-	pipelineInfo.pInputAssemblyState = &inputAssemblyInfo;
-	pipelineInfo.pViewportState = &viewportStateInfo;
-	pipelineInfo.pRasterizationState = &rasterStateInfo;
-	pipelineInfo.pMultisampleState = &multisamplingInfo;
-	pipelineInfo.pDepthStencilState = &depthStencilInfo;
-	pipelineInfo.pColorBlendState = &colorBlendInfo;
-	pipelineInfo.pDynamicState = &dynamicStateInfo;
-	pipelineInfo.layout = m_pipelineLayout;
-	pipelineInfo.renderPass = m_renderPass;
-	pipelineInfo.subpass = 0;
-	pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
-	pipelineInfo.basePipelineIndex = -1;
+	shaderStages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	shaderStages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+	shaderStages[1].module = frgShaderModule;
+	shaderStages[1].pName = "main";
+	
+	m_graphicsPipeline = pipelineBuilder.buildGraphicsPipeline(m_logicalDevice, 2, shaderStages, m_pipelineLayout, m_renderPass);
 
-	result = vkCreateGraphicsPipelines(m_logicalDevice, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_graphicsPipeline);
-
-	if (result != VK_SUCCESS)
+	if (m_graphicsPipeline == nullptr)
 	{
-		i3D_logErrorMessage("VULKAN ERROR: Failed to create the graphics pipeline. VkResult: %s\n", string_VkResult(result));
+		i3D_logErrorMessage("VULKAN ERROR: Failed to create the graphics pipeline.\n");
 
 		if (frgShaderModule != nullptr)
 		{
@@ -1196,8 +1067,6 @@ bool i3D_vkRenderingContext::recordCommandBuffer(VkCommandBuffer buffer, uint32_
 {
 	VkCommandBufferBeginInfo beginInfo = {};
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-	beginInfo.flags = 0;
-	beginInfo.pInheritanceInfo = nullptr;
 
 	VkResult result = vkBeginCommandBuffer(buffer, &beginInfo);
 
@@ -1255,11 +1124,7 @@ bool i3D_vkRenderingContext::recordCommandBuffer(VkCommandBuffer buffer, uint32_
 bool i3D_vkRenderingContext::recreateSwapchain()
 {
 	LONG wndWidth, wndHeight;
-	
-	if (!i3D_windowsUtils::getWindowDimensions(static_cast<HWND>(m_wndMemory), wndWidth, wndHeight))
-	{
-		return false;
-	}
+	I3D_BASSERT(i3D_windowsUtils::getWindowDimensions(static_cast<HWND>(m_wndMemory), wndWidth, wndHeight));
 	
 	if ((wndWidth == 0) || (wndHeight == 0))
 	{
@@ -1270,20 +1135,9 @@ bool i3D_vkRenderingContext::recreateSwapchain()
 	vkDeviceWaitIdle(m_logicalDevice);
 	cleanupSwapchain();
 
-	if (!initSwapchain(wndWidth, wndHeight))
-	{
-		return false;
-	}
-
-	if (!initSwapchainResources())
-	{
-		return false;
-	}
-
-	if (!initFramebuffers())
-	{
-		return false;
-	}
+	I3D_BASSERT(initSwapchain(wndWidth, wndHeight));
+	I3D_BASSERT(initSwapchainResources());
+	I3D_BASSERT(initFramebuffers());
 
 	return true;
 }
@@ -1313,7 +1167,44 @@ void i3D_vkRenderingContext::cleanupLogicalDevice()
 	{
 		vkDeviceWaitIdle(m_logicalDevice);
 		
-		cleanupSwapchain();
+		for (auto& fence : m_frameFences)
+		{
+			if (fence != nullptr)
+			{
+				vkDestroyFence(m_logicalDevice, fence, nullptr);
+				fence = nullptr;
+			}
+		}
+
+		m_frameFences.clear();
+
+		for (auto& semaphore : m_frameSemaphores)
+		{
+			if (semaphore != nullptr)
+			{
+				vkDestroySemaphore(m_logicalDevice, semaphore, nullptr);
+				semaphore = nullptr;
+			}
+		}
+
+		m_frameSemaphores.clear();
+
+		for (auto& semaphore : m_swapchainSemaphores)
+		{
+			if (semaphore != nullptr)
+			{
+				vkDestroySemaphore(m_logicalDevice, semaphore, nullptr);
+				semaphore = nullptr;
+			}
+		}
+
+		m_swapchainSemaphores.clear();
+
+		if (m_descriptorPool != nullptr)
+		{
+			vkDestroyDescriptorPool(m_logicalDevice, m_descriptorPool, nullptr);
+			m_descriptorPool = nullptr;
+		}
 
 		for (auto& buffer : m_uniformBuffers)
 		{
@@ -1327,18 +1218,30 @@ void i3D_vkRenderingContext::cleanupLogicalDevice()
 		m_meshClass.cleanup(m_logicalDevice);
 		m_textureClass.cleanup(m_logicalDevice);
 
-		if (m_descriptorPool != nullptr)
+		if (m_immCommandPool != nullptr)
 		{
-			vkDestroyDescriptorPool(m_logicalDevice, m_descriptorPool, nullptr);
-			m_descriptorPool = nullptr;
+			vkDestroyCommandPool(m_logicalDevice, m_immCommandPool, nullptr);
+			m_immCommandPool = nullptr;
 		}
+
+		for (auto& pool : m_commandPools)
+		{
+			if (pool != nullptr)
+			{
+				vkDestroyCommandPool(m_logicalDevice, pool, nullptr);
+				pool = nullptr;
+			}
+		}
+
+		m_commandBuffers.clear();
+		m_commandPools.clear();
 
 		if (m_graphicsPipeline != nullptr)
 		{
 			vkDestroyPipeline(m_logicalDevice, m_graphicsPipeline, nullptr);
 			m_graphicsPipeline = nullptr;
 		}
-
+		
 		if (m_pipelineLayout != nullptr)
 		{
 			vkDestroyPipelineLayout(m_logicalDevice, m_pipelineLayout, nullptr);
@@ -1357,53 +1260,7 @@ void i3D_vkRenderingContext::cleanupLogicalDevice()
 			m_renderPass = nullptr;
 		}
 
-		for (auto& semaphore : m_swapchainSemaphores)
-		{
-			if (semaphore != nullptr)
-			{
-				vkDestroySemaphore(m_logicalDevice, semaphore, nullptr);
-				semaphore = nullptr;
-			}
-		}
-
-		m_swapchainSemaphores.clear();
-
-		for (auto& semaphore : m_frameSemaphores)
-		{
-			if (semaphore != nullptr)
-			{
-				vkDestroySemaphore(m_logicalDevice, semaphore, nullptr);
-				semaphore = nullptr;
-			}
-		}
-
-		m_frameSemaphores.clear();
-
-		for (auto& fence : m_frameFences)
-		{
-			if (fence != nullptr)
-			{
-				vkDestroyFence(m_logicalDevice, fence, nullptr);
-				fence = nullptr;
-			}
-		}
-
-		m_frameFences.clear();
-
-		for (auto& pool : m_commandPools)
-		{
-			if (pool != nullptr)
-			{
-				vkDestroyCommandPool(m_logicalDevice, pool, nullptr);
-				pool = nullptr;
-			}
-		}
-
-		if (m_immCommandPool != nullptr)
-		{
-			vkDestroyCommandPool(m_logicalDevice, m_immCommandPool, nullptr);
-			m_immCommandPool = nullptr;
-		}
+		cleanupSwapchain();
 
 		vkDestroyDevice(m_logicalDevice, nullptr);
 		m_logicalDevice = nullptr;
@@ -1414,6 +1271,12 @@ void i3D_vkRenderingContext::cleanupInstance()
 {
 	if (m_instance != nullptr)
 	{
+		if (m_surface != nullptr)
+		{
+			vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
+			m_surface = nullptr;
+		}
+
 #ifdef I3D_VULKAN_VALIDATION
 		if (m_debugMessenger != nullptr)
 		{
@@ -1421,11 +1284,6 @@ void i3D_vkRenderingContext::cleanupInstance()
 			m_debugMessenger = nullptr;
 		}
 #endif
-		if (m_surface != nullptr)
-		{
-			vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
-			m_surface = nullptr;
-		}
 
 		vkDestroyInstance(m_instance, nullptr);
 		m_instance = nullptr;

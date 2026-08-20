@@ -58,6 +58,12 @@
     <ClInclude Include="include\ibex3D\vulkan\validation.h">
       <Filter>ibex3D\vulkan\validation</Filter>
     </ClInclude>
+    <ClInclude Include="include\ibex3D\vulkan\descriptors.h">
+      <Filter>ibex3D\vulkan\descriptors</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ibex3D\vulkan\gfxPipelineBuilder.h">
+      <Filter>ibex3D\vulkan\gfxPipelineBuilder</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\ibex3D\vulkan\meshObject.cpp">
@@ -107,6 +113,12 @@
     </ClCompile>
     <ClCompile Include="source\ibex3D\vulkan\validation.cpp">
       <Filter>ibex3D\vulkan\validation</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ibex3D\vulkan\descriptors.cpp">
+      <Filter>ibex3D\vulkan\descriptors</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ibex3D\vulkan\gfxPipelineBuilder.cpp">
+      <Filter>ibex3D\vulkan\gfxPipelineBuilder</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -188,6 +200,12 @@
     <Filter Include="ibex3D\vulkan\validation">
       <UniqueIdentifier>{f7ba240e-5df3-42c3-8993-455dd1234e03}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ibex3D\vulkan\descriptors">
+      <UniqueIdentifier>{e4ba1fd6-5231-4490-b67b-94530cbe97e5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\vulkan\gfxPipelineBuilder">
+      <UniqueIdentifier>{c98a9881-5c8f-484d-87ae-4f758865eb1d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\shaders\compile.bat">
@@ -204,6 +222,9 @@
     </None>
     <None Include="assets\shaders\include\commonStructs.glsl">
       <Filter>assets\shaders\include</Filter>
+    </None>
+    <None Include="assets\shaders\gradient.comp">
+      <Filter>assets\shaders</Filter>
     </None>
   </ItemGroup>
 </Project>
