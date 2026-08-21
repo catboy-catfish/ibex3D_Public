@@ -1,6 +1,7 @@
 #pragma once
 
 #include "swapchainObject.h"
+#include "descriptors.h"
 #include "meshObject.h"
 #include "textureObject.h"
 #include "bufferObject.h"
@@ -51,11 +52,11 @@ private:
 	VkQueue m_presentQueue = nullptr;
 	i3D_vkSwapchainObject m_swapchain;
 	VkRenderPass m_renderPass = nullptr;
+	i3D_vkDescriptorAllocator m_descriptorAllocator;
 	VkDescriptorSetLayout m_descriptorSetLayout = nullptr;
 	VkPipelineLayout m_pipelineLayout = nullptr;
 	VkPipeline m_graphicsPipeline = nullptr;
 	VkCommandPool m_immCommandPool = nullptr;
-	VkDescriptorPool m_descriptorPool = nullptr;
 
 	VkSampleCountFlagBits m_msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 	uint32_t m_currentFrame = 0;
@@ -63,7 +64,6 @@ private:
 	std::vector<VkFramebuffer> m_swapchainFramebuffers;
 	std::vector<i3D_vkBufferObject> m_uniformBuffers;
 	std::vector<void*> m_uniformBuffersMapped;
-	std::vector<VkDescriptorSet> m_descriptorSets;
 	std::vector<VkCommandPool> m_commandPools;
 	std::vector<VkCommandBuffer> m_commandBuffers;
 	std::vector<VkSemaphore> m_swapchainSemaphores;

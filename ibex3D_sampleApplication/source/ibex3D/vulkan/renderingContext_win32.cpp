@@ -22,13 +22,11 @@
 
 #define MAX_FRAMES_IN_FLIGHT 2
 
-// ----------------------------------------------------------------------------------------------------
-
-#define I3D_BASSERT(condition)		\
-if (!condition)						\
-{									\
-	return false;					\
-}									\
+#define I3D_BASSERT(condition)	\
+if (!condition)					\
+{								\
+	return false;				\
+}								\
 
 // ----------------------------------------------------------------------------------------------------
 
@@ -547,49 +545,50 @@ bool i3D_vkRenderingContext::initSwapchain(int wndWidth, int wndHeight)
 
 bool i3D_vkRenderingContext::initRenderPass()
 {
-	VkAttachmentDescription colorAttachment = {};
-	colorAttachment.format = m_swapchain.imageFormat;
-	colorAttachment.samples = m_msaaSamples;
-	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-	colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-	colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	colorAttachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	std::array<VkAttachmentDescription, 3> attachments = { {} };
 
-	VkAttachmentReference colorAttachmentRef = {};
-	colorAttachmentRef.attachment = 0;
-	colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-	VkAttachmentDescription depthAttachment = {};
-
-	if (!i3D_vkUtils::findDepthFormat(m_physicalDevice, depthAttachment.format))
+	// Color attachment
+	attachments[0].format = m_swapchain.imageFormat;
+	attachments[0].samples = m_msaaSamples;
+	attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	attachments[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+	attachments[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	attachments[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	attachments[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	attachments[0].finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	
+	// Depth attachment
+	attachments[1].samples = m_msaaSamples;
+	attachments[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	attachments[1].storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	attachments[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	attachments[1].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	attachments[1].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	attachments[1].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+	
+	if (!i3D_vkUtils::findDepthFormat(m_physicalDevice, attachments[1].format))
 	{
 		i3D_logErrorMessage("VULKAN ERROR: Couldn't find a suitable format for the render pass depth attachment.\n");
 		return false;
 	}
 
-	depthAttachment.samples = m_msaaSamples;
-	depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-	depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-	depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+	// Resolve attachment
+	attachments[2].format = m_swapchain.imageFormat;
+	attachments[2].samples = VK_SAMPLE_COUNT_1_BIT;
+	attachments[2].loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	attachments[2].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+	attachments[2].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	attachments[2].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	attachments[2].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	attachments[2].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+	VkAttachmentReference colorAttachmentRef = {};
+	colorAttachmentRef.attachment = 0;
+	colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
 	VkAttachmentReference depthAttachmentRef = {};
 	depthAttachmentRef.attachment = 1;
 	depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-
-	VkAttachmentDescription colorAttachmentResolve = {};
-	colorAttachmentResolve.format = m_swapchain.imageFormat;
-	colorAttachmentResolve.samples = VK_SAMPLE_COUNT_1_BIT;
-	colorAttachmentResolve.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-	colorAttachmentResolve.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-	colorAttachmentResolve.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-	colorAttachmentResolve.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	colorAttachmentResolve.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	colorAttachmentResolve.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
 	VkAttachmentReference colorAttachmentResolveRef = {};
 	colorAttachmentResolveRef.attachment = 2;
@@ -604,18 +603,11 @@ bool i3D_vkRenderingContext::initRenderPass()
 
 	VkSubpassDependency subpassDependency = {};
 	subpassDependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-	subpassDependency.dstSubpass = 0;	// The index 0 represents our first subpass.
+	subpassDependency.dstSubpass = 0; // 0 represents the first subpass
 	subpassDependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
 	subpassDependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
 	subpassDependency.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 	subpassDependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-
-	std::array<VkAttachmentDescription, 3> attachments =
-	{
-		colorAttachment,
-		depthAttachment,
-		colorAttachmentResolve
-	};
 
 	VkRenderPassCreateInfo renderPassInfo = {};
 	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
@@ -639,41 +631,22 @@ bool i3D_vkRenderingContext::initRenderPass()
 
 bool i3D_vkRenderingContext::initDescriptorSetLayout()
 {
+	i3D_vkDescriptorLayoutBuilder builder;
+
 	// shader.vert: layout (binding = 0) uniform UniformBufferObject{} ubo;
-	VkDescriptorSetLayoutBinding uboLayoutBinding = {};
-	uboLayoutBinding.binding = 0;
-	uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	uboLayoutBinding.descriptorCount = 1;
-	uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-	uboLayoutBinding.pImmutableSamplers = nullptr;
+	builder.addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT, nullptr);
 
 	// shader.frag: layout (binding = 1) uniform sampler2D texSampler;
-	VkDescriptorSetLayoutBinding samplerLayoutBinding = {};
-	samplerLayoutBinding.binding = 1;
-	samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	samplerLayoutBinding.descriptorCount = 1;
-	samplerLayoutBinding.pImmutableSamplers = nullptr;
-	samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	builder.addBinding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT, nullptr);
 
-	std::array<VkDescriptorSetLayoutBinding, 2> bindings =
+	m_descriptorSetLayout = builder.buildLayout(m_logicalDevice, 0, nullptr);
+
+	if (m_descriptorSetLayout == nullptr)
 	{
-		uboLayoutBinding,
-		samplerLayoutBinding
-	};
-
-	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
-	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-	layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
-	layoutInfo.pBindings = bindings.data();
-
-	VkResult result = vkCreateDescriptorSetLayout(m_logicalDevice, &layoutInfo, nullptr, &m_descriptorSetLayout);
-
-	if (result != VK_SUCCESS)
-	{
-		i3D_logErrorMessage("VULKAN ERROR: Failed to create the descriptor set layout for the uniform buffer. VkResult: %s\n", string_VkResult(result));
+		i3D_logErrorMessage("VULKAN ERROR: Failed to create the descriptor set layout for the uniform buffer.\n");
 		return false;
 	}
-
+	
 	return true;
 }
 
@@ -729,7 +702,7 @@ bool i3D_vkRenderingContext::initGraphicsPipeline()
 		return false;
 	}
 
-	VkPipelineShaderStageCreateInfo shaderStages[2] = {};
+	std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages = { {} };
 
 	shaderStages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 	shaderStages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
@@ -741,7 +714,7 @@ bool i3D_vkRenderingContext::initGraphicsPipeline()
 	shaderStages[1].module = frgShaderModule;
 	shaderStages[1].pName = "main";
 	
-	m_graphicsPipeline = pipelineBuilder.buildGraphicsPipeline(m_logicalDevice, 2, shaderStages, m_pipelineLayout, m_renderPass);
+	m_graphicsPipeline = pipelineBuilder.buildGraphicsPipeline(m_logicalDevice, static_cast<uint32_t>(shaderStages.size()), shaderStages.data(), m_pipelineLayout, m_renderPass);
 
 	if (m_graphicsPipeline == nullptr)
 	{
@@ -921,47 +894,22 @@ bool i3D_vkRenderingContext::initUniformBuffers()
 
 bool i3D_vkRenderingContext::initDescriptorPoolAndSets()
 {
-	std::array<VkDescriptorPoolSize, 2> poolSizes = {};
+	m_descriptorAllocator.clearPoolSizes();
 
-	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	poolSizes[0].descriptorCount = MAX_FRAMES_IN_FLIGHT;
-	
-	poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	poolSizes[1].descriptorCount = MAX_FRAMES_IN_FLIGHT;
+	// shader.vert: layout (binding = 0) uniform UniformBufferObject{} ubo;
+	m_descriptorAllocator.addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, MAX_FRAMES_IN_FLIGHT);
 
-	VkDescriptorPoolCreateInfo poolInfo = {};
-	poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-	poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
-	poolInfo.pPoolSizes = poolSizes.data();
-	poolInfo.maxSets = MAX_FRAMES_IN_FLIGHT;
+	// shader.frag: layout (binding = 1) uniform sampler2D texSampler;
+	m_descriptorAllocator.addPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, MAX_FRAMES_IN_FLIGHT);
 
-	VkResult result = vkCreateDescriptorPool(m_logicalDevice, &poolInfo, nullptr, &m_descriptorPool);
+	I3D_BASSERT(m_descriptorAllocator.initPool(m_logicalDevice, MAX_FRAMES_IN_FLIGHT, 0, nullptr));
 
-	if (result != VK_SUCCESS)
+	VkDescriptorSetLayout layouts[MAX_FRAMES_IN_FLIGHT] =
 	{
-		i3D_logErrorMessage("VULKAN ERROR: Failed to create the descriptor pool. VkResult: %s\n", string_VkResult(result));
-		return false;
-	}
+		m_descriptorSetLayout, m_descriptorSetLayout
+	};
 
-	// ----------------------------------------------------------------------------------------------------
-
-	std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, m_descriptorSetLayout);
-
-	VkDescriptorSetAllocateInfo allocInfo = {};
-	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-	allocInfo.descriptorPool = m_descriptorPool;
-	allocInfo.descriptorSetCount = MAX_FRAMES_IN_FLIGHT;
-	allocInfo.pSetLayouts = layouts.data();
-
-	m_descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
-
-	result = vkAllocateDescriptorSets(m_logicalDevice, &allocInfo, m_descriptorSets.data());
-
-	if (result != VK_SUCCESS)
-	{
-		i3D_logErrorMessage("VULKAN ERROR: Failed to allocate the descriptor sets. VkResult: %s\n", string_VkResult(result));
-		return false;
-	}
+	I3D_BASSERT(m_descriptorAllocator.allocateSets(m_logicalDevice, MAX_FRAMES_IN_FLIGHT, layouts, nullptr));
 
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 	{
@@ -974,11 +922,11 @@ bool i3D_vkRenderingContext::initDescriptorPoolAndSets()
 		imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		imageInfo.imageView = m_textureClass.imageView;
 		imageInfo.sampler = m_textureClass.sampler;
-
-		std::array<VkWriteDescriptorSet, 2> descriptorWrites = {};
+		
+		std::array<VkWriteDescriptorSet, 2> descriptorWrites = { {} };
 
 		descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		descriptorWrites[0].dstSet = m_descriptorSets[i];
+		descriptorWrites[0].dstSet = m_descriptorAllocator.descriptorSets[i];
 		descriptorWrites[0].dstBinding = 0;
 		descriptorWrites[0].dstArrayElement = 0;
 		descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -986,7 +934,7 @@ bool i3D_vkRenderingContext::initDescriptorPoolAndSets()
 		descriptorWrites[0].pBufferInfo = &bufferInfo;
 
 		descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		descriptorWrites[1].dstSet = m_descriptorSets[i];
+		descriptorWrites[1].dstSet = m_descriptorAllocator.descriptorSets[i];
 		descriptorWrites[1].dstBinding = 1;
 		descriptorWrites[1].dstArrayElement = 0;
 		descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -1076,7 +1024,7 @@ bool i3D_vkRenderingContext::recordCommandBuffer(VkCommandBuffer buffer, uint32_
 		return false;
 	}
 
-	std::array<VkClearValue, 2> clearValues = {};
+	VkClearValue clearValues[2] = { {} };
 	clearValues[0].color = { { 0.0f, 0.0f, 0.0f, 1.0f } };
 	clearValues[1].depthStencil = { 1.0f, 0 };
 
@@ -1086,8 +1034,8 @@ bool i3D_vkRenderingContext::recordCommandBuffer(VkCommandBuffer buffer, uint32_
 	renderPassInfo.framebuffer = m_swapchainFramebuffers[imageIndex];
 	renderPassInfo.renderArea.offset = { 0, 0 };
 	renderPassInfo.renderArea.extent = m_swapchain.imageExtent;
-	renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
-	renderPassInfo.pClearValues = clearValues.data();
+	renderPassInfo.clearValueCount = 2;
+	renderPassInfo.pClearValues = clearValues;
 
 	vkCmdBeginRenderPass(buffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 	vkCmdBindPipeline(buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline);
@@ -1106,7 +1054,7 @@ bool i3D_vkRenderingContext::recordCommandBuffer(VkCommandBuffer buffer, uint32_
 	scissor.extent = m_swapchain.imageExtent;
 	vkCmdSetScissor(buffer, 0, 1, &scissor);
 
-	m_meshClass.draw(buffer, m_pipelineLayout, m_descriptorSets[m_currentFrame]);
+	m_meshClass.draw(buffer, m_pipelineLayout, m_descriptorAllocator.descriptorSets[m_currentFrame]);
 
 	vkCmdEndRenderPass(buffer);
 
@@ -1200,11 +1148,8 @@ void i3D_vkRenderingContext::cleanupLogicalDevice()
 
 		m_swapchainSemaphores.clear();
 
-		if (m_descriptorPool != nullptr)
-		{
-			vkDestroyDescriptorPool(m_logicalDevice, m_descriptorPool, nullptr);
-			m_descriptorPool = nullptr;
-		}
+		m_descriptorAllocator.cleanupPool(m_logicalDevice);
+		m_descriptorAllocator.clearSets();
 
 		for (auto& buffer : m_uniformBuffers)
 		{
