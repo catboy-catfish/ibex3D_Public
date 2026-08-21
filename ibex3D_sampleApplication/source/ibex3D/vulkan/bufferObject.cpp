@@ -14,7 +14,7 @@ bool i3D_vkBufferObject::initialize(VkDevice device, VkPhysicalDevice physDevice
 	bufferInfo.size = size;
 	bufferInfo.usage = usage;
 	bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
+	
 	VkResult result = vkCreateBuffer(device, &bufferInfo, nullptr, &buffer);
 
 	if (result != VK_SUCCESS)

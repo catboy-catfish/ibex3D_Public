@@ -52,6 +52,7 @@
     <ClCompile Include="source\ibex3D\core\application_win32.cpp" />
     <ClCompile Include="source\ibex3D\main_win32.cpp" />
     <ClCompile Include="source\ibex3D\vulkan\validation.cpp" />
+    <ClCompile Include="source\thirdparty\vma\vk_mem_alloc.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="assets\shaders\compile.bat" />

@@ -239,6 +239,7 @@ bool i3D_vkRenderingContext::initialize(void* wndMemory)
 	I3D_BASSERT(initSurface(wndMemory));
 	I3D_BASSERT(initPhysicalDevice());
 	I3D_BASSERT(initLogicalDevice());
+	I3D_BASSERT(initVMA());
 	I3D_BASSERT(initSwapchain(wndWidth, wndHeight));
 	I3D_BASSERT(initRenderPass());
 	I3D_BASSERT(initDescriptorSetLayout());
@@ -258,10 +259,10 @@ bool i3D_vkRenderingContext::drawFrame(float meshRotation)
 {	
 	m_currentMeshRotation = meshRotation;
 	
-	vkWaitForFences(m_logicalDevice, 1, &m_frameFences[m_currentFrame], VK_TRUE, UINT64_MAX);
+	vkWaitForFences(m_device, 1, &m_frameFences[m_currentFrame], VK_TRUE, UINT64_MAX);
 
 	uint32_t imageIndex = 0;
-	VkResult result = vkAcquireNextImageKHR(m_logicalDevice, m_swapchain.swapchain, UINT64_MAX, m_frameSemaphores[m_currentFrame], nullptr, &imageIndex);
+	VkResult result = vkAcquireNextImageKHR(m_device, m_swapchain.swapchain, UINT64_MAX, m_frameSemaphores[m_currentFrame], nullptr, &imageIndex);
 
 	if (result == VK_ERROR_OUT_OF_DATE_KHR)
 	{	
@@ -273,7 +274,7 @@ bool i3D_vkRenderingContext::drawFrame(float meshRotation)
 		return false;
 	}
 
-	vkResetFences(m_logicalDevice, 1, &m_frameFences[m_currentFrame]);
+	vkResetFences(m_device, 1, &m_frameFences[m_currentFrame]);
 	vkResetCommandBuffer(m_commandBuffers[m_currentFrame], 0);
 
 	updateUniformBuffer(m_currentFrame);
@@ -450,9 +451,9 @@ bool i3D_vkRenderingContext::initPhysicalDevice()
 
 	if (candidates.rbegin()->first > 0)
 	{
-		m_physicalDevice = candidates.rbegin()->second;
+		m_physDevice = candidates.rbegin()->second;
 
-		auto maxMsaaSamples = getMaxUsableSampleCount(m_physicalDevice);
+		auto maxMsaaSamples = getMaxUsableSampleCount(m_physDevice);
 		m_msaaSamples = (targetMsaaSamples > maxMsaaSamples) ? maxMsaaSamples : targetMsaaSamples;
 	}
 	else
@@ -466,7 +467,7 @@ bool i3D_vkRenderingContext::initPhysicalDevice()
 
 bool i3D_vkRenderingContext::initLogicalDevice()
 {
-	i3D_vkQueueFamilyIndices indices = i3D_vkUtils::findQueueFamilies(m_physicalDevice, m_surface);
+	i3D_vkQueueFamilyIndices indices = i3D_vkUtils::findQueueFamilies(m_physDevice, m_surface);
 
 	if (!indices.isComplete())
 	{
@@ -517,7 +518,7 @@ bool i3D_vkRenderingContext::initLogicalDevice()
 	logicalDeviceInfo.enabledLayerCount = 0;
 #endif
 
-	VkResult result = vkCreateDevice(m_physicalDevice, &logicalDeviceInfo, nullptr, &m_logicalDevice);
+	VkResult result = vkCreateDevice(m_physDevice, &logicalDeviceInfo, nullptr, &m_device);
 
 	if (result != VK_SUCCESS)
 	{
@@ -525,15 +526,33 @@ bool i3D_vkRenderingContext::initLogicalDevice()
 		return false;
 	}
 
-	vkGetDeviceQueue(m_logicalDevice, indices.graphicsFamily, 0, &m_graphicsQueue);
-	vkGetDeviceQueue(m_logicalDevice, indices.presentFamily, 0, &m_presentQueue);
+	vkGetDeviceQueue(m_device, indices.graphicsFamily, 0, &m_graphicsQueue);
+	vkGetDeviceQueue(m_device, indices.presentFamily, 0, &m_presentQueue);
+
+	return true;
+}
+
+bool i3D_vkRenderingContext::initVMA()
+{
+	VmaAllocatorCreateInfo allocatorCI = {};
+	allocatorCI.instance = m_instance;
+	allocatorCI.physicalDevice = m_physDevice;
+	allocatorCI.device = m_device;
+
+	VkResult result = vmaCreateAllocator(&allocatorCI, &m_allocator);
+	
+	if (result != VK_SUCCESS)
+	{
+		i3D_logErrorMessage("VULKAN ERROR: Failed to create the Vulkan memory allocator. VkResult: %s\n", string_VkResult(result));
+		return false;
+	}
 
 	return true;
 }
 
 bool i3D_vkRenderingContext::initSwapchain(int wndWidth, int wndHeight)
 {	
-	if (!m_swapchain.initSwapchain(m_logicalDevice, m_physicalDevice, m_surface, wndWidth, wndHeight, true))
+	if (!m_swapchain.initSwapchain(m_device, m_physDevice, m_surface, wndWidth, wndHeight, true))
 	{
 		return false;
 	}
@@ -566,7 +585,7 @@ bool i3D_vkRenderingContext::initRenderPass()
 	attachments[1].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	attachments[1].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 	
-	if (!i3D_vkUtils::findDepthFormat(m_physicalDevice, attachments[1].format))
+	if (!i3D_vkUtils::findDepthFormat(m_physDevice, attachments[1].format))
 	{
 		i3D_logErrorMessage("VULKAN ERROR: Couldn't find a suitable format for the render pass depth attachment.\n");
 		return false;
@@ -618,7 +637,7 @@ bool i3D_vkRenderingContext::initRenderPass()
 	renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
 	renderPassInfo.pAttachments = attachments.data();
 
-	VkResult result = vkCreateRenderPass(m_logicalDevice, &renderPassInfo, nullptr, &m_renderPass);
+	VkResult result = vkCreateRenderPass(m_device, &renderPassInfo, nullptr, &m_renderPass);
 
 	if (result != VK_SUCCESS)
 	{
@@ -639,7 +658,7 @@ bool i3D_vkRenderingContext::initDescriptorSetLayout()
 	// shader.frag: layout (binding = 1) uniform sampler2D texSampler;
 	builder.addBinding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT, nullptr);
 
-	m_descriptorSetLayout = builder.buildLayout(m_logicalDevice, 0, nullptr);
+	m_descriptorSetLayout = builder.buildLayout(m_device, 0, nullptr);
 
 	if (m_descriptorSetLayout == nullptr)
 	{
@@ -674,7 +693,7 @@ bool i3D_vkRenderingContext::initGraphicsPipeline()
 	pipelineBuilder.initColorBlendState_disabled();
 	pipelineBuilder.initDepthStencilState_enabled(VK_TRUE, VK_COMPARE_OP_LESS);
 
-	m_pipelineLayout = pipelineBuilder.buildPipelineLayout(m_logicalDevice, 1, &m_descriptorSetLayout, 0, nullptr);
+	m_pipelineLayout = pipelineBuilder.buildPipelineLayout(m_device, 1, &m_descriptorSetLayout, 0, nullptr);
 
 	if (m_pipelineLayout == nullptr)
 	{
@@ -682,20 +701,20 @@ bool i3D_vkRenderingContext::initGraphicsPipeline()
 		return false;
 	}
 
-	VkShaderModule vtxShaderModule = i3D_vkUtils::createShaderModuleFromSPIRV(m_logicalDevice, "assets/shaders/shader_vert.spv");
+	VkShaderModule vtxShaderModule = i3D_vkUtils::createShaderModuleFromSPIRV(m_device, "assets/shaders/shader_vert.spv");
 
 	if (vtxShaderModule == nullptr)
 	{
 		return false;
 	}
 
-	VkShaderModule frgShaderModule = i3D_vkUtils::createShaderModuleFromSPIRV(m_logicalDevice, "assets/shaders/shader_frag.spv");
+	VkShaderModule frgShaderModule = i3D_vkUtils::createShaderModuleFromSPIRV(m_device, "assets/shaders/shader_frag.spv");
 
 	if (frgShaderModule == nullptr)
 	{
 		if (vtxShaderModule != nullptr)
 		{
-			vkDestroyShaderModule(m_logicalDevice, vtxShaderModule, nullptr);
+			vkDestroyShaderModule(m_device, vtxShaderModule, nullptr);
 			vtxShaderModule = nullptr;
 		}
 
@@ -714,7 +733,7 @@ bool i3D_vkRenderingContext::initGraphicsPipeline()
 	shaderStages[1].module = frgShaderModule;
 	shaderStages[1].pName = "main";
 	
-	m_graphicsPipeline = pipelineBuilder.buildGraphicsPipeline(m_logicalDevice, static_cast<uint32_t>(shaderStages.size()), shaderStages.data(), m_pipelineLayout, m_renderPass);
+	m_graphicsPipeline = pipelineBuilder.buildGraphicsPipeline(m_device, static_cast<uint32_t>(shaderStages.size()), shaderStages.data(), m_pipelineLayout, m_renderPass);
 
 	if (m_graphicsPipeline == nullptr)
 	{
@@ -722,13 +741,13 @@ bool i3D_vkRenderingContext::initGraphicsPipeline()
 
 		if (frgShaderModule != nullptr)
 		{
-			vkDestroyShaderModule(m_logicalDevice, frgShaderModule, nullptr);
+			vkDestroyShaderModule(m_device, frgShaderModule, nullptr);
 			frgShaderModule = nullptr;
 		}
 
 		if (vtxShaderModule != nullptr)
 		{
-			vkDestroyShaderModule(m_logicalDevice, vtxShaderModule, nullptr);
+			vkDestroyShaderModule(m_device, vtxShaderModule, nullptr);
 			vtxShaderModule = nullptr;
 		}
 
@@ -737,13 +756,13 @@ bool i3D_vkRenderingContext::initGraphicsPipeline()
 
 	if (frgShaderModule != nullptr)
 	{
-		vkDestroyShaderModule(m_logicalDevice, frgShaderModule, nullptr);
+		vkDestroyShaderModule(m_device, frgShaderModule, nullptr);
 		frgShaderModule = nullptr;
 	}
 	
 	if (vtxShaderModule != nullptr)
 	{
-		vkDestroyShaderModule(m_logicalDevice, vtxShaderModule, nullptr);
+		vkDestroyShaderModule(m_device, vtxShaderModule, nullptr);
 		vtxShaderModule = nullptr;
 	}
 	return true;
@@ -751,7 +770,7 @@ bool i3D_vkRenderingContext::initGraphicsPipeline()
 
 bool i3D_vkRenderingContext::initCommands()
 {
-	i3D_vkQueueFamilyIndices indices = i3D_vkUtils::findQueueFamilies(m_physicalDevice, m_surface);
+	i3D_vkQueueFamilyIndices indices = i3D_vkUtils::findQueueFamilies(m_physDevice, m_surface);
 
 	if (!indices.isComplete())
 	{
@@ -769,7 +788,7 @@ bool i3D_vkRenderingContext::initCommands()
 
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 	{
-		VkResult result = vkCreateCommandPool(m_logicalDevice, &commandPoolInfo, nullptr, &m_commandPools[i]);
+		VkResult result = vkCreateCommandPool(m_device, &commandPoolInfo, nullptr, &m_commandPools[i]);
 
 		if (result != VK_SUCCESS)
 		{
@@ -783,7 +802,7 @@ bool i3D_vkRenderingContext::initCommands()
 		commandBufferInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 		commandBufferInfo.commandBufferCount = 1;
 
-		result = vkAllocateCommandBuffers(m_logicalDevice, &commandBufferInfo, &m_commandBuffers[i]);
+		result = vkAllocateCommandBuffers(m_device, &commandBufferInfo, &m_commandBuffers[i]);
 
 		if (result != VK_SUCCESS)
 		{
@@ -792,7 +811,7 @@ bool i3D_vkRenderingContext::initCommands()
 		}
 	}
 
-	VkResult result = vkCreateCommandPool(m_logicalDevice, &commandPoolInfo, nullptr, &m_immCommandPool);
+	VkResult result = vkCreateCommandPool(m_device, &commandPoolInfo, nullptr, &m_immCommandPool);
 
 	if (result != VK_SUCCESS)
 	{
@@ -805,12 +824,12 @@ bool i3D_vkRenderingContext::initCommands()
 
 bool i3D_vkRenderingContext::initSwapchainResources()
 {	
-	if (!m_swapchain.initColorResources(m_logicalDevice, m_physicalDevice, m_msaaSamples))
+	if (!m_swapchain.initColorResources(m_device, m_physDevice, m_msaaSamples))
 	{
 		return false;
 	}
 	
-	if (!m_swapchain.initDepthResources(m_logicalDevice, m_physicalDevice, m_immCommandPool, m_graphicsQueue, m_msaaSamples))
+	if (!m_swapchain.initDepthResources(m_device, m_physDevice, m_immCommandPool, m_graphicsQueue, m_msaaSamples))
 	{
 		return false;
 	}
@@ -840,7 +859,7 @@ bool i3D_vkRenderingContext::initFramebuffers()
 		framebufferInfo.height = m_swapchain.imageExtent.height;
 		framebufferInfo.layers = 1;
 
-		VkResult result = vkCreateFramebuffer(m_logicalDevice, &framebufferInfo, nullptr, &m_swapchainFramebuffers[i]);
+		VkResult result = vkCreateFramebuffer(m_device, &framebufferInfo, nullptr, &m_swapchainFramebuffers[i]);
 
 		if (result != VK_SUCCESS)
 		{
@@ -854,8 +873,8 @@ bool i3D_vkRenderingContext::initFramebuffers()
 
 bool i3D_vkRenderingContext::initModelAndTexture()
 {	
-	I3D_BASSERT(m_textureClass.initialize(m_logicalDevice, m_physicalDevice, m_immCommandPool, m_graphicsQueue, "assets/images/texture.jpg"));
-	I3D_BASSERT(m_meshClass.initialize(m_logicalDevice, m_physicalDevice, m_immCommandPool, m_graphicsQueue, "assets/models/export3dcoat.obj"));
+	I3D_BASSERT(m_textureClass.initialize_VMA(m_device, m_physDevice, m_allocator, m_immCommandPool, m_graphicsQueue, "assets/images/texture.jpg"));
+	I3D_BASSERT(m_meshClass.initialize(m_device, m_physDevice, m_immCommandPool, m_graphicsQueue, "assets/models/export3dcoat.obj"));
 
 	return true;
 }
@@ -871,8 +890,8 @@ bool i3D_vkRenderingContext::initUniformBuffers()
 	{
 		if (!m_uniformBuffers[i].initialize
 		(
-			m_logicalDevice,
-			m_physicalDevice,
+			m_device,
+			m_physDevice,
 			bufferSize,
 			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
@@ -882,7 +901,7 @@ bool i3D_vkRenderingContext::initUniformBuffers()
 			return false;
 		}
 
-		if (!m_uniformBuffers[i].mapBufferMemory(m_logicalDevice, 0, bufferSize, 0, &m_uniformBuffersMapped[i]))
+		if (!m_uniformBuffers[i].mapBufferMemory(m_device, 0, bufferSize, 0, &m_uniformBuffersMapped[i]))
 		{
 			i3D_logErrorMessage("VULKAN ERROR: Failed to map the memory for one or more of the uniform buffers.\n");
 			return false;
@@ -902,14 +921,14 @@ bool i3D_vkRenderingContext::initDescriptorPoolAndSets()
 	// shader.frag: layout (binding = 1) uniform sampler2D texSampler;
 	m_descriptorAllocator.addPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, MAX_FRAMES_IN_FLIGHT);
 
-	I3D_BASSERT(m_descriptorAllocator.initPool(m_logicalDevice, MAX_FRAMES_IN_FLIGHT, 0, nullptr));
+	I3D_BASSERT(m_descriptorAllocator.initPool(m_device, MAX_FRAMES_IN_FLIGHT, 0, nullptr));
 
 	VkDescriptorSetLayout layouts[MAX_FRAMES_IN_FLIGHT] =
 	{
 		m_descriptorSetLayout, m_descriptorSetLayout
 	};
 
-	I3D_BASSERT(m_descriptorAllocator.allocateSets(m_logicalDevice, MAX_FRAMES_IN_FLIGHT, layouts, nullptr));
+	I3D_BASSERT(m_descriptorAllocator.allocateSets(m_device, MAX_FRAMES_IN_FLIGHT, layouts, nullptr));
 
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 	{
@@ -941,7 +960,7 @@ bool i3D_vkRenderingContext::initDescriptorPoolAndSets()
 		descriptorWrites[1].descriptorCount = 1;
 		descriptorWrites[1].pImageInfo = &imageInfo;
 
-		vkUpdateDescriptorSets(m_logicalDevice, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+		vkUpdateDescriptorSets(m_device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 	}
 
 	return true;
@@ -962,7 +981,7 @@ bool i3D_vkRenderingContext::initSyncObjects()
 
 	for (size_t i = 0; i < m_swapchain.imageCount; i++)
 	{
-		VkResult result = vkCreateSemaphore(m_logicalDevice, &semaphoreInfo, nullptr, &m_swapchainSemaphores[i]);
+		VkResult result = vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_swapchainSemaphores[i]);
 
 		if (result != VK_SUCCESS)
 		{
@@ -973,7 +992,7 @@ bool i3D_vkRenderingContext::initSyncObjects()
 
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 	{
-		VkResult result = vkCreateSemaphore(m_logicalDevice, &semaphoreInfo, nullptr, &m_frameSemaphores[i]);
+		VkResult result = vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_frameSemaphores[i]);
 
 		if (result != VK_SUCCESS)
 		{
@@ -981,7 +1000,7 @@ bool i3D_vkRenderingContext::initSyncObjects()
 			return false;
 		}
 
-		result = vkCreateFence(m_logicalDevice, &fenceInfo, nullptr, &m_frameFences[i]);
+		result = vkCreateFence(m_device, &fenceInfo, nullptr, &m_frameFences[i]);
 
 		if (result != VK_SUCCESS)
 		{
@@ -1080,7 +1099,7 @@ bool i3D_vkRenderingContext::recreateSwapchain()
 		return true;
 	}
 
-	vkDeviceWaitIdle(m_logicalDevice);
+	vkDeviceWaitIdle(m_device);
 	cleanupSwapchain();
 
 	I3D_BASSERT(initSwapchain(wndWidth, wndHeight));
@@ -1098,28 +1117,28 @@ void i3D_vkRenderingContext::cleanupSwapchain()
 	{
 		if (framebuffer != nullptr)
 		{
-			vkDestroyFramebuffer(m_logicalDevice, framebuffer, nullptr);
+			vkDestroyFramebuffer(m_device, framebuffer, nullptr);
 		}
 	}
 
 	m_swapchainFramebuffers.clear();
 	
-	m_swapchain.cleanupDepthResources(m_logicalDevice);
-	m_swapchain.cleanupColorResources(m_logicalDevice);
-	m_swapchain.cleanupSwapchain(m_logicalDevice);
+	m_swapchain.cleanupDepthResources(m_device);
+	m_swapchain.cleanupColorResources(m_device);
+	m_swapchain.cleanupSwapchain(m_device);
 }
 
 void i3D_vkRenderingContext::cleanupLogicalDevice()
 {
-	if (m_logicalDevice != nullptr)
+	if (m_device != nullptr)
 	{
-		vkDeviceWaitIdle(m_logicalDevice);
+		vkDeviceWaitIdle(m_device);
 		
 		for (auto& fence : m_frameFences)
 		{
 			if (fence != nullptr)
 			{
-				vkDestroyFence(m_logicalDevice, fence, nullptr);
+				vkDestroyFence(m_device, fence, nullptr);
 				fence = nullptr;
 			}
 		}
@@ -1130,7 +1149,7 @@ void i3D_vkRenderingContext::cleanupLogicalDevice()
 		{
 			if (semaphore != nullptr)
 			{
-				vkDestroySemaphore(m_logicalDevice, semaphore, nullptr);
+				vkDestroySemaphore(m_device, semaphore, nullptr);
 				semaphore = nullptr;
 			}
 		}
@@ -1141,31 +1160,31 @@ void i3D_vkRenderingContext::cleanupLogicalDevice()
 		{
 			if (semaphore != nullptr)
 			{
-				vkDestroySemaphore(m_logicalDevice, semaphore, nullptr);
+				vkDestroySemaphore(m_device, semaphore, nullptr);
 				semaphore = nullptr;
 			}
 		}
 
 		m_swapchainSemaphores.clear();
 
-		m_descriptorAllocator.cleanupPool(m_logicalDevice);
+		m_descriptorAllocator.cleanupPool(m_device);
 		m_descriptorAllocator.clearSets();
 
 		for (auto& buffer : m_uniformBuffers)
 		{
-			buffer.unmapBufferMemory(m_logicalDevice);
-			buffer.cleanup(m_logicalDevice);
+			buffer.unmapBufferMemory(m_device);
+			buffer.cleanup(m_device);
 		}
 
 		m_uniformBuffers.clear();
 		m_uniformBuffersMapped.clear();
 
-		m_meshClass.cleanup(m_logicalDevice);
-		m_textureClass.cleanup(m_logicalDevice);
+		m_meshClass.cleanup(m_device);
+		m_textureClass.cleanup(m_device, m_allocator);
 
 		if (m_immCommandPool != nullptr)
 		{
-			vkDestroyCommandPool(m_logicalDevice, m_immCommandPool, nullptr);
+			vkDestroyCommandPool(m_device, m_immCommandPool, nullptr);
 			m_immCommandPool = nullptr;
 		}
 
@@ -1173,7 +1192,7 @@ void i3D_vkRenderingContext::cleanupLogicalDevice()
 		{
 			if (pool != nullptr)
 			{
-				vkDestroyCommandPool(m_logicalDevice, pool, nullptr);
+				vkDestroyCommandPool(m_device, pool, nullptr);
 				pool = nullptr;
 			}
 		}
@@ -1183,32 +1202,38 @@ void i3D_vkRenderingContext::cleanupLogicalDevice()
 
 		if (m_graphicsPipeline != nullptr)
 		{
-			vkDestroyPipeline(m_logicalDevice, m_graphicsPipeline, nullptr);
+			vkDestroyPipeline(m_device, m_graphicsPipeline, nullptr);
 			m_graphicsPipeline = nullptr;
 		}
 		
 		if (m_pipelineLayout != nullptr)
 		{
-			vkDestroyPipelineLayout(m_logicalDevice, m_pipelineLayout, nullptr);
+			vkDestroyPipelineLayout(m_device, m_pipelineLayout, nullptr);
 			m_pipelineLayout = nullptr;
 		}
 
 		if (m_descriptorSetLayout != nullptr)
 		{
-			vkDestroyDescriptorSetLayout(m_logicalDevice, m_descriptorSetLayout, nullptr);
+			vkDestroyDescriptorSetLayout(m_device, m_descriptorSetLayout, nullptr);
 			m_descriptorSetLayout = nullptr;
 		}
 
 		if (m_renderPass != nullptr)
 		{
-			vkDestroyRenderPass(m_logicalDevice, m_renderPass, nullptr);
+			vkDestroyRenderPass(m_device, m_renderPass, nullptr);
 			m_renderPass = nullptr;
 		}
 
 		cleanupSwapchain();
 
-		vkDestroyDevice(m_logicalDevice, nullptr);
-		m_logicalDevice = nullptr;
+		if (m_allocator != nullptr)
+		{
+			vmaDestroyAllocator(m_allocator);
+			m_allocator = nullptr;
+		}
+
+		vkDestroyDevice(m_device, nullptr);
+		m_device = nullptr;
 	}
 }
 

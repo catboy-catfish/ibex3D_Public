@@ -1,6 +1,6 @@
 #pragma once
 
-// #define I3D_LOG_INFOS
+#define I3D_LOG_INFOS
 #define I3D_LOG_WARNINGS
 #define I3D_LOG_ERRORS
 

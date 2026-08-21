@@ -6,6 +6,8 @@
 #include "textureObject.h"
 #include "bufferObject.h"
 
+#include <thirdparty/vma/vk_mem_alloc.h>
+
 // ----------------------------------------------------------------------------------------------------
 
 class i3D_vkRenderingContext
@@ -21,6 +23,7 @@ private:
 	bool initSurface(void* wndMemory);
 	bool initPhysicalDevice();
 	bool initLogicalDevice();
+	bool initVMA();
 	bool initSwapchain(int wndWidth, int wndHeight);
 	bool initRenderPass();
 	bool initDescriptorSetLayout();
@@ -32,7 +35,7 @@ private:
 	bool initUniformBuffers();
 	bool initDescriptorPoolAndSets();
 	bool initSyncObjects();
-
+	
 	void updateUniformBuffer(uint32_t currentImage);
 	bool recordCommandBuffer(VkCommandBuffer buffer, uint32_t imageIndex);
 	bool recreateSwapchain();
@@ -46,8 +49,9 @@ private:
 	VkInstance m_instance = nullptr;
 	VkDebugUtilsMessengerEXT m_debugMessenger = nullptr;
 	VkSurfaceKHR m_surface = nullptr;
-	VkPhysicalDevice m_physicalDevice = nullptr;
-	VkDevice m_logicalDevice = nullptr;
+	VkPhysicalDevice m_physDevice = nullptr;
+	VkDevice m_device = nullptr;
+	VmaAllocator m_allocator = nullptr;
 	VkQueue m_graphicsQueue = nullptr;
 	VkQueue m_presentQueue = nullptr;
 	i3D_vkSwapchainObject m_swapchain;

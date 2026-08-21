@@ -120,6 +120,7 @@
     <ClCompile Include="source\ibex3D\vulkan\gfxPipelineBuilder.cpp">
       <Filter>ibex3D\vulkan\gfxPipelineBuilder</Filter>
     </ClCompile>
+    <ClCompile Include="source\thirdparty\vma\vk_mem_alloc.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="ibex3D">

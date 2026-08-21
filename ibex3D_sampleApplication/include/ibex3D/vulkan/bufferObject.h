@@ -4,6 +4,7 @@
 
 // ----------------------------------------------------------------------------------------------------
 
+// TODO: Figure out how to implement VMA into this
 struct i3D_vkBufferObject
 {
 	VkBuffer buffer = nullptr;

@@ -3,71 +3,14 @@ ibex3D doesn't have any license of its own right now, but when it's ready, I wan
 ---
 
 ibex3D uses multiple third-party libraries with various licenses:
-
-- The LunarG Vulkan SDK 1.4.341.0 - features components under multiple licenses
-
-- OpenGL Mathematics (GLM) by G-Truc Creation - licensed under the Happy Bunny license (modified MIT license).
-
-- stb by Sean T. Barrett (nothings on GitHub) - licensed under the MIT license (Alternative A)
-
-- tinyobjloader by Syoyo Fujita - licensed under the MIT license
+- [Vulkan SDK 1.4.341.1](https://www.google.com/search?q=vulkan+sdk&ie=UTF-8) by LunarG - features components under [multiple licenses](https://vulkan.lunarg.com/license/#/release/record/8028433/linux)
+- [Vulkan Memory Allocator](https://gpuopen.com/vulkan-memory-allocator/) by Advanced Micro Devices - under the MIT license
+- [OpenGL Mathematics (GLM)](https://github.com/g-truc/glm) by G-Truc Creation - under the Happy Bunny license (modified MIT license)
+- [stb](https://github.com/nothings/stb) by Sean T. Barrett (nothings on GitHub) - under the MIT license (Alternative A)
+- [tinyobjloader](https://github.com/tinyobjloader/tinyobjloader) by Syoyo Fujita - under the MIT license
+- [fastgltf](https://github.com/spnda/fastgltf) by Sean Apeler - under the MIT license
 
 and the following assets:
+- [Material ball in 3D-Coat](https://skfb.ly/FrVp) by 3d-coat on Sketchfab - under [Creative Commons Attribution 4.0](http://creativecommons.org/licenses/by/4.0/).
 
-- [Material ball in 3D-Coat](https://skfb.ly/FrVp) by 3d-coat licensed under [Creative Commons Attribution 4.0](http://creativecommons.org/licenses/by/4.0/).
-
----
-
-Vulkan SDK 1.4.341.0 - Various licenses (view the below link for more info)
-
-[LunarG Vulkan SDK License Registry](https://vulkan.lunarg.com/license/#/release/record/8028433/linux)
-
----
-
-OpenGL Mathematics (GLM) - The Happy Bunny License (Modified MIT License)
-
-Copyright (c) 2005 - G-Truc Creation
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-Restrictions: By making use of the Software for military purposes, you choose to make a Bunny unhappy.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
----
-
-stb - MIT License (Alternative A)
-
-Copyright (c) 2017 Sean Barrett
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
----
-
-tinyobjloader - The MIT License (MIT)
-
-Copyright (c) 2012-2019 Syoyo Fujita and many contributors.
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. 
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-
-
-
-
-
-
-
-
-
-
-
+A copy of the licenses for almost every third-party library used can be found at path `ibex3D_sampleApplication/include/thirdparty/`, except for the Vulkan SDK, which contains many different licenses that I can't be bothered to include in this repository right now.
