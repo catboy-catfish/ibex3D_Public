@@ -76,6 +76,7 @@ private:
 
 	i3D_vkTextureObject m_textureClass;
 	i3D_vkMeshObject m_meshClass;
+	i3D_vkMeshObject m_meshClass2;
 
 	float m_aspectRatio = 1.0f;
 	float m_currentMeshRotation = 0.0f;
