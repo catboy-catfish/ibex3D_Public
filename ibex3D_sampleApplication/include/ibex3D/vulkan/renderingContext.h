@@ -26,14 +26,15 @@ private:
 	bool initVMA();
 	bool initSwapchain(int wndWidth, int wndHeight);
 	bool initRenderPass();
-	bool initDescriptorSetLayout();
+	bool initDescriptorSetLayouts();
 	bool initGraphicsPipeline();
+	bool initGraphicsPipeline2();
 	bool initCommands();
 	bool initSwapchainResources();
 	bool initFramebuffers();
 	bool initModelAndTexture();
 	bool initUniformBuffers();
-	bool initDescriptorPoolAndSets();
+	bool initDescriptors();
 	bool initSyncObjects();
 	
 	void updateUniformBuffer(uint32_t currentImage);
@@ -59,7 +60,9 @@ private:
 	i3D_vkDescriptorAllocator m_descriptorAllocator;
 	VkDescriptorSetLayout m_descriptorSetLayout = nullptr;
 	VkPipelineLayout m_pipelineLayout = nullptr;
+	VkPipelineLayout m_pipelineLayout2 = nullptr;
 	VkPipeline m_graphicsPipeline = nullptr;
+	VkPipeline m_graphicsPipeline2 = nullptr;
 	VkCommandPool m_immCommandPool = nullptr;
 
 	VkSampleCountFlagBits m_msaaSamples = VK_SAMPLE_COUNT_1_BIT;
@@ -76,9 +79,9 @@ private:
 
 	i3D_vkTextureObject m_textureClass;
 	i3D_vkMeshObject m_meshClass;
-	i3D_vkMeshObject m_meshClass2;
 
 	float m_aspectRatio = 1.0f;
 	float m_currentMeshRotation = 0.0f;
 	bool m_refreshSwapchain = false;
+	uint32_t m_mysteryCounter = 0;
 };

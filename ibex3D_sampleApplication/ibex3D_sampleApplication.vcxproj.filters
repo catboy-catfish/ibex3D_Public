@@ -227,5 +227,11 @@
     <None Include="assets\shaders\gradient.comp">
       <Filter>assets\shaders</Filter>
     </None>
+    <None Include="assets\shaders\shader2.frag">
+      <Filter>assets\shaders</Filter>
+    </None>
+    <None Include="assets\shaders\shader2.vert">
+      <Filter>assets\shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

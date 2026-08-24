@@ -61,6 +61,8 @@
     <None Include="assets\shaders\include\commonStructs.glsl" />
     <None Include="assets\shaders\shader.frag" />
     <None Include="assets\shaders\shader.vert" />
+    <None Include="assets\shaders\shader2.frag" />
+    <None Include="assets\shaders\shader2.vert" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

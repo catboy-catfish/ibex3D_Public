@@ -242,14 +242,15 @@ bool i3D_vkRenderingContext::initialize(void* wndMemory)
 	I3D_BASSERT(initVMA());
 	I3D_BASSERT(initSwapchain(wndWidth, wndHeight));
 	I3D_BASSERT(initRenderPass());
-	I3D_BASSERT(initDescriptorSetLayout());
+	I3D_BASSERT(initDescriptorSetLayouts());
 	I3D_BASSERT(initGraphicsPipeline());
+	I3D_BASSERT(initGraphicsPipeline2());
 	I3D_BASSERT(initCommands());
 	I3D_BASSERT(initSwapchainResources());
 	I3D_BASSERT(initFramebuffers());
 	I3D_BASSERT(initModelAndTexture());
 	I3D_BASSERT(initUniformBuffers());
-	I3D_BASSERT(initDescriptorPoolAndSets());
+	I3D_BASSERT(initDescriptors());
 	I3D_BASSERT(initSyncObjects());
 	
 	return true;
@@ -648,21 +649,20 @@ bool i3D_vkRenderingContext::initRenderPass()
 	return true;
 }
 
-bool i3D_vkRenderingContext::initDescriptorSetLayout()
+bool i3D_vkRenderingContext::initDescriptorSetLayouts()
 {
 	i3D_vkDescriptorLayoutBuilder builder;
 
 	// shader.vert: layout (binding = 0) uniform UniformBufferObject{} ubo;
-	builder.addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT, nullptr);
-
 	// shader.frag: layout (binding = 1) uniform sampler2D texSampler;
+	builder.addBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT, nullptr);
 	builder.addBinding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT, nullptr);
 
 	m_descriptorSetLayout = builder.buildLayout(m_device, 0, nullptr);
 
 	if (m_descriptorSetLayout == nullptr)
 	{
-		i3D_logErrorMessage("VULKAN ERROR: Failed to create the descriptor set layout for the uniform buffer.\n");
+		i3D_logErrorMessage("VULKAN ERROR: Failed to create the first descriptor set layout.\n");
 		return false;
 	}
 	
@@ -765,6 +765,107 @@ bool i3D_vkRenderingContext::initGraphicsPipeline()
 		vkDestroyShaderModule(m_device, vtxShaderModule, nullptr);
 		vtxShaderModule = nullptr;
 	}
+
+	return true;
+}
+
+bool i3D_vkRenderingContext::initGraphicsPipeline2()
+{
+	i3D_vkGfxPipelineBuilder pipelineBuilder;
+	pipelineBuilder.clearEverything();
+
+	std::vector<VkDynamicState> dynamicStates =
+	{
+		VK_DYNAMIC_STATE_VIEWPORT,
+		VK_DYNAMIC_STATE_SCISSOR
+	};
+
+	pipelineBuilder.initDynamicState(static_cast<uint32_t>(dynamicStates.size()), dynamicStates.data());
+
+	auto bindingDesc = i3D_vkVertex::getBindingDesc();
+	auto attribDescs = i3D_vkVertex::getAttributeDescs();
+
+	pipelineBuilder.initVertexInputState(1, &bindingDesc, static_cast<uint32_t>(attribDescs.size()), attribDescs.data());
+	pipelineBuilder.initInputAssemblyState(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+	pipelineBuilder.initViewportState(m_swapchain.imageExtent);
+	pipelineBuilder.initRasterState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE);
+	pipelineBuilder.initMultisampleState_enabled(m_msaaSamples, VK_TRUE, VK_FALSE, VK_FALSE);
+	pipelineBuilder.initColorBlendState_disabled();
+	pipelineBuilder.initDepthStencilState_enabled(VK_TRUE, VK_COMPARE_OP_LESS);
+
+	m_pipelineLayout2 = pipelineBuilder.buildPipelineLayout(m_device, 1, &m_descriptorSetLayout, 0, nullptr);
+
+	if (m_pipelineLayout2 == nullptr)
+	{
+		i3D_logErrorMessage("VULKAN ERROR: Failed to create the graphics pipeline layout.\n");
+		return false;
+	}
+
+	VkShaderModule vtxShaderModule = i3D_vkUtils::createShaderModuleFromSPIRV(m_device, "assets/shaders/shader2_vert.spv");
+
+	if (vtxShaderModule == nullptr)
+	{
+		return false;
+	}
+
+	VkShaderModule frgShaderModule = i3D_vkUtils::createShaderModuleFromSPIRV(m_device, "assets/shaders/shader2_frag.spv");
+
+	if (frgShaderModule == nullptr)
+	{
+		if (vtxShaderModule != nullptr)
+		{
+			vkDestroyShaderModule(m_device, vtxShaderModule, nullptr);
+			vtxShaderModule = nullptr;
+		}
+
+		return false;
+	}
+
+	std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages = { {} };
+
+	shaderStages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	shaderStages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
+	shaderStages[0].module = vtxShaderModule;
+	shaderStages[0].pName = "main";
+
+	shaderStages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	shaderStages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+	shaderStages[1].module = frgShaderModule;
+	shaderStages[1].pName = "main";
+
+	m_graphicsPipeline2 = pipelineBuilder.buildGraphicsPipeline(m_device, static_cast<uint32_t>(shaderStages.size()), shaderStages.data(), m_pipelineLayout2, m_renderPass);
+
+	if (m_graphicsPipeline2 == nullptr)
+	{
+		i3D_logErrorMessage("VULKAN ERROR: Failed to create the graphics pipeline.\n");
+
+		if (frgShaderModule != nullptr)
+		{
+			vkDestroyShaderModule(m_device, frgShaderModule, nullptr);
+			frgShaderModule = nullptr;
+		}
+
+		if (vtxShaderModule != nullptr)
+		{
+			vkDestroyShaderModule(m_device, vtxShaderModule, nullptr);
+			vtxShaderModule = nullptr;
+		}
+
+		return false;
+	}
+
+	if (frgShaderModule != nullptr)
+	{
+		vkDestroyShaderModule(m_device, frgShaderModule, nullptr);
+		frgShaderModule = nullptr;
+	}
+
+	if (vtxShaderModule != nullptr)
+	{
+		vkDestroyShaderModule(m_device, vtxShaderModule, nullptr);
+		vtxShaderModule = nullptr;
+	}
+
 	return true;
 }
 
@@ -875,7 +976,6 @@ bool i3D_vkRenderingContext::initModelAndTexture()
 {	
 	I3D_BASSERT(m_textureClass.initialize_VMA(m_device, m_physDevice, m_allocator, m_immCommandPool, m_graphicsQueue, "assets/images/texture.jpg"));
 	I3D_BASSERT(m_meshClass.initialize(m_device, m_physDevice, m_immCommandPool, m_graphicsQueue, "assets/models/export3dcoat.obj"));
-	I3D_BASSERT(m_meshClass2.initialize(m_device, m_physDevice, m_immCommandPool, m_graphicsQueue, "assets/models/testCube.obj"));
 
 	return true;
 }
@@ -912,7 +1012,7 @@ bool i3D_vkRenderingContext::initUniformBuffers()
 	return true;
 }
 
-bool i3D_vkRenderingContext::initDescriptorPoolAndSets()
+bool i3D_vkRenderingContext::initDescriptors()
 {
 	m_descriptorAllocator.clearPoolSizes();
 
@@ -1058,7 +1158,6 @@ bool i3D_vkRenderingContext::recordCommandBuffer(VkCommandBuffer buffer, uint32_
 	renderPassInfo.pClearValues = clearValues;
 
 	vkCmdBeginRenderPass(buffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-	vkCmdBindPipeline(buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline);
 
 	VkViewport viewport = {};
 	viewport.x = 0.0f;
@@ -1073,9 +1172,22 @@ bool i3D_vkRenderingContext::recordCommandBuffer(VkCommandBuffer buffer, uint32_
 	scissor.offset = { 0, 0 };
 	scissor.extent = m_swapchain.imageExtent;
 	vkCmdSetScissor(buffer, 0, 1, &scissor);
+	
+	if (m_mysteryCounter >= 1000)
+	{
+		m_meshClass.draw(buffer, m_graphicsPipeline, m_pipelineLayout, m_descriptorAllocator.descriptorSets[m_currentFrame]);
+	}
+	else
+	{
+		m_meshClass.draw(buffer, m_graphicsPipeline2, m_pipelineLayout2, m_descriptorAllocator.descriptorSets[m_currentFrame]);
+	}
 
-	m_meshClass.draw(buffer, m_pipelineLayout, m_descriptorAllocator.descriptorSets[m_currentFrame]);
-	m_meshClass2.draw(buffer, m_pipelineLayout, m_descriptorAllocator.descriptorSets[m_currentFrame]);
+	m_mysteryCounter++;
+
+	if (m_mysteryCounter >= 2000)
+	{
+		m_mysteryCounter = 0;
+	}
 
 	vkCmdEndRenderPass(buffer);
 
@@ -1181,7 +1293,6 @@ void i3D_vkRenderingContext::cleanupLogicalDevice()
 		m_uniformBuffers.clear();
 		m_uniformBuffersMapped.clear();
 
-		m_meshClass2.cleanup(m_device);
 		m_meshClass.cleanup(m_device);
 		m_textureClass.cleanup(m_device, m_allocator);
 
@@ -1200,8 +1311,20 @@ void i3D_vkRenderingContext::cleanupLogicalDevice()
 			}
 		}
 
-		m_commandBuffers.clear();
 		m_commandPools.clear();
+		m_commandBuffers.clear();
+
+		if (m_graphicsPipeline2 != nullptr)
+		{
+			vkDestroyPipeline(m_device, m_graphicsPipeline2, nullptr);
+			m_graphicsPipeline2 = nullptr;
+		}
+
+		if (m_pipelineLayout2 != nullptr)
+		{
+			vkDestroyPipelineLayout(m_device, m_pipelineLayout2, nullptr);
+			m_pipelineLayout2 = nullptr;
+		}
 
 		if (m_graphicsPipeline != nullptr)
 		{

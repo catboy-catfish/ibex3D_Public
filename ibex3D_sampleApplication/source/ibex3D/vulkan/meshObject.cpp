@@ -217,9 +217,11 @@ bool i3D_vkMeshObject::initialize(VkDevice device, VkPhysicalDevice physDevice, 
 	return true;
 }
 
-void i3D_vkMeshObject::draw(VkCommandBuffer buffer, VkPipelineLayout pipelineLayout, VkDescriptorSet descriptorSet)
+void i3D_vkMeshObject::draw(VkCommandBuffer buffer, VkPipeline pipeline, VkPipelineLayout pipelineLayout, VkDescriptorSet descriptorSet)
 {
 	VkDeviceSize offsets[] = { 0 };
+
+	vkCmdBindPipeline(buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
 	vkCmdBindVertexBuffers(buffer, 0, 1, &vtxIdxBuffer.buffer, offsets);
 	vkCmdBindIndexBuffer(buffer, vtxIdxBuffer.buffer, vtxBufferSize, VK_INDEX_TYPE_UINT32);
