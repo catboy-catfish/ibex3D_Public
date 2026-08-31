@@ -976,6 +976,7 @@ bool i3D_vkRenderingContext::initModelAndTexture()
 {	
 	I3D_BASSERT(m_textureClass.initialize_VMA(m_device, m_physDevice, m_allocator, m_immCommandPool, m_graphicsQueue, "assets/images/texture.jpg"));
 	I3D_BASSERT(m_meshClass.initialize(m_device, m_physDevice, m_immCommandPool, m_graphicsQueue, "assets/models/export3dcoat.obj"));
+	I3D_BASSERT(m_meshClass2.initialize(m_device, m_physDevice, m_immCommandPool, m_graphicsQueue, "assets/models/testCube.obj"));
 
 	return true;
 }
@@ -1173,21 +1174,8 @@ bool i3D_vkRenderingContext::recordCommandBuffer(VkCommandBuffer buffer, uint32_
 	scissor.extent = m_swapchain.imageExtent;
 	vkCmdSetScissor(buffer, 0, 1, &scissor);
 	
-	if (m_mysteryCounter >= 1000)
-	{
-		m_meshClass.draw(buffer, m_graphicsPipeline, m_pipelineLayout, m_descriptorAllocator.descriptorSets[m_currentFrame]);
-	}
-	else
-	{
-		m_meshClass.draw(buffer, m_graphicsPipeline2, m_pipelineLayout2, m_descriptorAllocator.descriptorSets[m_currentFrame]);
-	}
-
-	m_mysteryCounter++;
-
-	if (m_mysteryCounter >= 2000)
-	{
-		m_mysteryCounter = 0;
-	}
+	m_meshClass.draw(buffer, m_graphicsPipeline, m_pipelineLayout, &m_descriptorAllocator.descriptorSets[m_currentFrame]);
+	m_meshClass2.draw(buffer, m_graphicsPipeline2, m_pipelineLayout2, &m_descriptorAllocator.descriptorSets[m_currentFrame]);
 
 	vkCmdEndRenderPass(buffer);
 
@@ -1293,6 +1281,7 @@ void i3D_vkRenderingContext::cleanupLogicalDevice()
 		m_uniformBuffers.clear();
 		m_uniformBuffersMapped.clear();
 
+		m_meshClass2.cleanup(m_device);
 		m_meshClass.cleanup(m_device);
 		m_textureClass.cleanup(m_device, m_allocator);
 

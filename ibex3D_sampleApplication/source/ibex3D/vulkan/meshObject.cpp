@@ -217,7 +217,7 @@ bool i3D_vkMeshObject::initialize(VkDevice device, VkPhysicalDevice physDevice, 
 	return true;
 }
 
-void i3D_vkMeshObject::draw(VkCommandBuffer buffer, VkPipeline pipeline, VkPipelineLayout pipelineLayout, VkDescriptorSet descriptorSet)
+void i3D_vkMeshObject::draw(VkCommandBuffer buffer, VkPipeline pipeline, VkPipelineLayout pipelineLayout, VkDescriptorSet* pDescriptorSet)
 {
 	VkDeviceSize offsets[] = { 0 };
 
@@ -225,7 +225,7 @@ void i3D_vkMeshObject::draw(VkCommandBuffer buffer, VkPipeline pipeline, VkPipel
 
 	vkCmdBindVertexBuffers(buffer, 0, 1, &vtxIdxBuffer.buffer, offsets);
 	vkCmdBindIndexBuffer(buffer, vtxIdxBuffer.buffer, vtxBufferSize, VK_INDEX_TYPE_UINT32);
-	vkCmdBindDescriptorSets(buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
+	vkCmdBindDescriptorSets(buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, pDescriptorSet, 0, nullptr);
 
 	vkCmdDrawIndexed(buffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 }
