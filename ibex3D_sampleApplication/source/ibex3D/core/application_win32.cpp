@@ -91,7 +91,7 @@ void i3D_application_win32::onKeyUp(WPARAM key)
 	}
 }
 
-bool i3D_application_win32::isKeyDown(int key)
+bool i3D_application_win32::isKeyDown(WPARAM key)
 {
 	return m_keyStates[key];
 }

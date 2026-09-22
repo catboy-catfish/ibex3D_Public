@@ -5,8 +5,8 @@
 - [Assumptions of Prior Experience](#assumptions-of-prior-experience)
   - [Learning resources](#learning-resources)
 - [Program Execution](#program-execution)
-- - [The Entry Point File](#the-entry-point-file)
-    - [Testbed](#testbed)
+- [The Entry Point File](#the-entry-point-file)
+  - [Testbed](#testbed)
 - [Code Conventions](#code-conventions)
 - [Preprocessor Definitions](#preprocessor-definitions)
 - [Contributing](#contributing)
@@ -58,63 +58,62 @@ For general graphics programming, look into:
 - [PardCode - Game Engine Tutorial Series (YouTube playlist)](https://www.youtube.com/playlist?list=PLv8DnRaQOs5-MR-zbP1QUdq5FL0FWqVzg)
 - [PardCode - C++ OpenGL 3D Game Tutorial Series From Scratch (YouTube playlist)](https://www.youtube.com/playlist?list=PLv8DnRaQOs5-TyYnF56YghOxQBNr1VVmF)
 
-I _strongly_ recommend that you don't restrict yourself to just these links and resources. Please feel free to look for other C++/Vulkan/graphics programming tutorials - do a quick google search for "C++ tutorial", "Vulkan tutorial" or "Graphics programming tutorial" - if you ever get confused, or want to deepen or solidify your existing knowledge. If you have any ideas for better resources, please consider adding or suggesting them in this section!
+I *strongly* recommend that you don't restrict yourself to just these links and resources. Please feel free to look for other C++/Vulkan/graphics programming tutorials - do a quick search for "C++ tutorial", "Vulkan tutorial" or "Graphics programming tutorial" - if you ever get confused, or want to deepen or solidify your existing knowledge. If you have any ideas for better resources, please consider adding or suggesting them in this section!
 
 ### Program Execution
 
 The execution for the entire application and game proceeds as follows:
-main.cpp -> [runtime](ibex3D_core_runtime.md) -> [application](ibex3D_core_application.md)
 
-In addition to that, the execution of the `runtime` and `application` classes are split up into three stages: initialization, runtime, and cleanup. The [runtime source file](ibex3D_core_runtime.md) contains a detailed explanation of what this means and what the various stages are responsible for.
+main.cpp -> `i3D_runtime_win32` -> `i3D_application_win32`
+
+The execution of the `i3D_runtime_win32` and `i3D_application_win32` classes are split up into three stages: initialization, runtime, and cleanup. The documentation file for the runtime class contains a detailed explanation of what this means and what the various stages are responsible for.
 
 ##### The Entry Point File
 
-The entry point file for the ibex3D sample application is located at `ibex3D_sampleApplication/source/ibex3D/main.cpp`, where the `ibex3D_sampleApplication` folder is located along this file's parent folder and the `libraries` folder. The source code of this file looks something like this:
+The entry point file for the ibex3D sample application is located at `ibex3D_sampleApplication/source/ibex3D/main_win32.cpp`, where the `ibex3D_sampleApplication` folder is located alongside this file's parent folder and the `libraries` folder. The source code of this file looks something like this:
 
 ```cpp
-#include <ibex3D/core/entryPoint.h>
-#include <ibex3D/core/runtime.h>
+#include <ibex3D/core/runtime_win32.h>
+#include <ibex3D/core/entryPoint_win32.h>
 
-int ibex3D_entryPoint()
-{
-    auto runtime = new runtime;
+// ----------------------------------------------------------------------------------------------------
 
-    if (runtime->initialize(1280, 720, "Hello, ibex3D!"))
-    {
-        runtime->startRunning();
-    }
+int ibex3D_entryPoint() // Fuck off VCR003
+{		
+	auto pRuntime = new i3D_runtime_win32;
 
-    runtime->cleanup();
-    delete runtime;
-    runtime = nullptr;
+	if (pRuntime->initialize(1280, 720, "Hello, ibex3D!"))
+	{
+		pRuntime->startRunning();
+	}
 
-    return 0;
+	pRuntime->cleanup();
+	delete pRuntime;
+
+	return 0;
 }
 ```
 
-The symbol `ibex3D_entryPoint` is a preprocessor macro in `ibex3D_sampleApplication/include/ibex3D/core/entryPoint.h` which simply switches between `main()` (which has an extra console window for debugging) and `WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow)` (with no console window) depending on whether or not `_CONSOLE` is specified, which is itself specified in Debug mode and not in Release mode.
-The source code of that file looks something like this:
+The symbol `ibex3D_entryPoint` is a preprocessor macro in `ibex3D_sampleApplication/include/ibex3D/core/entryPoint.h` which simply switches between `main()` (which has an extra console window for debugging) and `WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow)` (with no console window) depending on whether or not `_DEBUG` is specified, which is itself specified only in Debug mode and not in Release mode. The source code of that file looks something like this:
 
 ```cpp
 #pragma once
 
-#if defined(_CONSOLE)
+// ----------------------------------------------------------------------------------------------------
 
+#ifdef _DEBUG
 #define ibex3D_entryPoint() main()
-
 #else
-
-#include <ibex3D/core/win32.h>
+// #include "ibexWindows.h"
 #define ibex3D_entryPoint() WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow)
-
 #endif
 ```
 
-`<ibex3D/core/win32>` is a platform-specific utility header that includes `<Windows.h>` in order to access the Win32 API, a few preprocessor definitions like `WIN32_LEAN_AND_MEAN` and `NOMINMAX`, as well as `win32Utils`, a class with a few helper functions. The source code won't be pasted here in order to keep the file size down, but you can find it in the header file `include/ibex3D/core/win32.h`.
+`"ibexWindows.h"` is a Windows-specific utility header that includes `<Windows.h>` in order to access the Win32 API, and a few preprocessor definitions like `WIN32_LEAN_AND_MEAN` and `NOMINMAX`. The source code won't be pasted here in order to keep the file size down, but you can find it in the header file `include/ibex3D/core/ibexWindows.h`.
 
 ##### Testbed
 
-In addition to the main entry point file, `source/sampleApp/main.cpp`, the project might also has another entry point .cpp file whose name starts with `testbed_`.
+In addition to the main entry point file, `source/sampleApp/main.cpp`, the project might also have another entry point .cpp file whose name starts with `testbed_`.
 It might be named something like `testbed_simd.cpp` or `testbed_fastgltf.cpp` or `testbed_`whatever`.cpp`.
 Anyways, this file is used for testing functions, classes and stuff in isolation from the main game without making changes to the main.cpp file.
 Note that this file isn't meant to be used in the final executable.
@@ -126,50 +125,125 @@ If you disable `Show All Files` to see the virtual folders, also known as "filte
 
 ### Code Conventions
 
-- **Pointer Non-Null-Ness to Indicate Existence**: To quickly check whether or not a pointer variable has existing memory attached to it, I like to make the assumption that pointers with any non-nullptr value exist, and that pointers with a value of nullptr do not. Here's a code example of how this could be useful:
+- **Self-Explanatory Code**: ibex3D's code is intended to be self-explanatory whenever possible, meaning that it is simple and intuitive by design and should ideally be readable enough for any competent programmer to understand without the use of comments.<br><br>I think the best example of this in ibex3D is in the entry point. You can understand what the code below does, right? Hopefully.
 
 ```cpp
-myClass* someMemory = nullptr; // someMemory starts off with a value of nullptr to indicate that it doesn't exist yet.
+int i3D_entryPoint()
+{		
+	auto pRuntime = new i3D_runtime_win32;
 
-// Creating someMemory if it doesn't exist already, and doing nothing otherwise
-// I don't normally do this myself because I just avoid calling this type of function twice in the first place,
-// but it's still a good example of how you could use this convention.
-bool initialize()
+	if (pRuntime->initialize(1280, 720, "Hello, ibex3D!"))
+	{
+		pRuntime->startRunning();
+	}
+
+	pRuntime->cleanup();
+	delete pRuntime;
+
+	return 0;
+}
+```
+
+- **Class Name Prefixes**: Classes/structs that are specifically a part of ibex3D use the prefix `i3D_` in their names (e.g. `i3D_vec4`), and those that aren't a part of ibex3D don't require it. Classes/structs that use Vulkan use the prefix `vk` (e.g. `vkRenderingContext`). Prefixes can also be mixed, so an ibex3D class that uses Vulkan can be given the prefix `i3D_vk`, for example.
+
+- **Most Failing Functions Return Booleans**: With minor exceptions, all functions that can fail should return a boolean value (`true` or `false`) upon completion. If the function completes execution without any issues, it should return `true`, but if it runs into an error or otherwise fails, it should return `false`. This is done so that the function's output can be evaluated easily.
+
+```cpp
+bool someFunction()
 {
-    if (someMemory != nullptr) // In the event that someMemory already exists...
+    if (!someOtherFunction())
     {
-        return true; // skip creating it again - also return true to indicate that this isn't an error!
+        // someOtherFunction() has failed
+        return false;
     }
 
-    someMemory = new myClass; // Creating someMemory automatically sets it to a non-nullptr value, which automatically signifies that it now exists.
+    if (!someOtherOtherFunction())
+    {
+        // someOtherOtherFunction() has failed
+        return false;
+    }
+
+    // Both functions were successful
+    return true;
+}
+```
+
+- **Pointer Values**: To quickly check whether or not a pointer variable has existing memory attached to it, I like to make the assumption that pointers with any non-nullptr value have some existing memory attached, and that pointers with a value of nullptr do not. Here's a code example of how this could be useful:
+
+```cpp
+myClass* someMemory = nullptr;
+
+bool initialize()
+{
+    if (someMemory != nullptr)
+    {
+        return true;
+    }
+
+    someMemory = new myClass;
 
     if (!someMemory->initialize())
     {
-        return false; // To contrast with the above check, this IS an error, so the function returns false.
+        return false;
     }
 
     return true;
 }
 
-// Destroying someMemory, but not before checking that it exists first.
 void cleanup()
 {
-    if (someMemory != nullptr) // If someMemory exists... - also prevents an access violation!
+    if (someMemory != nullptr)
     {
         someMemory->cleanup();
-        delete someMemory; // This doesn't do anything to the actual value of the pointer, it just deletes the memory.
-        someMemory = nullptr; // Set someMemory back to nullptr to indicate that it doesn't exist anymore - also prevents a dangling pointer!
+        delete someMemory; // This deletes the memory, but does nothing to the value of the pointer.
+        someMemory = nullptr;
     }
+}
+```
+
+- **Passing Pointers to Functions**: If you create a function using another function that expects a pointer as one of its parameters, please don't pass a pointer to your function's relative parameter to your target function. Instead, the argument of your function should be a pointer and that should be passed to the target function directly. This is done to avoid confusion.
+
+```cpp
+/* DON'T do this! */
+
+bool useObject_wrapper(i3D_object object)
+{
+    // Function prototype: bool useObject(i3D_object* pObject)
+    useObject(&object);
+
+    return true;
+}
+
+void main()
+{
+    i3D_object myObject;
+    useObject_wrapper(myObject);
+}
+
+/* Do this instead! */
+
+bool useObject_wrapper(i3D_object* pObject)
+{
+    useObject(pObject);
+    return true;
+}
+
+void main()
+{
+    i3D_object myObject;
+    useObject_wrapper(&myObject);
 }
 ```
 
 ### Preprocessor Definitions
 
 SIMD:
-- `IBEX3D_SIMD_SSE` - Determines whether the SSE instruction is included and used in the build. If this is not specified, basic SISD instructions are used instead. This is currently only used in `vec4::operator +=`, `operator -=`, `operator *=` and `operator /=`, as well as the function `vec4::unsafeDivideBy()`.
+
+- `I3D_SIMD_SSE` - Determines whether the SSE instruction is included and used in the build. If this is not specified, basic SISD instructions are used instead. This is currently only used in `vec4::operator +=`, `operator -=`, `operator *=` and `operator /=`, as well as the function `vec4::unsafeDivideBy()`.
 
 Vulkan:
-- `IBEX3D_VULKAN_VALIDATION` - Determines whether validation layers (and related helper/extension functions/callbacks) are included and used in the build. If this is not specified, validation layers are disabled, and the functions that use them either do nothing or are excluded entirely. This is currently used in the files `source/ibex3D/vulkan/renderingContext.cpp`, `include/ibex3D/vulkan/vkUtils.h` and `source/ibex3D/vulkan/vkUtils.cpp`.
+
+- `I3D_VULKAN_VALIDATION` - Determines whether validation layers (and related helper/extension functions/callbacks) are included and used in the build. If this is not specified, validation layers are disabled, and the functions that use them either do nothing or are excluded entirely. This is currently used in the files `source/ibex3D/vulkan/renderingContext.cpp`, `include/ibex3D/vulkan/vkUtils.h` and `source/ibex3D/vulkan/vkUtils.cpp`.
 
 ### Contributing
 
@@ -177,9 +251,14 @@ Vulkan:
 
 If you want to create your own documentation, I've personally created a templates folder in order to make your life easier. Files with the `md` file extension should be easily editable with a Markdown text editor like [byxiaozhi's Typedown](https://github.com/byxiaozhi/Typedown) or [this online editor](https://markdownlivepreview.com/). Files ending with `.drawio` must be edited with [draw.io](https://app.diagrams.net/), a free online diagram creation software (note that it requires a browser with JavaScript support).
 
-If you use draw.io to export your diagram as an image, please use the following settings. Choose to export your image as a JPEG, set the Zoom to 200 and the Appearance to Light, and use the snake_case naming convention (all lowercase with words separated by underscores) to name your image file. Then, export it to the media folder in the parent folder of this file.
+If you use draw.io to export your diagram as an image, please use the following settings:
+- Choose to export your image as a JPEG
+- Set the Zoom to 200
+- Set the Appearance to Light
+- Use the snake_case naming convention (all lowercase words separated by underscores) to name your image file
+- Then, export it to the media folder in the parent folder of this file.
 
-![draw.io - Preferred export settings](media/drawio_export_convention.jpg)
+![draw.io - Preferred export settings](media/drawio\_export\_convention.jpg)
 
 ### To-Do List
 
@@ -190,8 +269,7 @@ Documentation:
 
 General/Miscellaneous:
 - Finalize documentation for the rest of the engine
-- Figure out how to render multiple objects in one scene, preferrably with different shaders for each
-- Focus on pimping the engine code and architecture until you have the balls to make actual progress
+- Find out how to move forward and implement what's needed, or focus on pimping the existing code
 - Investigate SDL or GLFW as a more stable, cross-platform replacement for the manual Win32 windowing code
 - Switch from Visual Studio to something like CMake to become more platform and compiler-independent
 - Use meta build systems to exclude platform-specific source code files depending on chosen build platform
@@ -211,4 +289,5 @@ Model importing:
 - Better yet, start using a custom intermediate format for assets that is quickly loadable, efficient and customizable - [The handsome, humble and ever so helpful vkguide.dev has a tutorial for this as well](https://vkguide.dev/docs/extra-chapter/asset_system/).
 
 Math vector types:
+- Figure out how to implement SIMD into the vec4 type more efficiently.
 - Figure out how to implement SIMD into the vec2 and vec3 types

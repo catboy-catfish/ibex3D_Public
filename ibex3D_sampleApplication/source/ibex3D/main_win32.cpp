@@ -3,7 +3,7 @@
 
 // ----------------------------------------------------------------------------------------------------
 
-int ibex3D_entryPoint() // Fuck off VCR003
+int i3D_entryPoint() // Fuck off VCR003
 {		
 	auto pRuntime = new i3D_runtime_win32;
 

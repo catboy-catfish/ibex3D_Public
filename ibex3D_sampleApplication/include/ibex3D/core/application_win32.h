@@ -20,7 +20,7 @@ public:
 	void onKeyDown(WPARAM key);
 	void onKeyAutoRepeat(WPARAM key);
 	void onKeyUp(WPARAM key);
-	bool isKeyDown(int key);
+	bool isKeyDown(WPARAM key);
 
 	void onWindowResize(WORD wndWidth, WORD wndHeight);
 	void onWindowFocus();

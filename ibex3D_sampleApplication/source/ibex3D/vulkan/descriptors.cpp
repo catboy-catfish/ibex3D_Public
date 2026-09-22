@@ -65,19 +65,6 @@ void i3D_vkDescriptorAllocator::clearPoolSizes()
 
 bool i3D_vkDescriptorAllocator::initPool(VkDevice device, uint32_t maxSets, VkDescriptorPoolCreateFlags flags, void* pNext)
 {
-	/*
-	std::vector<VkDescriptorPoolSize> poolSizes;
-
-	for (i3D_vkPoolSizeRatio ratio : poolSizeRatios)
-	{
-		VkDescriptorPoolSize size = {};
-		size.descriptorCount = static_cast<uint32_t>(ratio.ratio * maxSets);
-		size.type = ratio.descriptorType;
-		
-		poolSizes.push_back(size);
-	}
-	*/
-
 	if (poolSizes.empty())
 	{
 		i3D_logErrorMessage("VULKAN ERROR: Couldn't create the descriptor pool because the i3D_vkDescriptorAllocator has no pool sizes.\n");
@@ -91,7 +78,7 @@ bool i3D_vkDescriptorAllocator::initPool(VkDevice device, uint32_t maxSets, VkDe
 	poolCI.pPoolSizes = poolSizes.data();
 	poolCI.flags = flags;
 	poolCI.pNext = pNext;
-	
+
 	VkResult result = vkCreateDescriptorPool(device, &poolCI, nullptr, &descriptorPool);
 
 	if (result != VK_SUCCESS)

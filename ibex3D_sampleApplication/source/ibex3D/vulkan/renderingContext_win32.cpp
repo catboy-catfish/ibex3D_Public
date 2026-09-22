@@ -511,14 +511,6 @@ bool i3D_vkRenderingContext::initLogicalDevice()
 	logicalDeviceInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
 	logicalDeviceInfo.ppEnabledExtensionNames = deviceExtensions.data();
 
-#ifdef I3D_VULKAN_VALIDATION
-	auto instanceLayers = getRequiredInstanceLayers();
-	logicalDeviceInfo.enabledLayerCount = static_cast<uint32_t>(instanceLayers.size());
-	logicalDeviceInfo.ppEnabledLayerNames = instanceLayers.data();
-#else
-	logicalDeviceInfo.enabledLayerCount = 0;
-#endif
-
 	VkResult result = vkCreateDevice(m_physDevice, &logicalDeviceInfo, nullptr, &m_device);
 
 	if (result != VK_SUCCESS)
@@ -1018,9 +1010,8 @@ bool i3D_vkRenderingContext::initDescriptors()
 	m_descriptorAllocator.clearPoolSizes();
 
 	// shader.vert: layout (binding = 0) uniform UniformBufferObject{} ubo;
-	m_descriptorAllocator.addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, MAX_FRAMES_IN_FLIGHT);
-
 	// shader.frag: layout (binding = 1) uniform sampler2D texSampler;
+	m_descriptorAllocator.addPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, MAX_FRAMES_IN_FLIGHT);
 	m_descriptorAllocator.addPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, MAX_FRAMES_IN_FLIGHT);
 
 	I3D_BASSERT(m_descriptorAllocator.initPool(m_device, MAX_FRAMES_IN_FLIGHT, 0, nullptr));
@@ -1033,7 +1024,23 @@ bool i3D_vkRenderingContext::initDescriptors()
 	I3D_BASSERT(m_descriptorAllocator.allocateSets(m_device, MAX_FRAMES_IN_FLIGHT, layouts, nullptr));
 
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-	{
+	{	
+		std::array<VkWriteDescriptorSet, 2> descriptorWrites = { {} };
+
+		descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWrites[0].dstSet = m_descriptorAllocator.descriptorSets[i];
+		descriptorWrites[0].dstBinding = 0;
+		descriptorWrites[0].dstArrayElement = 0;
+		descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		descriptorWrites[0].descriptorCount = 1;
+
+		descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWrites[1].dstSet = m_descriptorAllocator.descriptorSets[i];
+		descriptorWrites[1].dstBinding = 1;
+		descriptorWrites[1].dstArrayElement = 0;
+		descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		descriptorWrites[1].descriptorCount = 1;
+
 		VkDescriptorBufferInfo bufferInfo = {};
 		bufferInfo.buffer = m_uniformBuffers[i].buffer;
 		bufferInfo.offset = 0;
@@ -1043,23 +1050,8 @@ bool i3D_vkRenderingContext::initDescriptors()
 		imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		imageInfo.imageView = m_textureClass.imageView;
 		imageInfo.sampler = m_textureClass.sampler;
-		
-		std::array<VkWriteDescriptorSet, 2> descriptorWrites = { {} };
 
-		descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		descriptorWrites[0].dstSet = m_descriptorAllocator.descriptorSets[i];
-		descriptorWrites[0].dstBinding = 0;
-		descriptorWrites[0].dstArrayElement = 0;
-		descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		descriptorWrites[0].descriptorCount = 1;
 		descriptorWrites[0].pBufferInfo = &bufferInfo;
-
-		descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		descriptorWrites[1].dstSet = m_descriptorAllocator.descriptorSets[i];
-		descriptorWrites[1].dstBinding = 1;
-		descriptorWrites[1].dstArrayElement = 0;
-		descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		descriptorWrites[1].descriptorCount = 1;
 		descriptorWrites[1].pImageInfo = &imageInfo;
 
 		vkUpdateDescriptorSets(m_device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);

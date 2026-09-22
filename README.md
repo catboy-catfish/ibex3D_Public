@@ -21,11 +21,11 @@ ibex3D is not even close to finished. I'm pretty sure this codebase has multiple
 
 - Vulkan Support - Exclusively uses the Vulkan graphics API. You'll need a graphics card with Vulkan support in order to be able to run it. This should be pretty common as Vulkan is widely supported by most modern GPUs.
 
-- LunarG Vulkan SDK 1.4.341.0 - Uses the Vulkan SDK version 1.4.341.0, which you can download and install from [LunarXchange](https://vulkan.lunarg.com/sdk/home). You might be able to run it on other versions (I've personally run it back when it used version 1.3.296.0), but it's necessary that you have the Vulkan SDK installed on your machine. Please make sure that you have an environment variable `VULKAN_SDK` pointing to the Vulkan SDK (this should automatically be managed for you by the Vulkan SDK installer) as the Visual Studio project relies on this variable.
+- LunarG Vulkan SDK - Uses the Vulkan SDK, which you can download and install from [LunarXchange](https://vulkan.lunarg.com/sdk/home). Please make sure that you have an environment variable `VULKAN_SDK` pointing to the Vulkan SDK directory (this should automatically be managed for you by the Vulkan SDK installer) as the Visual Studio project relies on this variable. I've tested ibex3D using SDK versions `1.3.296.0`, `1.4.341.1` and `1.4.357.0`, but I strongly recommend using the latest possible version as it can detect validation layer errors that can't be detected by earlier versions.
 
-- Microsoft Visual Studio 2022 - Uses Microsoft Visual Studio Community 2022 version 17.14.27 and the Microsoft Visual C++ compiler, which you can download and install from [this link](https://visualstudio.microsoft.com/downloads/) (I haven't tested Visual Studio 2026 yet). I want to switch to using something like CMake one day and support different compilers, but I have no idea how to use those right now.
+- Microsoft Visual Studio 2022 - Uses Microsoft Visual Studio Community 2022 version 17.14.27 and the Microsoft Visual C++ compiler, which you can download and install from [this link](https://visualstudio.microsoft.com/downloads/). Visual Studio 2026 can also work if you have MSVC v143 installed or retarget the solution to the latest toolset version. I want to switch to using something like CMake one day and support different compilers, but I have no idea how to use those right now.
 
-- Knowledge of C++, Vulkan and graphics programming - Makes extensive use of all of these, so if you don't have any prior experience with them before working with it, you may quickly become confused and frustrated. In which case, I suggest you check out the Assumptions section in the [_START_HERE.md](documentation/_START_HERE.md) file for ideas on educational resources on working with C++, Vulkan and graphics programming.
+- Knowledge of C++, Vulkan and graphics programming - Makes extensive use of all of these, so if you don't have any prior experience with them before working with ibex3D, you may quickly become confused and frustrated. In which case, I suggest you check out the Assumptions section in the [_START_HERE.md](documentation/_START_HERE.md) file for ideas on educational resources on working with C++, Vulkan and graphics programming.
 
 ### Documentation
 
@@ -37,7 +37,7 @@ Very early work-in-progress documentation can be found in the [documentation fol
 
 ### Model file name notice
 
-I renamed the main model file to `export3dcoat.obbj` (with two b's in the file extension) to get around the .gitignore, which seems to ignore all .obj files no matter if they're from Visual Studio or 3D modeling software. Please rename it to `export3dcoat.obj` (with a single b in the file extension)for the application to work correctly. This also applies to `testCube` and `testSphere.obbj`.
+I renamed the main model files to `testCube.obbj` and `export3dcoat.obbj` (with two b's in the file extension) to get around the .gitignore, which seems to ignore all .obj files no matter if they're from Visual Studio or 3D modeling software. Please rename it to `export3dcoat.obj` (with a single b in the file extension) for the application to work correctly. This also applies to other files with the `obbj` file extension.
 
 ### Shader compilation notice
 

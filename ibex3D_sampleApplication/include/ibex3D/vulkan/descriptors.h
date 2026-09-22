@@ -18,13 +18,11 @@ struct i3D_vkDescriptorLayoutBuilder
 	VkDescriptorSetLayout buildLayout(VkDevice device, VkDescriptorSetLayoutCreateFlags flags, void* pNext);
 };
 
-/*
 struct i3D_vkPoolSizeRatio
 {
 	VkDescriptorType descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
 	float ratio = 0.0f;
 };
-*/
 
 struct i3D_vkDescriptorAllocator
 {
@@ -38,7 +36,7 @@ struct i3D_vkDescriptorAllocator
 	void addPoolSize(VkDescriptorType descType, uint32_t descCount);
 	void clearPoolSizes();
 
-	bool initPool(VkDevice device, uint32_t maxSets, /*const std::vector<i3D_vkPoolSizeRatio>& poolSizeRatios, */ VkDescriptorPoolCreateFlags flags, void* pNext);
+	bool initPool(VkDevice device, uint32_t maxSets, VkDescriptorPoolCreateFlags flags, void* pNext);
 	bool resetPool(VkDevice device);
 	void cleanupPool(VkDevice device);
 
