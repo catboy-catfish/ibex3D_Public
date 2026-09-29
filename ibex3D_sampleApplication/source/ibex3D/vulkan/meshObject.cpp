@@ -1,148 +1,27 @@
 #include <ibex3D/vulkan/meshObject.h>
+#include <ibex3D/vulkan/meshUtils.h>
 #include <ibex3D/vulkan/utils.h>
 
 #include <ibex3D/core/logger.h>
 
 #include <unordered_map>
 
-#define TINYOBJLOADER_IMPLEMENTATION
-#include <thirdparty/tinyobjloader/tiny_obj_loader.h>	// includes map, string and vector
-
-#define GLM_ENABLE_EXPERIMENTAL
-#include <thirdparty/glm/gtx/hash.hpp>
-
 // ----------------------------------------------------------------------------------------------------
 
-namespace std
+bool i3D_vkMeshObject::initVertexIndexBuffer(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue, const char* meshFilePath)
 {
-	template<> struct hash<i3D_vkVertex>
+	i3D_staticMeshLoader loader;
+
+	if (!loader.loadMeshFromObj(meshFilePath))
 	{
-		size_t operator()(i3D_vkVertex const& vertex) const
-		{
-			// The ^ is the bitwise XOR operator.
-			// TODO: Look into hashing to better understand this bullshit. https://en.cppreference.com/cpp/utility/hash
-
-			return ((hash<glm::vec3>()(vertex.vertexPosition) ^ (hash<glm::vec3>()(vertex.vertexNormal) << 1)) >> 1) ^ (hash<glm::vec2>()(vertex.textureCoord) << 1);
-		}
-	};
-}
-
-// ----------------------------------------------------------------------------------------------------
-
-VkVertexInputBindingDescription i3D_vkVertex::getBindingDesc()
-{
-	VkVertexInputBindingDescription bindingDesc = {};
-
-	bindingDesc.binding = 0;
-	bindingDesc.stride = sizeof(i3D_vkVertex);
-	bindingDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
-	return bindingDesc;
-}
-
-std::array<VkVertexInputAttributeDescription, 3> i3D_vkVertex::getAttributeDescs()
-{
-	std::array<VkVertexInputAttributeDescription, 3> attribDescs = {};
-
-	// Position
-	attribDescs[0].binding = 0;
-	attribDescs[0].location = 0;
-	attribDescs[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-	attribDescs[0].offset = offsetof(i3D_vkVertex, vertexPosition);
-
-	// Normals
-	attribDescs[1].binding = 0;
-	attribDescs[1].location = 1;
-	attribDescs[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-	attribDescs[1].offset = offsetof(i3D_vkVertex, vertexNormal);
-
-	// Texture cordinates
-	attribDescs[2].binding = 0;
-	attribDescs[2].location = 2;
-	attribDescs[2].format = VK_FORMAT_R32G32_SFLOAT;
-	attribDescs[2].offset = offsetof(i3D_vkVertex, textureCoord);
-
-	return attribDescs;
-}
-
-// ----------------------------------------------------------------------------------------------------
-
-void i3D_vkMeshObject::initSimpleModel()
-{
-	vertices =
-	{
-		{ { -0.5f, -0.5f,  0.0f }, { 1.0f, 1.0f, 1.0f }, { 1.0f, 0.0f } },
-		{ {  0.5f, -0.5f,  0.0f }, { 1.0f, 1.0f, 1.0f }, { 0.0f, 0.0f } },
-		{ {  0.5f,  0.5f,  0.0f }, { 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f } },
-		{ { -0.5f,  0.5f,  0.0f }, { 1.0f, 1.0f, 1.0f }, { 1.0f, 1.0f } }
-	};
-
-	indices = { 0, 1, 2, 2, 3, 0 };
-}
-
-bool i3D_vkMeshObject::loadObjFromFile(const char* objFilePath)
-{
-	tinyobj::attrib_t attrib;
-	std::vector<tinyobj::shape_t> shapes;
-	std::vector<tinyobj::material_t> materials;
-	std::string err;
-
-	if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, objFilePath))
-	{
-		i3D_logErrorMessage("VULKAN ERROR: Failed to load the Wavefront .obj model file at path \"%s\". Have you ensured that the provided model file path is correct?\n", objFilePath);
 		return false;
 	}
 
-	std::unordered_map<i3D_vkVertex, uint32_t> uniqueVertices{};
-
-	for (const auto& shape : shapes)
-	{
-		for (const auto& index : shape.mesh.indices)
-		{
-			i3D_vkVertex vertex = {};
-
-			int startVertexIdx = 3 * index.vertex_index;
-			int startNormalIdx = 3 * index.normal_index;
-			int startTexCoordIdx = 2 * index.texcoord_index;
-
-			vertex.vertexPosition =
-			{
-				attrib.vertices[startVertexIdx],
-				attrib.vertices[startVertexIdx + 1],
-				attrib.vertices[startVertexIdx + 2]
-			};
-
-			vertex.vertexNormal =
-			{
-				attrib.normals[startNormalIdx],
-				attrib.normals[startNormalIdx + 1],
-				attrib.normals[startNormalIdx + 2]
-			};
-
-			vertex.textureCoord =
-			{
-				attrib.texcoords[startTexCoordIdx],
-				1.0f - attrib.texcoords[startTexCoordIdx + 1],
-			};
-
-			if (uniqueVertices.count(vertex) == 0)
-			{
-				uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
-				vertices.push_back(vertex);
-			}
-
-			indices.push_back(uniqueVertices[vertex]);
-		}
-	}
-
-	return true;
-}
-
-bool i3D_vkMeshObject::initVertexIndexBuffer(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue)
-{
-	vtxBufferSize = sizeof(vertices[0]) * vertices.size();
+	indexCount = static_cast<uint32_t>(loader.getIndexCount());
 	
-	VkDeviceSize idxBufferSize = sizeof(indices[0]) * indices.size();
+	vtxBufferSize = sizeof(loader.vertices[0]) * loader.vertices.size();
+	
+	VkDeviceSize idxBufferSize = sizeof(loader.indices[0]) * loader.indices.size();
 	VkDeviceSize combinedBufferSize = vtxBufferSize + idxBufferSize;
 
 	i3D_vkBufferObject stagingBuffer;
@@ -168,8 +47,8 @@ bool i3D_vkMeshObject::initVertexIndexBuffer(VkDevice device, VkPhysicalDevice p
 		return false;
 	}
 	
-	memcpy(data, vertices.data(), vtxBufferSize);
-	memcpy(static_cast<char*>(data) + vtxBufferSize, indices.data(), idxBufferSize);
+	memcpy(data, loader.vertices.data(), vtxBufferSize);
+	memcpy(static_cast<char*>(data) + vtxBufferSize, loader.indices.data(), idxBufferSize);
 
 	stagingBuffer.unmapBufferMemory(device);
 
@@ -203,13 +82,8 @@ bool i3D_vkMeshObject::initVertexIndexBuffer(VkDevice device, VkPhysicalDevice p
 }
 
 bool i3D_vkMeshObject::initialize(VkDevice device, VkPhysicalDevice physDevice, VkCommandPool cmdPool, VkQueue gfxQueue, const char* meshFilePath)
-{
-	if (!loadObjFromFile(meshFilePath))
-	{
-		return false;
-	}
-	
-	if (!initVertexIndexBuffer(device, physDevice, cmdPool, gfxQueue))
+{	
+	if (!initVertexIndexBuffer(device, physDevice, cmdPool, gfxQueue, meshFilePath))
 	{
 		return false;
 	}
@@ -227,7 +101,7 @@ void i3D_vkMeshObject::draw(VkCommandBuffer buffer, VkPipeline pipeline, VkPipel
 	vkCmdBindIndexBuffer(buffer, vtxIdxBuffer.buffer, vtxBufferSize, VK_INDEX_TYPE_UINT32);
 	vkCmdBindDescriptorSets(buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, pDescriptorSet, 0, nullptr);
 
-	vkCmdDrawIndexed(buffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+	vkCmdDrawIndexed(buffer, indexCount, 1, 0, 0, 0);
 }
 
 void i3D_vkMeshObject::cleanup(VkDevice device)

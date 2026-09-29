@@ -1,5 +1,6 @@
 #include <ibex3D/vulkan/renderingContext.h>
 #include <ibex3D/vulkan/validation.h>
+#include <ibex3D/vulkan/meshUtils.h>
 #include <ibex3D/vulkan/gfxPipelineBuilder.h>
 #include <ibex3D/vulkan/utils.h>
 
@@ -674,8 +675,8 @@ bool i3D_vkRenderingContext::initGraphicsPipeline()
 
 	pipelineBuilder.initDynamicState(static_cast<uint32_t>(dynamicStates.size()), dynamicStates.data());
 
-	auto bindingDesc = i3D_vkVertex::getBindingDesc();
-	auto attribDescs = i3D_vkVertex::getAttributeDescs();
+	auto bindingDesc = i3D_vkGetVertexBindingDesc();
+	auto attribDescs = i3D_vkGetVertexAttributeDescs();
 
 	pipelineBuilder.initVertexInputState(1, &bindingDesc, static_cast<uint32_t>(attribDescs.size()), attribDescs.data());
 	pipelineBuilder.initInputAssemblyState(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
@@ -774,8 +775,8 @@ bool i3D_vkRenderingContext::initGraphicsPipeline2()
 
 	pipelineBuilder.initDynamicState(static_cast<uint32_t>(dynamicStates.size()), dynamicStates.data());
 
-	auto bindingDesc = i3D_vkVertex::getBindingDesc();
-	auto attribDescs = i3D_vkVertex::getAttributeDescs();
+	auto bindingDesc = i3D_vkGetVertexBindingDesc();
+	auto attribDescs = i3D_vkGetVertexAttributeDescs();
 
 	pipelineBuilder.initVertexInputState(1, &bindingDesc, static_cast<uint32_t>(attribDescs.size()), attribDescs.data());
 	pipelineBuilder.initInputAssemblyState(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);

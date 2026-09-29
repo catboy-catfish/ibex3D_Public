@@ -110,16 +110,15 @@ bool i3D_runtime_win32::initApplication()
 
 void i3D_runtime_win32::updateApplication()
 {
-	auto startTime = std::chrono::high_resolution_clock::now();
+	auto endTime = std::chrono::high_resolution_clock::now();
+	float deltaTime = std::chrono::duration<float>(endTime - m_startTime).count();
+	m_startTime = endTime;
 
 	if (m_application != nullptr)
 	{
-		m_application->update(m_deltaTime);
-		m_application->render(m_deltaTime);
+		m_application->update(deltaTime);
+		m_application->render(deltaTime);
 	}
-
-	auto endTime = std::chrono::high_resolution_clock::now();
-	m_deltaTime = std::chrono::duration<float>(endTime - startTime).count();
 }
 
 void i3D_runtime_win32::closeApplication()

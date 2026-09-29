@@ -11,6 +11,7 @@ ibex3D is not even close to finished. I'm pretty sure this codebase has multiple
 - [ibex3D](#ibex3d)
 - [Requirements](#requirements)
 - [Documentation](#documentation)
+- [AI usage disclosure and policy](#ai-usage-disclosure-and-policy)
 - [Model file name notice](#model-file-name-notice)
 - [Shader compilation notice](#shader-compilation-notice)
 - [Special thanks](#special-thanks)
@@ -34,6 +35,14 @@ NOTICE: The documentation is *painfully* unfinished right now, and in addition t
 ```
 
 Very early work-in-progress documentation can be found in the [documentation folder](documentation/). I highly reccommend you start with the [START_HERE](documentation/_START_HERE.md) file, and once you're ready, explore the other files in the folder.
+
+### AI usage disclosure and policy
+
+Usage of generative AI to develop and contribute to ibex3D is heavily frowned upon. I've historically used GitHub Copilot to generate rough commit descriptions, and occasionally to help with documentation and comments, before reviewing and adjusting its output by hand, but I try to avoid it whenever possible.
+
+The source code itself, however, has always been, and hopefully always will be, written and maintained entirely by hand with zero input from any generative AI. Until a way can be found for genAI usage to enhance productivity instead of promoting laziness, engaging in "vibe coding" or submitting AI-generated code to ibex3D without extensive prior review and hand-made adjustments by the operator is **strictly forbidden.**
+
+This is one of the big reasons why ibex3D's development is so sluggish and inconsistent right now, aside from the fact that it's currently only developed by a solo student who only knows the bare minimum about game engine programming.
 
 ### Model file name notice
 

@@ -2,7 +2,7 @@
 
 // ----------------------------------------------------------------------------------------------------
 
-#ifdef _DEBUG
+#ifdef I3D_USE_CONSOLE
 #define i3D_entryPoint() main()
 #else
 // #include "ibexWindows.h"

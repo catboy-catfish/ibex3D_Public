@@ -22,10 +22,12 @@
     <ClInclude Include="include\ibex3D\core\logger.h" />
     <ClInclude Include="include\ibex3D\core\memory.h" />
     <ClInclude Include="include\ibex3D\core\fileAccess.h" />
+    <ClInclude Include="include\ibex3D\meshes\meshLoading.h" />
     <ClInclude Include="include\ibex3D\vulkan\descriptors.h" />
     <ClInclude Include="include\ibex3D\vulkan\meshObject.h" />
     <ClInclude Include="include\ibex3D\vulkan\bufferObject.h" />
     <ClInclude Include="include\ibex3D\vulkan\gfxPipelineBuilder.h" />
+    <ClInclude Include="include\ibex3D\vulkan\meshUtils.h" />
     <ClInclude Include="include\ibex3D\vulkan\renderingContext.h" />
     <ClInclude Include="include\ibex3D\vulkan\swapchainObject.h" />
     <ClInclude Include="include\ibex3D\vulkan\textureObject.h" />
@@ -41,6 +43,7 @@
     <ClCompile Include="source\ibex3D\math\vec4.cpp" />
     <ClCompile Include="source\ibex3D\core\logger.cpp" />
     <ClCompile Include="source\ibex3D\core\fileAccess.cpp" />
+    <ClCompile Include="source\ibex3D\meshes\meshLoading.cpp" />
     <ClCompile Include="source\ibex3D\vulkan\descriptors.cpp" />
     <ClCompile Include="source\ibex3D\vulkan\meshObject.cpp" />
     <ClCompile Include="source\ibex3D\vulkan\bufferObject.cpp" />
@@ -110,7 +113,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>I3D_VULKAN_VALIDATION;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>I3D_USE_CONSOLE;I3D_VULKAN_VALIDATION;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(VULKAN_SDK)/Include/;$(ProjectDir)include/</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -132,7 +135,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>I3D_USE_CONSOLE;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(VULKAN_SDK)/Include/;$(ProjectDir)include/</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -142,7 +145,7 @@
       <FloatingPointModel>Fast</FloatingPointModel>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(VULKAN_SDK)/Lib/;$(ProjectDir)libraries/fastgltf/</AdditionalLibraryDirectories>
       <AdditionalDependencies>vulkan-1.lib;glslang.lib;fastgltf.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>

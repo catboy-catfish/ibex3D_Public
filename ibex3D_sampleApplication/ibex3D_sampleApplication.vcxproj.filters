@@ -64,6 +64,12 @@
     <ClInclude Include="include\ibex3D\vulkan\gfxPipelineBuilder.h">
       <Filter>ibex3D\vulkan\gfxPipelineBuilder</Filter>
     </ClInclude>
+    <ClInclude Include="include\ibex3D\vulkan\meshUtils.h">
+      <Filter>ibex3D\vulkan\meshUtils</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ibex3D\meshes\meshLoading.h">
+      <Filter>ibex3D\meshes</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\ibex3D\vulkan\meshObject.cpp">
@@ -122,6 +128,9 @@
     </ClCompile>
     <ClCompile Include="source\thirdparty\vma\vk_mem_alloc.cpp">
       <Filter>ibex3D\vulkan\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ibex3D\meshes\meshLoading.cpp">
+      <Filter>ibex3D\meshes</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -208,6 +217,12 @@
     </Filter>
     <Filter Include="ibex3D\vulkan\gfxPipelineBuilder">
       <UniqueIdentifier>{c98a9881-5c8f-484d-87ae-4f758865eb1d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\vulkan\meshUtils">
+      <UniqueIdentifier>{9cbd7857-2fca-4cf5-b12e-e8d9d6763d87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ibex3D\meshes">
+      <UniqueIdentifier>{7f2a265b-5e7a-4e89-a0d0-caca9d302a9b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

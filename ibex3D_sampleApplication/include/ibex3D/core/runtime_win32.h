@@ -2,6 +2,8 @@
 
 #include "ibexWindows.h"
 
+#include <chrono>
+
 class i3D_application_win32;
 
 class i3D_runtime_win32
@@ -11,7 +13,8 @@ private:
 
 	i3D_application_win32* m_application = nullptr;
 
-	float m_deltaTime = 0.0f;
+	std::chrono::high_resolution_clock::time_point m_startTime = std::chrono::high_resolution_clock::now();
+
 	bool m_keepRunning = true;
 
 private:
