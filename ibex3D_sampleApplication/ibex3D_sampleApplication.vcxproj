@@ -23,10 +23,11 @@
     <ClInclude Include="include\ibex3D\core\memory.h" />
     <ClInclude Include="include\ibex3D\core\fileAccess.h" />
     <ClInclude Include="include\ibex3D\meshes\meshLoading.h" />
+    <ClInclude Include="include\ibex3D\vulkan\createInfos.h" />
     <ClInclude Include="include\ibex3D\vulkan\descriptors.h" />
+    <ClInclude Include="include\ibex3D\vulkan\gfxPipelineObject.h" />
     <ClInclude Include="include\ibex3D\vulkan\meshObject.h" />
     <ClInclude Include="include\ibex3D\vulkan\bufferObject.h" />
-    <ClInclude Include="include\ibex3D\vulkan\gfxPipelineBuilder.h" />
     <ClInclude Include="include\ibex3D\vulkan\meshUtils.h" />
     <ClInclude Include="include\ibex3D\vulkan\renderingContext.h" />
     <ClInclude Include="include\ibex3D\vulkan\swapchainObject.h" />
@@ -45,9 +46,9 @@
     <ClCompile Include="source\ibex3D\core\fileAccess.cpp" />
     <ClCompile Include="source\ibex3D\meshes\meshLoading.cpp" />
     <ClCompile Include="source\ibex3D\vulkan\descriptors.cpp" />
+    <ClCompile Include="source\ibex3D\vulkan\gfxPipelineObject.cpp" />
     <ClCompile Include="source\ibex3D\vulkan\meshObject.cpp" />
     <ClCompile Include="source\ibex3D\vulkan\bufferObject.cpp" />
-    <ClCompile Include="source\ibex3D\vulkan\gfxPipelineBuilder.cpp" />
     <ClCompile Include="source\ibex3D\vulkan\renderingContext_win32.cpp" />
     <ClCompile Include="source\ibex3D\vulkan\swapchainObject.cpp" />
     <ClCompile Include="source\ibex3D\vulkan\textureObject.cpp" />

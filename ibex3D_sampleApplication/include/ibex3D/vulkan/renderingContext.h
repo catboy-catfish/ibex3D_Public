@@ -2,6 +2,7 @@
 
 #include "swapchainObject.h"
 #include "descriptors.h"
+#include "gfxPipelineObject.h"
 #include "meshObject.h"
 #include "textureObject.h"
 #include "bufferObject.h"
@@ -59,27 +60,29 @@ private:
 	VkRenderPass m_renderPass = nullptr;
 	i3D_vkDescriptorAllocator m_descriptorAllocator;
 	VkDescriptorSetLayout m_descriptorSetLayout = nullptr;
+	/*
 	VkPipelineLayout m_pipelineLayout = nullptr;
 	VkPipelineLayout m_pipelineLayout2 = nullptr;
 	VkPipeline m_graphicsPipeline = nullptr;
 	VkPipeline m_graphicsPipeline2 = nullptr;
+	*/
+	i3D_gfxPipelineObject m_pipeline;
+	i3D_gfxPipelineObject m_pipeline2;
 	VkCommandPool m_immCommandPool = nullptr;
+	i3D_vkTextureObject m_textureClass;
 
 	VkSampleCountFlagBits m_msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 	uint32_t m_currentFrame = 0;
 	
 	std::vector<VkFramebuffer> m_swapchainFramebuffers;
-	std::vector<i3D_vkBufferObject> m_uniformBuffers;
-	std::vector<void*> m_uniformBuffersMapped;
 	std::vector<VkCommandPool> m_commandPools;
 	std::vector<VkCommandBuffer> m_commandBuffers;
+	std::vector<i3D_vkBufferObject> m_uniformBuffers;
+	std::vector<void*> m_uniformBuffersMapped;
 	std::vector<VkSemaphore> m_swapchainSemaphores;
 	std::vector<VkSemaphore> m_frameSemaphores;
 	std::vector<VkFence> m_frameFences;
-
-	i3D_vkTextureObject m_textureClass;
-	i3D_vkMeshObject m_meshClass;
-	i3D_vkMeshObject m_meshClass2;
+	std::vector<i3D_vkMeshObject> m_meshClasses;
 
 	float m_aspectRatio = 1.0f;
 	float m_currentMeshRotation = 0.0f;

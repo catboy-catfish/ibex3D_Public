@@ -1,4 +1,5 @@
 #include <ibex3D/vulkan/renderingContext.h>
+#include <ibex3D/vulkan/createInfos.h>
 #include <ibex3D/vulkan/validation.h>
 #include <ibex3D/vulkan/meshUtils.h>
 #include <ibex3D/vulkan/gfxPipelineBuilder.h>
@@ -664,33 +665,33 @@ bool i3D_vkRenderingContext::initDescriptorSetLayouts()
 
 bool i3D_vkRenderingContext::initGraphicsPipeline()
 {		
-	i3D_vkGfxPipelineBuilder pipelineBuilder;
-	pipelineBuilder.clearEverything();
-
+	VkViewport viewportInfo = viewport(m_swapchain.imageExtent);
+	VkRect2D scissorInfo = scissor(m_swapchain.imageExtent);
+	
 	std::vector<VkDynamicState> dynamicStates =
 	{
 		VK_DYNAMIC_STATE_VIEWPORT,
 		VK_DYNAMIC_STATE_SCISSOR
 	};
 
-	pipelineBuilder.initDynamicState(static_cast<uint32_t>(dynamicStates.size()), dynamicStates.data());
-
 	auto bindingDesc = i3D_vkGetVertexBindingDesc();
 	auto attribDescs = i3D_vkGetVertexAttributeDescs();
 
-	pipelineBuilder.initVertexInputState(1, &bindingDesc, static_cast<uint32_t>(attribDescs.size()), attribDescs.data());
-	pipelineBuilder.initInputAssemblyState(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-	pipelineBuilder.initViewportState(m_swapchain.imageExtent);
-	pipelineBuilder.initRasterState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE);
-	pipelineBuilder.initMultisampleState_enabled(m_msaaSamples, VK_TRUE, VK_FALSE, VK_FALSE);
-	pipelineBuilder.initColorBlendState_disabled();
-	pipelineBuilder.initDepthStencilState_enabled(VK_TRUE, VK_COMPARE_OP_LESS);
+	auto colorBlendAttachment = pipelineColorBlendAttachmentStateCI_noBlending();
 
-	m_pipelineLayout = pipelineBuilder.buildPipelineLayout(m_device, 1, &m_descriptorSetLayout, 0, nullptr);
+	auto dynamicState = pipelineDynamicStateCI(static_cast<uint32_t>(dynamicStates.size()), dynamicStates.data());
+	auto vertexInputState = pipelineVertexInputStateCI(1, &bindingDesc, static_cast<uint32_t>(attribDescs.size()), attribDescs.data());
+	auto inputAssemblyState = pipelineInputAssemblyStateCI(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+	auto viewportState = pipelineViewportStateCI(1, &viewportInfo, 1, &scissorInfo);
+	auto rasterState = pipelineRasterStateCI(VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE);
+	auto multisampleState = pipelineMultisampleStateCI_useMSAA(m_msaaSamples, VK_FALSE, VK_FALSE);
+	auto colorBlendState = pipelineColorBlendStateCI(1, &colorBlendAttachment);
+	auto depthStencilState = pipelineDepthStencilStateCI_useDepth(VK_TRUE, VK_COMPARE_OP_LESS);
 
-	if (m_pipelineLayout == nullptr)
+	auto layoutCI = pipelineLayoutCI(1, &m_descriptorSetLayout, 0, nullptr);
+
+	if (!m_pipeline.initLayout(m_device, &layoutCI))
 	{
-		i3D_logErrorMessage("VULKAN ERROR: Failed to create the graphics pipeline layout.\n");
 		return false;
 	}
 
@@ -705,67 +706,41 @@ bool i3D_vkRenderingContext::initGraphicsPipeline()
 
 	if (frgShaderModule == nullptr)
 	{
-		if (vtxShaderModule != nullptr)
-		{
-			vkDestroyShaderModule(m_device, vtxShaderModule, nullptr);
-			vtxShaderModule = nullptr;
-		}
+		vkDestroyShaderModule(m_device, vtxShaderModule, nullptr);
+		vtxShaderModule = nullptr;
 
 		return false;
 	}
 
 	std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages = { {} };
-
-	shaderStages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-	shaderStages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
-	shaderStages[0].module = vtxShaderModule;
-	shaderStages[0].pName = "main";
+	shaderStages[0] = pipelineShaderStageCI(VK_SHADER_STAGE_VERTEX_BIT, vtxShaderModule, "main");
+	shaderStages[1] = pipelineShaderStageCI(VK_SHADER_STAGE_FRAGMENT_BIT, frgShaderModule, "main");
 	
-	shaderStages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-	shaderStages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-	shaderStages[1].module = frgShaderModule;
-	shaderStages[1].pName = "main";
-	
-	m_graphicsPipeline = pipelineBuilder.buildGraphicsPipeline(m_device, static_cast<uint32_t>(shaderStages.size()), shaderStages.data(), m_pipelineLayout, m_renderPass);
+	auto pipelineCI = graphicsPipelineCI(static_cast<uint32_t>(shaderStages.size()), shaderStages.data(), &vertexInputState, &inputAssemblyState, 
+		&viewportState, &rasterState, &multisampleState, &depthStencilState, &colorBlendState, &dynamicState, m_pipeline.layout, m_renderPass);
 
-	if (m_graphicsPipeline == nullptr)
+	if (!m_pipeline.initPipeline(m_device, &pipelineCI))
 	{
-		i3D_logErrorMessage("VULKAN ERROR: Failed to create the graphics pipeline.\n");
-
-		if (frgShaderModule != nullptr)
-		{
-			vkDestroyShaderModule(m_device, frgShaderModule, nullptr);
-			frgShaderModule = nullptr;
-		}
-
-		if (vtxShaderModule != nullptr)
-		{
-			vkDestroyShaderModule(m_device, vtxShaderModule, nullptr);
-			vtxShaderModule = nullptr;
-		}
-
+		vkDestroyShaderModule(m_device, frgShaderModule, nullptr);
+		vkDestroyShaderModule(m_device, vtxShaderModule, nullptr);
+		frgShaderModule = nullptr;
+		vtxShaderModule = nullptr;
+		
 		return false;
 	}
 
-	if (frgShaderModule != nullptr)
-	{
-		vkDestroyShaderModule(m_device, frgShaderModule, nullptr);
-		frgShaderModule = nullptr;
-	}
-	
-	if (vtxShaderModule != nullptr)
-	{
-		vkDestroyShaderModule(m_device, vtxShaderModule, nullptr);
-		vtxShaderModule = nullptr;
-	}
+	vkDestroyShaderModule(m_device, frgShaderModule, nullptr);
+	vkDestroyShaderModule(m_device, vtxShaderModule, nullptr);
+	frgShaderModule = nullptr;
+	vtxShaderModule = nullptr;
 
 	return true;
 }
 
 bool i3D_vkRenderingContext::initGraphicsPipeline2()
 {
-	i3D_vkGfxPipelineBuilder pipelineBuilder;
-	pipelineBuilder.clearEverything();
+	VkViewport viewportInfo = viewport(m_swapchain.imageExtent);
+	VkRect2D scissorInfo = scissor(m_swapchain.imageExtent);
 
 	std::vector<VkDynamicState> dynamicStates =
 	{
@@ -773,24 +748,24 @@ bool i3D_vkRenderingContext::initGraphicsPipeline2()
 		VK_DYNAMIC_STATE_SCISSOR
 	};
 
-	pipelineBuilder.initDynamicState(static_cast<uint32_t>(dynamicStates.size()), dynamicStates.data());
-
 	auto bindingDesc = i3D_vkGetVertexBindingDesc();
 	auto attribDescs = i3D_vkGetVertexAttributeDescs();
 
-	pipelineBuilder.initVertexInputState(1, &bindingDesc, static_cast<uint32_t>(attribDescs.size()), attribDescs.data());
-	pipelineBuilder.initInputAssemblyState(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-	pipelineBuilder.initViewportState(m_swapchain.imageExtent);
-	pipelineBuilder.initRasterState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE);
-	pipelineBuilder.initMultisampleState_enabled(m_msaaSamples, VK_TRUE, VK_FALSE, VK_FALSE);
-	pipelineBuilder.initColorBlendState_disabled();
-	pipelineBuilder.initDepthStencilState_enabled(VK_TRUE, VK_COMPARE_OP_LESS);
+	auto colorBlendAttachment = pipelineColorBlendAttachmentStateCI_noBlending();
 
-	m_pipelineLayout2 = pipelineBuilder.buildPipelineLayout(m_device, 1, &m_descriptorSetLayout, 0, nullptr);
+	auto dynamicState = pipelineDynamicStateCI(static_cast<uint32_t>(dynamicStates.size()), dynamicStates.data());
+	auto vertexInputState = pipelineVertexInputStateCI(1, &bindingDesc, static_cast<uint32_t>(attribDescs.size()), attribDescs.data());
+	auto inputAssemblyState = pipelineInputAssemblyStateCI(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+	auto viewportState = pipelineViewportStateCI(1, &viewportInfo, 1, &scissorInfo);
+	auto rasterState = pipelineRasterStateCI(VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE);
+	auto multisampleState = pipelineMultisampleStateCI_useMSAA(m_msaaSamples, VK_FALSE, VK_FALSE);
+	auto colorBlendState = pipelineColorBlendStateCI(1, &colorBlendAttachment);
+	auto depthStencilState = pipelineDepthStencilStateCI_useDepth(VK_TRUE, VK_COMPARE_OP_LESS);
 
-	if (m_pipelineLayout2 == nullptr)
+	auto layoutCI = pipelineLayoutCI(1, &m_descriptorSetLayout, 0, nullptr);
+
+	if (!m_pipeline2.initLayout(m_device, &layoutCI))
 	{
-		i3D_logErrorMessage("VULKAN ERROR: Failed to create the graphics pipeline layout.\n");
 		return false;
 	}
 
@@ -805,59 +780,33 @@ bool i3D_vkRenderingContext::initGraphicsPipeline2()
 
 	if (frgShaderModule == nullptr)
 	{
-		if (vtxShaderModule != nullptr)
-		{
-			vkDestroyShaderModule(m_device, vtxShaderModule, nullptr);
-			vtxShaderModule = nullptr;
-		}
+		vkDestroyShaderModule(m_device, vtxShaderModule, nullptr);
+		vtxShaderModule = nullptr;
 
 		return false;
 	}
 
 	std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages = { {} };
+	shaderStages[0] = pipelineShaderStageCI(VK_SHADER_STAGE_VERTEX_BIT, vtxShaderModule, "main");
+	shaderStages[1] = pipelineShaderStageCI(VK_SHADER_STAGE_FRAGMENT_BIT, frgShaderModule, "main");
 
-	shaderStages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-	shaderStages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
-	shaderStages[0].module = vtxShaderModule;
-	shaderStages[0].pName = "main";
+	auto pipelineCI = graphicsPipelineCI(static_cast<uint32_t>(shaderStages.size()), shaderStages.data(), &vertexInputState, &inputAssemblyState,
+		&viewportState, &rasterState, &multisampleState, &depthStencilState, &colorBlendState, &dynamicState, m_pipeline2.layout, m_renderPass);
 
-	shaderStages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-	shaderStages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-	shaderStages[1].module = frgShaderModule;
-	shaderStages[1].pName = "main";
-
-	m_graphicsPipeline2 = pipelineBuilder.buildGraphicsPipeline(m_device, static_cast<uint32_t>(shaderStages.size()), shaderStages.data(), m_pipelineLayout2, m_renderPass);
-
-	if (m_graphicsPipeline2 == nullptr)
+	if (!m_pipeline2.initPipeline(m_device, &pipelineCI))
 	{
-		i3D_logErrorMessage("VULKAN ERROR: Failed to create the graphics pipeline.\n");
-
-		if (frgShaderModule != nullptr)
-		{
-			vkDestroyShaderModule(m_device, frgShaderModule, nullptr);
-			frgShaderModule = nullptr;
-		}
-
-		if (vtxShaderModule != nullptr)
-		{
-			vkDestroyShaderModule(m_device, vtxShaderModule, nullptr);
-			vtxShaderModule = nullptr;
-		}
+		vkDestroyShaderModule(m_device, frgShaderModule, nullptr);
+		vkDestroyShaderModule(m_device, vtxShaderModule, nullptr);
+		frgShaderModule = nullptr;
+		vtxShaderModule = nullptr;
 
 		return false;
 	}
 
-	if (frgShaderModule != nullptr)
-	{
-		vkDestroyShaderModule(m_device, frgShaderModule, nullptr);
-		frgShaderModule = nullptr;
-	}
-
-	if (vtxShaderModule != nullptr)
-	{
-		vkDestroyShaderModule(m_device, vtxShaderModule, nullptr);
-		vtxShaderModule = nullptr;
-	}
+	vkDestroyShaderModule(m_device, frgShaderModule, nullptr);
+	vkDestroyShaderModule(m_device, vtxShaderModule, nullptr);
+	frgShaderModule = nullptr;
+	vtxShaderModule = nullptr;
 
 	return true;
 }
@@ -968,8 +917,12 @@ bool i3D_vkRenderingContext::initFramebuffers()
 bool i3D_vkRenderingContext::initModelAndTexture()
 {	
 	I3D_BASSERT(m_textureClass.initialize_VMA(m_device, m_physDevice, m_allocator, m_immCommandPool, m_graphicsQueue, "assets/images/texture.jpg"));
-	I3D_BASSERT(m_meshClass.initialize(m_device, m_physDevice, m_immCommandPool, m_graphicsQueue, "assets/models/export3dcoat.obj"));
-	I3D_BASSERT(m_meshClass2.initialize(m_device, m_physDevice, m_immCommandPool, m_graphicsQueue, "assets/models/testCube.obj"));
+
+	m_meshClasses.push_back({});
+	I3D_BASSERT(m_meshClasses[0].initialize(m_device, m_physDevice, m_immCommandPool, m_graphicsQueue, "assets/models/export3dcoat.obj"));
+	
+	m_meshClasses.push_back({});
+	I3D_BASSERT(m_meshClasses[1].initialize(m_device, m_physDevice, m_immCommandPool, m_graphicsQueue, "assets/models/testCube.obj"));
 
 	return true;
 }
@@ -1167,8 +1120,8 @@ bool i3D_vkRenderingContext::recordCommandBuffer(VkCommandBuffer buffer, uint32_
 	scissor.extent = m_swapchain.imageExtent;
 	vkCmdSetScissor(buffer, 0, 1, &scissor);
 	
-	m_meshClass.draw(buffer, m_graphicsPipeline, m_pipelineLayout, &m_descriptorAllocator.descriptorSets[m_currentFrame]);
-	m_meshClass2.draw(buffer, m_graphicsPipeline2, m_pipelineLayout2, &m_descriptorAllocator.descriptorSets[m_currentFrame]);
+	m_meshClasses[0].draw(buffer, m_pipeline.pipeline, m_pipeline.layout, &m_descriptorAllocator.descriptorSets[m_currentFrame]);
+	m_meshClasses[1].draw(buffer, m_pipeline2.pipeline, m_pipeline2.layout, &m_descriptorAllocator.descriptorSets[m_currentFrame]);
 
 	vkCmdEndRenderPass(buffer);
 
@@ -1274,8 +1227,13 @@ void i3D_vkRenderingContext::cleanupLogicalDevice()
 		m_uniformBuffers.clear();
 		m_uniformBuffersMapped.clear();
 
-		m_meshClass2.cleanup(m_device);
-		m_meshClass.cleanup(m_device);
+		for (size_t i = m_meshClasses.size(); i > 0; i--)
+		{
+			m_meshClasses[i - 1].cleanup(m_device);
+		}
+
+		m_meshClasses.clear();
+
 		m_textureClass.cleanup(m_device, m_allocator);
 
 		if (m_immCommandPool != nullptr)
@@ -1296,29 +1254,8 @@ void i3D_vkRenderingContext::cleanupLogicalDevice()
 		m_commandPools.clear();
 		m_commandBuffers.clear();
 
-		if (m_graphicsPipeline2 != nullptr)
-		{
-			vkDestroyPipeline(m_device, m_graphicsPipeline2, nullptr);
-			m_graphicsPipeline2 = nullptr;
-		}
-
-		if (m_pipelineLayout2 != nullptr)
-		{
-			vkDestroyPipelineLayout(m_device, m_pipelineLayout2, nullptr);
-			m_pipelineLayout2 = nullptr;
-		}
-
-		if (m_graphicsPipeline != nullptr)
-		{
-			vkDestroyPipeline(m_device, m_graphicsPipeline, nullptr);
-			m_graphicsPipeline = nullptr;
-		}
-		
-		if (m_pipelineLayout != nullptr)
-		{
-			vkDestroyPipelineLayout(m_device, m_pipelineLayout, nullptr);
-			m_pipelineLayout = nullptr;
-		}
+		m_pipeline2.cleanup(m_device);
+		m_pipeline.cleanup(m_device);
 
 		if (m_descriptorSetLayout != nullptr)
 		{
